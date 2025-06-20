@@ -121,7 +121,7 @@ function renderDetails(details) {
     // 'Author(s)',
     'Publisher',
     'Format',
-    'Print length',
+    'Pages',
     'Publication date',
     'Language'
   ];

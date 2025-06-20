@@ -13,7 +13,7 @@ function getDetailBullets() {
     const labelSpan = li.querySelector('span.a-text-bold');
     if (!labelSpan) return;
 
-    const label = labelSpan.textContent
+    let label = labelSpan.textContent
       .replace(/[\u200E\u200F\u202A-\u202E:\u00A0\uFEFF‎‏]/g, '')
       .replace(':', '')
       .trim();
@@ -24,23 +24,31 @@ function getDetailBullets() {
     ) return;
 
     const valueSpan = labelSpan.nextElementSibling;
-    const value = valueSpan?.textContent?.replace(/\s+/g, ' ').trim();
+    let value = valueSpan?.textContent?.replace(/\s+/g, ' ').trim();
 
-    if (label && value) {
-      const match = bookSeriesRegex.exec(label) || bookSeriesRegex.exec(value);
-      if (match) {
-        // Set 'Series' as the value (usually series name or something else)
-        details['Series'] = value;
-        // Extract the book number as 'Series Place'
-        details['Series Place'] = match[1];
-      } else {
-        details[label] = value;
-      }
+    if (!label || !value) return;
+
+    // Handle book series special case
+    const match = bookSeriesRegex.exec(label) || bookSeriesRegex.exec(value);
+    if (match) {
+      details['Series'] = value;
+      details['Series Place'] = match[1];
+      return;
     }
+
+    // Rename "Print length" to "Pages" and extract number only
+    if (label === 'Print length') {
+      label = 'Pages';
+      const pageMatch = value.match(/\d+/);
+      value = pageMatch ? pageMatch[0] : value;
+    }
+
+    details[label] = value;
   });
 
   return details;
 }
+
 
 function getDetails() {
   const title = document.querySelector('#productTitle')?.innerText.trim();
