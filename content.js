@@ -119,6 +119,16 @@ function getSelectedFormat() {
 }
 
 function getBookDescription() {
-  const descEl = document.querySelector('#bookDescription_feature_div .a-expander-content span');
-  return descEl?.textContent.trim() || null;
+  const container = document.querySelector('#bookDescription_feature_div .a-expander-content');
+  if (!container) return '';
+
+  // Get all text from inside the description, ignoring tags like <br>
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
+  let text = '';
+  while (walker.nextNode()) {
+    text += walker.currentNode.nodeValue;
+  }
+
+  return text.trim().replace(/\s+/g, ' ');
 }
+

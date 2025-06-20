@@ -29,6 +29,15 @@
     .value:hover {
       text-decoration: underline;
     }
+    .value.description {
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* Limit to 2 lines */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-height: 3em; /* Optional: controls vertical space */
+    }
+
     .feedback {
       font-size: 12px;
       color: #4d5b71;

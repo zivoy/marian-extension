@@ -161,6 +161,9 @@ function renderRow(container, key, value) {
   val.className = 'value';
   val.textContent = value;
   val.title = 'Click to copy';
+  if (key === 'Description') {
+    val.classList.add('description');
+  }
   val.addEventListener('click', () => copyToClipboard(value, div));
 
   div.appendChild(label);
