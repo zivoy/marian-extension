@@ -172,8 +172,71 @@ function renderRow(container, key, value) {
   container.appendChild(div);
 }
 
+const loadingEl = document.getElementById('loading');
+const errorEl = document.getElementById('error');
+const detailsEl = document.getElementById('details');
 
+function showLoading() {
+  loadingEl.style.display = 'block';
+  errorEl.style.display = 'none';
+  detailsEl.style.display = 'none';
+}
 
-chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-  chrome.tabs.sendMessage(tab.id, 'getDetails', renderDetails);
-});
+function showError(message) {
+  loadingEl.style.display = 'none';
+  errorEl.textContent = message;
+  errorEl.style.display = 'block';
+  detailsEl.style.display = 'none';
+}
+
+function showDetails() {
+  loadingEl.style.display = 'none';
+  errorEl.style.display = 'none';
+  detailsEl.style.display = 'block';
+}
+
+// Polling function to try multiple times before giving up
+function tryGetDetails(retries = 8, delay = 300) {
+  return new Promise((resolve, reject) => {
+    function attempt(remaining) {
+      chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+        if (!tab?.id) {
+          reject('No active tab found.');
+          return;
+        }
+
+        chrome.tabs.sendMessage(tab.id, 'ping', (response) => {
+          if (chrome.runtime.lastError || response !== 'pong') {
+            if (remaining > 0) {
+              setTimeout(() => attempt(remaining - 1), delay);
+            } else {
+              reject('Content script not ready or unavailable.');
+            }
+            return;
+          }
+
+          chrome.tabs.sendMessage(tab.id, 'getDetails', (details) => {
+            if (chrome.runtime.lastError || !details) {
+              reject('Failed to retrieve book details.');
+              return;
+            }
+            resolve(details);
+          });
+        });
+      });
+    }
+    attempt(retries);
+  });
+}
+
+showLoading();
+
+tryGetDetails()
+  .then(details => {
+    showDetails();
+    renderDetails(details);
+  })
+  .catch(err => {
+    showError(err);
+  });
+

@@ -97,15 +97,6 @@ function getAudibleDetails() {
   return details;
 }
 
-
-chrome.runtime.onMessage.addListener((msg, sender, respond) => {
-  if (msg === 'getDetails') {
-    respond(getDetails());
-  }
-});
-
-console.log('[Extension] content.js loaded');
-
 function getHighResImageUrl(src) {
   return src.replace(/\._[^.]+(?=\.)/, '');
 }
@@ -121,14 +112,34 @@ function getSelectedFormat() {
 function getBookDescription() {
   const container = document.querySelector('#bookDescription_feature_div .a-expander-content');
   if (!container) return '';
-
+  
   // Get all text from inside the description, ignoring tags like <br>
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
   let text = '';
   while (walker.nextNode()) {
     text += walker.currentNode.nodeValue;
   }
-
+  
   return text.trim().replace(/\s+/g, ' ');
 }
 
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg === 'ping') {
+    sendResponse('pong');
+  }
+
+  if (msg === 'getDetails') {
+    // Make sure page is loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        sendResponse(getDetails());
+      });
+      // Required for asynchronous response
+      return true;
+    } else {
+      sendResponse(getDetails());
+    }
+  }
+});
+
+console.log('[Extension] content.js loaded');
