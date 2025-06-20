@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Amazon Book Detail Scraper",
+  "version": "1.0",
+  "description": "Extracts book details from Amazon product pages.",
+  "permissions": ["scripting", "activeTab"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Get Book Details"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.amazon.com/*dp/*",
+        "https://www.amazon.com/gp/product/*"
+        ],
+      "js": ["content.js"]
+    }
+  ]
+}
