@@ -31,7 +31,6 @@ function formatDate(dateStr) {
   return dateStr;
 }
 
-
 function downloadFile(filename, content, type) {
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
@@ -61,7 +60,6 @@ function downloadImage(url, isbn13) {
     .catch(err => console.error('Image download failed:', err));
 }
 
-
 function toCSV(obj) {
   const keys = Object.keys(obj).filter(k => k !== 'img');
   const values = keys.map(k => `"${obj[k]}"`);
@@ -69,80 +67,108 @@ function toCSV(obj) {
 }
 
 function renderDetails(details) {
-  console.log('Received details:', details);
+  console.log('[Extension] Rendering details:', details);
   const container = document.getElementById('details');
 
-  // Create a flex wrapper for image + buttons
-  const headerDiv = document.createElement('div');
-  headerDiv.style.display = 'flex';
-  headerDiv.style.alignItems = 'center';
-  headerDiv.style.gap = '10px'; // space between image and buttons
-  container.appendChild(headerDiv);
-
   if (details.img) {
+    const sideBySideWrapper = document.createElement('div');
+    sideBySideWrapper.style.display = 'flex';
+    sideBySideWrapper.style.alignItems = 'center';
+    sideBySideWrapper.style.gap = '1rem';
+
     const img = document.createElement('img');
     img.src = getHighResImageUrl(details.img);
     img.alt = 'Cover Image';
     img.title = 'Click to download';
     img.style.maxWidth = '100px';
-    img.style.height = 'auto';
     img.style.cursor = 'pointer';
-    img.addEventListener('click', () => downloadImage(getHighResImageUrl(details.img), details['ISBN-13']));
-    headerDiv.appendChild(img);
+    img.addEventListener('click', () => downloadImage(details.img, details['ISBN-13']));
+    sideBySideWrapper.appendChild(img);
+
+    const buttonWrapper = document.createElement('div');
+    buttonWrapper.style.display = 'flex';
+    buttonWrapper.style.flexDirection = 'column';
+    buttonWrapper.style.gap = '0.5rem';
+
+    const jsonBtn = document.createElement('button');
+    jsonBtn.textContent = 'Download JSON';
+    jsonBtn.onclick = () => downloadFile('book-details.json', JSON.stringify(details, null, 2), 'application/json');
+
+    const csvBtn = document.createElement('button');
+    csvBtn.textContent = 'Download CSV';
+    csvBtn.onclick = () => downloadFile('book-details.csv', toCSV(details), 'text/csv');
+
+    buttonWrapper.appendChild(jsonBtn);
+    buttonWrapper.appendChild(csvBtn);
+    sideBySideWrapper.appendChild(buttonWrapper);
+
+    container.appendChild(sideBySideWrapper);
   }
 
-  // Buttons container beside image
-  const buttonsDiv = document.createElement('div');
-  buttonsDiv.style.display = 'flex';
-  buttonsDiv.style.flexDirection = 'row';
-  buttonsDiv.style.gap = '10px';
-  headerDiv.appendChild(buttonsDiv);
-
-  const jsonBtn = document.createElement('button');
-  jsonBtn.id = 'download-json';
-  jsonBtn.textContent = 'Download JSON';
-  buttonsDiv.appendChild(jsonBtn);
-
-  const csvBtn = document.createElement('button');
-  csvBtn.id = 'download-csv';
-  csvBtn.textContent = 'Download CSV';
-  buttonsDiv.appendChild(csvBtn);
-
+  // Format date if available
   if (details["Publication date"]) {
     details["Publication date"] = formatDate(details["Publication date"]);
   }
 
-  Object.entries(details).forEach(([key, value]) => {
-    if (key === 'img') return;
+  const orderedKeys = [
+    'title',
+    'Description',
+    'Series',
+    'Series Place',
+    'ISBN-13',
+    'ISBN-10',
+    'ASIN',
+    // 'Author(s)',
+    'Publisher',
+    'Format',
+    'Print length',
+    'Publication date',
+    'Language'
+  ];
+  const rendered = new Set();
 
-    const div = document.createElement('div');
-    div.className = 'row';
-
-    const label = document.createElement('span');
-    label.className = 'label';
-    label.textContent = (key === 'title') ? 'Title:' : `${key}:`;
-
-    const val = document.createElement('span');
-    val.className = 'value';
-    val.textContent = value;
-    val.title = 'Click to copy';
-    val.addEventListener('click', () => copyToClipboard(value, div));
-
-    div.appendChild(label);
-    div.appendChild(document.createTextNode(' '));
-    div.appendChild(val);
-    container.appendChild(div);
+  orderedKeys.forEach(key => {
+    if (key in details) {
+      renderRow(container, key, details[key]);
+      rendered.add(key);
+    }
   });
 
-  // Attach event listeners for buttons
-  jsonBtn.addEventListener('click', () => {
-    downloadFile('book-details.json', JSON.stringify(details, null, 2), 'application/json');
-  });
+  // Determine if there are any remaining keys to render
+  const remainingEntries = Object.entries(details).filter(
+    ([key]) => key !== 'img' && !rendered.has(key)
+  );
 
-  csvBtn.addEventListener('click', () => {
-    downloadFile('book-details.csv', toCSV(details), 'text/csv');
-  });
+  if (remainingEntries.length > 0) {
+    const hr = document.createElement('hr');
+    container.appendChild(hr);
+
+    remainingEntries.forEach(([key, value]) => {
+      renderRow(container, key, value);
+    });
+  }
 }
+
+function renderRow(container, key, value) {
+  const div = document.createElement('div');
+  div.className = 'row';
+
+  const label = document.createElement('span');
+  label.className = 'label';
+  label.textContent = (key === 'title') ? 'Title:' : `${key}:`;
+
+  const val = document.createElement('span');
+  val.className = 'value';
+  val.textContent = value;
+  val.title = 'Click to copy';
+  val.addEventListener('click', () => copyToClipboard(value, div));
+
+  div.appendChild(label);
+  div.appendChild(document.createTextNode(' '));
+  div.appendChild(val);
+  container.appendChild(div);
+}
+
 
 
 chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {

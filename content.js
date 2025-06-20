@@ -3,7 +3,11 @@ function getDetailBullets() {
   const details = {};
 
   const excludeStarts = ['Best Sellers Rank', 'Customer Reviews'];
-  const excludeExact = ['Item Weight', 'Reading age', 'Dimensions', 'Grade level', 'Lexile measure'];
+  const excludeExact = ['Item Weight', 'Reading age', 'Dimensions', 'Grade level', 'Lexile measure',
+    'Accessibility', 'Screen Reader', 'Enhanced typesetting', 'X-Ray', 'Word Wise', 'Page Flip', 'File size'
+  ];
+
+  const bookSeriesRegex = /^Book (\d+) of \d+$/i;
 
   bullets.forEach(li => {
     const labelSpan = li.querySelector('span.a-text-bold');
@@ -23,7 +27,15 @@ function getDetailBullets() {
     const value = valueSpan?.textContent?.replace(/\s+/g, ' ').trim();
 
     if (label && value) {
-      details[label] = value;
+      const match = bookSeriesRegex.exec(label) || bookSeriesRegex.exec(value);
+      if (match) {
+        // Set 'Series' as the value (usually series name or something else)
+        details['Series'] = value;
+        // Extract the book number as 'Series Place'
+        details['Series Place'] = match[1];
+      } else {
+        details[label] = value;
+      }
     }
   });
 
@@ -40,7 +52,7 @@ function getDetails() {
   const format = getSelectedFormat() || '';
   const description = getBookDescription() || '';
 
-  let allDetails = {
+  return {
     title,
     img,
     Description: description,
@@ -48,32 +60,9 @@ function getDetails() {
     ...bookDetails,
     ...audibleDetails,
   };
-
-  const priorityKeys = [
-    'img',
-    'title',
-    'Description',
-    'ISBN-13',
-    'ISBN-10',
-    'ASIN',
-    // 'Author(s)',
-    'Publisher',
-    'Format',
-    'Print length',
-    'Publication date',
-    'Language'
-  ];
-
-  const ordered = {};
-  for (const key of priorityKeys) {
-    if (allDetails[key]) {
-      ordered[key] = allDetails[key];
-      delete allDetails[key];
-    }
-  }
-
-  return { ...ordered, ...allDetails };
 }
+
+
 
 function getAudibleDetails() {
   const table = document.querySelector('#audibleProductDetails table');
