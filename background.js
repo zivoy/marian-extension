@@ -1,5 +1,5 @@
 function updateIcon(tabId, isAllowed) {
-console.log(`Updating icon for tab ${tabId}: ${isAllowed ? 'allowed' : 'not allowed'}`);
+  // console.log(`Updating icon for tab ${tabId}: ${isAllowed ? 'allowed' : 'not allowed'}`);
   chrome.action.setIcon({
     tabId,
     path: isAllowed

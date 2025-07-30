@@ -93,7 +93,7 @@ function renderDetails(details) {
     textWrapper.style.flex = '1';
 
     // Title row
-    if (details.title) {
+    if (details.Title) {
       const titleDiv = document.createElement('div');
       titleDiv.className = 'row';
 
@@ -103,7 +103,7 @@ function renderDetails(details) {
 
       const titleVal = document.createElement('span');
       titleVal.className = 'value title';
-      titleVal.textContent = details.title;
+      titleVal.textContent = details.Title;
       titleVal.title = 'Click to copy';
       titleVal.style.cursor = 'pointer';
       titleVal.addEventListener('click', () => copyToClipboard(details.title, titleDiv));
@@ -156,7 +156,8 @@ function renderDetails(details) {
     'ISBN-13',
     'ISBN-10',
     'ASIN',
-    // 'Author(s)',
+    'Author',
+    'Narrator',
     'Publisher',
     'Reading Format',
     'Edition Format',
@@ -175,7 +176,7 @@ function renderDetails(details) {
   });
 
   Object.entries(details).forEach(([key, value]) => {
-    if (key === 'img' || key === 'title' || key === 'Description' || rendered.has(key)) return;
+    if (key === 'img' || key === 'Title' || key === 'Description' || rendered.has(key)) return;
         renderRow(container, key, value);
   });
 }
