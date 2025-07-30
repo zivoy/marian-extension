@@ -1,32 +1,69 @@
+const includedLabels = [
+    'Author',
+    'Narrator',
+    'Publisher',
+    'Publication date',
+    'Audible.com Release Date',
+    'Program Type',
+    'Language',
+    'Print length',
+    'Listening Length',
+    'ISBN-10',
+    'ISBN-13',
+    'ASIN',
+    'Series',
+    'Series Place',
+  ];
+
+const bookSeriesRegex = /^Book (\d+) of \d+$/i;
+
+function getDetails() {
+  const title = document.querySelector('#productTitle')?.innerText.trim();
+  const imgEl = document.querySelector('#imgBlkFront, #landingImage');
+  const img = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
+
+  const bookDetails = getDetailBullets();
+  const audibleDetails = getAudibleDetails();
+  const description = getBookDescription() || '';
+
+  bookDetails["Edition Format"] = getSelectedFormat() || '';
+  
+  if (bookDetails["Edition Format"] == "Kindle") {
+    bookDetails['Reading Format'] = 'Ebook'; 
+  } else if (bookDetails["Edition Format"] == "Audible") {
+    bookDetails['Reading Format'] = 'Audiobook';
+  } else {
+    bookDetails['Reading Format'] = 'Physical Book';
+  }
+ 
+
+  return {
+    title,
+    img,
+    Description: description,
+    ...bookDetails,
+    ...audibleDetails,
+  };
+}
+
 function getDetailBullets() {
   const bullets = document.querySelectorAll('#detailBullets_feature_div li');
   const details = {};
 
-  const excludeStarts = ['Best Sellers Rank', 'Customer Reviews'];
-  const excludeExact = ['Item Weight', 'Reading age', 'Dimensions', 'Grade level', 'Lexile measure',
-    'Accessibility', 'Screen Reader', 'Enhanced typesetting', 'X-Ray', 'Word Wise', 'Page Flip', 'File size'
-  ];
-
-  const bookSeriesRegex = /^Book (\d+) of \d+$/i;
-
   bullets.forEach(li => {
+    // Identify the edition labels, skip if not found
     const labelSpan = li.querySelector('span.a-text-bold');
     if (!labelSpan) return;
 
+    // Clean up label text
     let label = labelSpan.textContent
       .replace(/[\u200E\u200F\u202A-\u202E:\u00A0\uFEFF‎‏]/g, '')
       .replace(':', '')
       .trim();
 
-    if (
-      excludeExact.includes(label) ||
-      excludeStarts.some(prefix => label.startsWith(prefix))
-    ) return;
-
+    // Fetch and clean the value of the detail
     const valueSpan = labelSpan.nextElementSibling;
     let value = valueSpan?.textContent?.replace(/\s+/g, ' ').trim();
-
-    if (!label || !value) return;
 
     // Handle book series special case
     const match = bookSeriesRegex.exec(label) || bookSeriesRegex.exec(value);
@@ -35,6 +72,17 @@ function getDetailBullets() {
       details['Series Place'] = match[1];
       return;
     }
+
+    // console.log(label, includedLabels.includes(label));
+    // Print debug info for labels not included
+    // skip if not included in the list
+    if (!includedLabels.includes(label)) {
+      console.log(`Label not currently included: "${label}"`);
+      return;
+    }
+
+    // Final check that both label and value are present
+    if (!label || !value) return;
 
     // Rename "Print length" to "Pages" and extract number only
     if (label === 'Print length') {
@@ -50,28 +98,6 @@ function getDetailBullets() {
 }
 
 
-function getDetails() {
-  const title = document.querySelector('#productTitle')?.innerText.trim();
-  const imgEl = document.querySelector('#imgBlkFront, #landingImage');
-  const img = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
-
-  const bookDetails = getDetailBullets();
-  const audibleDetails = getAudibleDetails();
-  const format = getSelectedFormat() || '';
-  const description = getBookDescription() || '';
-
-  return {
-    title,
-    img,
-    Description: description,
-    Format: format,
-    ...bookDetails,
-    ...audibleDetails,
-  };
-}
-
-
-
 function getAudibleDetails() {
   const table = document.querySelector('#audibleProductDetails table');
   if (!table) return {};
@@ -82,17 +108,46 @@ function getAudibleDetails() {
   rows.forEach(row => {
     const label = row.querySelector('th span')?.textContent?.trim();
     const value = row.querySelector('td')?.innerText?.trim();
+    const match = bookSeriesRegex.exec(label) || bookSeriesRegex.exec(value);
 
-    if (
-      label && value &&
-      !label.startsWith('Best Sellers Rank') &&
-      !['Listening Length', 'Program Type', 'Version'].includes(label)
-    ) {
-      if (label === 'Audible.com Release Date') {
-        details['Publication date'] = value;
+    // Handle book series special case
+    if (match) {
+      console.log(match)
+      details['Series'] = value;
+      details['Series Place'] = match[1];
+      return;
+    }
+
+    // console.log(label, includedLabels.includes(label));
+    // Print debug info for labels not included
+    // skip if not included in the list
+    if (!includedLabels.includes(label)) {
+      console.log(`Label not currently included: "${label}"`);
+      return;
+    }
+
+    if (label === 'Audible.com Release Date') {
+      details['Publication date'] = value;
+    } else if (label === 'Program Type') {
+      details['Reading Format'] = value;
+      details['Edition Format'] = "Audible";
+    } else if (label === 'Listening Length') {
+      const timeMatch = value.match(/(\d+)\s*hours?\s*(?:and)?\s*(\d+)?\s*minutes?/i);
+      if (timeMatch) {
+        const arr = [];
+        if (timeMatch[1]) arr.push(`${timeMatch[1]} hours`);
+        if (timeMatch[2]) arr.push(`${timeMatch[2]} minutes`);
+        details['Listening Length'] = arr;
       } else {
-        details[label] = value;
+        details['Listening Length'] = value;
       }
+    } else if (label === 'Narrator' || label === 'Author') {
+      // Handle multiple narrators/authors
+      const names = value.split(/,\s*|\band\b\s*/).map(name => name.trim());
+      details[label] = names.length > 1 ? names : names[0];
+    }
+     else if (label && value) {
+      details[label] = value;
     }
   });
 

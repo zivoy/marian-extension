@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Amazon Book Detail Scraper",
+  "name": "Hardcover Book Extractor",
   "version": "1.0",
   "description": "Extracts book details from Amazon product pages.",
   "permissions": ["scripting", "activeTab"],
@@ -16,5 +16,6 @@
         ],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "post": "As I clean up books and editions, I often find myself scrolling deep into Amazon pages to get details. To reduce RSI, I'm working on a Chrome Extension that will pull the most Hardcover-relevant data, making it easier to click-to-copy fields for pasting in Hardcover. Clicking the image will download a full-res copy to your PC with the ISBN number as its filename. It currently works on book or Audible pages on amazon.com. I can add functionality for GR / TSG if others would find this useful."
 }

@@ -5,7 +5,7 @@ function copyToClipboard(text, labelEl) {
     feedback.textContent = 'Copied!';
     labelEl.appendChild(feedback);
 
-    setTimeout(() => feedback.remove(), 1000);
+    setTimeout(() => feedback.remove(), 8000);
   });
 }
 
@@ -73,7 +73,7 @@ function renderDetails(details) {
   if (details.img) {
     const sideBySideWrapper = document.createElement('div');
     sideBySideWrapper.style.display = 'flex';
-    sideBySideWrapper.style.alignItems = 'center';
+    sideBySideWrapper.style.alignItems = 'flex-start';
     sideBySideWrapper.style.gap = '1rem';
 
     const img = document.createElement('img');
@@ -85,23 +85,55 @@ function renderDetails(details) {
     img.addEventListener('click', () => downloadImage(details.img, details['ISBN-13']));
     sideBySideWrapper.appendChild(img);
 
-    const buttonWrapper = document.createElement('div');
-    buttonWrapper.style.display = 'flex';
-    buttonWrapper.style.flexDirection = 'column';
-    buttonWrapper.style.gap = '0.5rem';
+    const textWrapper = document.createElement('div');
+    textWrapper.style.flex = '1';
 
-    const jsonBtn = document.createElement('button');
-    jsonBtn.textContent = 'Download JSON';
-    jsonBtn.onclick = () => downloadFile('book-details.json', JSON.stringify(details, null, 2), 'application/json');
+    // Title row
+    if (details.title) {
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'row';
 
-    const csvBtn = document.createElement('button');
-    csvBtn.textContent = 'Download CSV';
-    csvBtn.onclick = () => downloadFile('book-details.csv', toCSV(details), 'text/csv');
+      const titleLabel = document.createElement('span');
+      titleLabel.className = 'label';
+      titleLabel.textContent = 'Title:';
 
-    buttonWrapper.appendChild(jsonBtn);
-    buttonWrapper.appendChild(csvBtn);
-    sideBySideWrapper.appendChild(buttonWrapper);
+      const titleVal = document.createElement('span');
+      titleVal.className = 'value title';
+      titleVal.textContent = details.title;
+      titleVal.title = 'Click to copy';
+      titleVal.style.cursor = 'pointer';
+      titleVal.addEventListener('click', () => copyToClipboard(details.title, titleDiv));
 
+      titleDiv.appendChild(titleLabel);
+      titleDiv.appendChild(document.createTextNode(' '));
+      titleDiv.appendChild(titleVal);
+      textWrapper.appendChild(titleDiv);
+    }
+
+    // Description row (truncate if needed via CSS)
+    if (details.Description) {
+      const descDiv = document.createElement('div');
+      descDiv.className = 'row';
+
+      const descLabel = document.createElement('span');
+      descLabel.className = 'label';
+      descLabel.textContent = 'Description:';
+
+      const descVal = document.createElement('span');
+      descVal.className = 'value description';
+      descVal.textContent = details.Description;
+      descVal.title = 'Click to copy';
+      descVal.style.cursor = 'pointer';
+      descVal.addEventListener('click', () => copyToClipboard(details.Description, descDiv));
+
+      descDiv.appendChild(descLabel);
+      descDiv.appendChild(document.createTextNode(' '));
+      descDiv.appendChild(descVal);
+
+      textWrapper.appendChild(descDiv);
+    }
+
+    sideBySideWrapper.appendChild(textWrapper);
     container.appendChild(sideBySideWrapper);
   }
 
@@ -110,9 +142,11 @@ function renderDetails(details) {
     details["Publication date"] = formatDate(details["Publication date"]);
   }
 
+  // Separator below image/title/description block
+  const hr = document.createElement('hr');
+  container.appendChild(hr);
+
   const orderedKeys = [
-    'title',
-    'Description',
     'Series',
     'Series Place',
     'ISBN-13',
@@ -120,7 +154,9 @@ function renderDetails(details) {
     'ASIN',
     // 'Author(s)',
     'Publisher',
-    'Format',
+    'Reading Format',
+    'Edition Format',
+    'Listening Length',
     'Pages',
     'Publication date',
     'Language'
@@ -134,20 +170,12 @@ function renderDetails(details) {
     }
   });
 
-  // Determine if there are any remaining keys to render
-  const remainingEntries = Object.entries(details).filter(
-    ([key]) => key !== 'img' && !rendered.has(key)
-  );
-
-  if (remainingEntries.length > 0) {
-    const hr = document.createElement('hr');
-    container.appendChild(hr);
-
-    remainingEntries.forEach(([key, value]) => {
-      renderRow(container, key, value);
-    });
-  }
+  Object.entries(details).forEach(([key, value]) => {
+    if (key === 'img' || key === 'title' || key === 'Description' || rendered.has(key)) return;
+    renderRow(container, key, value);
+  });
 }
+
 
 function renderRow(container, key, value) {
   const div = document.createElement('div');
@@ -157,18 +185,47 @@ function renderRow(container, key, value) {
   label.className = 'label';
   label.textContent = (key === 'title') ? 'Title:' : `${key}:`;
 
-  const val = document.createElement('span');
-  val.className = 'value';
-  val.textContent = value;
-  val.title = 'Click to copy';
-  if (key === 'Description') {
-    val.classList.add('description');
-  }
-  val.addEventListener('click', () => copyToClipboard(value, div));
-
   div.appendChild(label);
   div.appendChild(document.createTextNode(' '));
-  div.appendChild(val);
+
+  if (Array.isArray(value)) {
+    value.forEach(item => {
+      const itemSpan = document.createElement('span');
+      itemSpan.className = 'value';
+      itemSpan.textContent = item;
+      itemSpan.title = 'Click to copy';
+      itemSpan.style.cursor = 'pointer';
+      if (key === 'Listening Length') {
+        // Only copy the number part (e.g., "9" from "9 Hours")
+        const numberMatch = item.match(/\d+/);
+        const numberOnly = numberMatch ? numberMatch[0] : item;
+        itemSpan.addEventListener('click', () => copyToClipboard(numberOnly, div));
+      } else {
+        itemSpan.addEventListener('click', () => copyToClipboard(item, div));
+      }
+
+      div.appendChild(itemSpan);
+      
+      if (item !== value[value.length - 1]) {
+        if (key === 'Author' || key === 'Narrator') {
+          div.appendChild(document.createTextNode(', ')); // comma between authors/narrators
+        } else {
+          div.appendChild(document.createTextNode(' ')); // space between items
+        }
+      }
+    });
+  } else {
+    const val = document.createElement('span');
+    val.className = 'value';
+    val.textContent = value;
+    val.title = 'Click to copy';
+    if (key === 'Description') {
+      val.classList.add('description');
+    }
+    val.addEventListener('click', () => copyToClipboard(value, div));
+    div.appendChild(val);
+  }
+
   container.appendChild(div);
 }
 
