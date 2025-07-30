@@ -1,14 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "Hardcover Book Extractor",
+  "name": "Marian",
   "version": "1.0",
   "description": "Extracts book details from Amazon product pages.",
   "permissions": ["scripting", "activeTab"],
   "icons": {
-    "16": "icon2.png",
-    "32": "icon2.png",
-    "48": "icon2.png",
-    "128": "icon2.png"
+    "16": "marian.png",
+    "32": "marian.png",
+    "48": "marian.png",
+    "128": "marian.png"
   },
   "action": {
     "default_popup": "popup.html",
@@ -20,7 +20,7 @@
         "https://www.amazon.com/*dp/*",
         "https://www.amazon.com/gp/product/*"
       ],
-      "js": ["content.js"]
+      "js": ["content.js", "popup.js"]
     }
   ]
 }
