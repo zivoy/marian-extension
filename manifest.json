@@ -4,6 +4,12 @@
   "version": "1.0",
   "description": "Extracts book details from Amazon product pages.",
   "permissions": ["scripting", "activeTab"],
+  "icons": {
+    "16": "icon2.png",
+    "32": "icon2.png",
+    "48": "icon2.png",
+    "128": "icon2.png"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_title": "Get Book Details"
@@ -13,9 +19,8 @@
       "matches": [
         "https://www.amazon.com/*dp/*",
         "https://www.amazon.com/gp/product/*"
-        ],
+      ],
       "js": ["content.js"]
     }
-  ],
-  "post": "As I clean up books and editions, I often find myself scrolling deep into Amazon pages to get details. To reduce RSI, I'm working on a Chrome Extension that will pull the most Hardcover-relevant data, making it easier to click-to-copy fields for pasting in Hardcover. Clicking the image will download a full-res copy to your PC with the ISBN number as its filename. It currently works on book or Audible pages on amazon.com. I can add functionality for GR / TSG if others would find this useful."
+  ]
 }
