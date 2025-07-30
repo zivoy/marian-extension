@@ -19,16 +19,19 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg === 'getDetails') {
-    // Make sure page is loaded
+    const send = async () => {
+      const details = await getDetails();
+      sendResponse(details);
+    };
+
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        sendResponse(getDetails());
-      });
-      // Required for asynchronous response
-      return true;
+      document.addEventListener('DOMContentLoaded', send);
     } else {
-      sendResponse(getDetails());
+      send();
     }
+
+    // Important: keep the message channel open for async response
+    return true;
   }
 });
 
