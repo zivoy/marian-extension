@@ -1,3 +1,7 @@
+const loadingEl = document.getElementById('loading');
+const errorEl = document.getElementById('error');
+const detailsEl = document.getElementById('details');
+
 function copyToClipboard(text, labelEl) {
   navigator.clipboard.writeText(text).then(() => {
     const feedback = document.createElement('span');
@@ -172,10 +176,9 @@ function renderDetails(details) {
 
   Object.entries(details).forEach(([key, value]) => {
     if (key === 'img' || key === 'title' || key === 'Description' || rendered.has(key)) return;
-    renderRow(container, key, value);
+        renderRow(container, key, value);
   });
 }
-
 
 function renderRow(container, key, value) {
   const div = document.createElement('div');
@@ -229,9 +232,6 @@ function renderRow(container, key, value) {
   container.appendChild(div);
 }
 
-const loadingEl = document.getElementById('loading');
-const errorEl = document.getElementById('error');
-const detailsEl = document.getElementById('details');
 
 function showLoading() {
   loadingEl.style.display = 'block';
@@ -290,14 +290,22 @@ function tryGetDetails(retries = 8, delay = 300) {
   });
 }
 
-showLoading();
+chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+  const url = tab?.url || "";
 
-tryGetDetails()
-  .then(details => {
-    showDetails();
-    renderDetails(details);
-  })
-  .catch(err => {
-    showError(err);
-  });
+  if (!isAllowedUrl(url)) {
+    showError("This extension only works on supported product pages.");
+    return;
+  }
 
+  showLoading();
+
+  tryGetDetails()
+    .then(details => {
+      showDetails();
+      renderDetails(details);
+    })
+    .catch(err => {
+      showError(err);
+    });
+});

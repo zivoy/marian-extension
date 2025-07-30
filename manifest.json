@@ -3,12 +3,23 @@
   "name": "Marian",
   "version": "1.0",
   "description": "Extracts book details from Amazon product pages.",
-  "permissions": ["scripting", "activeTab"],
+  "permissions": ["scripting", "activeTab", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "classic"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["shared/allowed-patterns.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "icons": {
-    "16": "marian.png",
-    "32": "marian.png",
-    "48": "marian.png",
-    "128": "marian.png"
+    "16": "icons/icon.png",
+    "32": "icons/icon.png",
+    "48": "icons/icon.png",
+    "128": "icons/icon.png"
   },
   "action": {
     "default_popup": "popup.html",
