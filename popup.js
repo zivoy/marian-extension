@@ -267,7 +267,11 @@ function tryGetDetails(retries = 8, delay = 300) {
             if (remaining > 0) {
               setTimeout(() => attempt(remaining - 1), delay);
             } else {
-              reject('Content script not ready or unavailable.');
+              chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+                if (tab?.id) chrome.tabs.reload(tab.id);
+              });
+              setTimeout(() => location.reload(), 1500);
+              reject('Content script not ready or unavailable. Refreshing Page...');
             }
             return;
           }
@@ -278,7 +282,7 @@ function tryGetDetails(retries = 8, delay = 300) {
               return;
             }
             resolve(details);
-          });
+            });
         });
       });
     }
