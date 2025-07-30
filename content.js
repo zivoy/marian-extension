@@ -112,7 +112,6 @@ function getAudibleDetails() {
 
     // Handle book series special case
     if (match) {
-      console.log(match)
       details['Series'] = value;
       details['Series Place'] = match[1];
       return;
@@ -122,7 +121,7 @@ function getAudibleDetails() {
     // Print debug info for labels not included
     // skip if not included in the list
     if (!includedLabels.includes(label)) {
-      console.log(`Label not currently included: "${label}"`);
+      // console.log(`Label not currently included: "${label}"`);
       return;
     }
 

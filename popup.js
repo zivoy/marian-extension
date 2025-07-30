@@ -290,22 +290,24 @@ function tryGetDetails(retries = 8, delay = 300) {
   });
 }
 
-chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-  const url = tab?.url || "";
+document.addEventListener("DOMContentLoaded", () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+    const url = tab?.url || "";
 
-  if (!isAllowedUrl(url)) {
-    showError("This extension only works on supported product pages.");
-    return;
-  }
+    if (!isAllowedUrl(url)) {
+      showError("This extension only works on supported product pages.");
+      return;
+    }
 
-  showLoading();
+    showLoading();
 
-  tryGetDetails()
-    .then(details => {
-      showDetails();
-      renderDetails(details);
-    })
-    .catch(err => {
-      showError(err);
-    });
+    tryGetDetails()
+      .then(details => {
+        showDetails();
+        renderDetails(details);
+      })
+      .catch(err => {
+        showError(err);
+      });
+  });
 });
