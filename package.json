@@ -1,0 +1,23 @@
+{
+  "name": "hardcover-librarian",
+  "version": "1.0.0",
+  "description": "",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jacobtender/hardcover-librarian.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jacobtender/hardcover-librarian/issues"
+  },
+  "homepage": "https://github.com/jacobtender/hardcover-librarian#readme",
+  "devDependencies": {
+    "esbuild": "^0.25.8"
+  }
+}

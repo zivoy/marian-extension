@@ -29,9 +29,12 @@
     {
       "matches": [
         "https://www.amazon.com/*dp/*",
-        "https://www.amazon.com/gp/product/*"
+        "https://www.amazon.com/gp/product/*",
+        "https://www.goodreads.com/book/show/*",
+        "https://app.thestorygraph.com/books/*"
       ],
-      "js": ["content.js", "popup.js"]
+      "oldjs": ["content.js", "popup.js"],
+      "js": ["dist/content.js"]
     }
   ]
 }
