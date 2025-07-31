@@ -1,0 +1,48 @@
+{
+    "manifest_version": 2,
+    "name": "Marian",
+    "version": "1.1.0",
+    "author": "Jacob Tender",
+    "description": "Extracts book details from Amazon product pages. Created for the fine librarian corps of Hardcover.app.",
+    "homepage_url": "https://hardcover.app/join?referrer_id=8753",
+    "support_url": "https://jacobtender.net",
+    "permissions": [
+      "activeTab",
+      "tabs"
+    ],
+    "background": {
+      "scripts": ["background.js"],
+      "persistent": true
+    },
+    "web_accessible_resources": [
+      "shared/allowed-patterns.js"
+    ],
+    "icons": {
+      "16": "icons/icon.png",
+      "32": "icons/icon.png",
+      "48": "icons/icon.png",
+      "128": "icons/icon.png"
+    },
+    "browser_action": {
+      "default_popup": "popup.html",
+      "default_title": "Get Book Details",
+      "default_icon": {
+        "16": "icons/icon.png",
+        "32": "icons/icon.png",
+        "48": "icons/icon.png",
+        "128": "icons/icon.png"
+      }
+    },
+    "content_scripts": [
+      {
+        "matches": [
+          "https://www.amazon.com/*dp/*",
+          "https://www.amazon.com/gp/product/*",
+          "https://www.goodreads.com/book/show/*",
+          "https://app.thestorygraph.com/books/*"
+        ],
+        "js": ["dist/content.js"]
+      }
+    ]
+  }
+  

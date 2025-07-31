@@ -1,0 +1,47 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+  release:
+    types:
+      - published
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: node build.js
+
+      - name: Zip browser builds (only for release)
+        if: github.event_name == 'release'
+        run: |
+          cd distro
+          zip -r chrome.zip chrome/
+          zip -r firefox.zip firefox/
+          mkdir -p ../packaged
+          mv chrome.zip firefox.zip ../packaged/
+
+      - name: Upload zips to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            packaged/chrome.zip
+            packaged/firefox.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
