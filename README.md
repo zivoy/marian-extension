@@ -47,7 +47,10 @@ This script:
 
 ---
 
+
 ### Load the Extension
+
+#### Option 1: From Source
 
 **Chrome**:
 
@@ -62,3 +65,19 @@ This script:
 2. Click **This Firefox**
 3. Click **Load Temporary Add-on**
 4. Select the `distro/firefox/manifest.json` file
+
+---
+
+#### Option 2: From Prebuilt ZIP (Recommended for Testing)
+
+You can also download prebuilt versions from the [latest GitHub Release](https://github.com/jacobtender/marian-extension/releases/latest). Look for files named:
+
+- `<repo>-chrome<version>.zip`
+- `<repo>-firefox<version>.zip`
+
+**Steps**:
+
+1. Download and extract the `.zip` file for your browser.
+2. Follow the same steps as **Option 1**, but select the extracted folder instead of `distro/`.
+
+> ⚠️ Extensions loaded this way are not auto-updated. You will need to repeat the steps for future versions.
