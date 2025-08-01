@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const esbuild = require("esbuild");
 
-const SRC_DIR = "extension";
+const SRC_DIR = "src";
 const DIST_DIR = "distro";
 
 function copyDir(src, dest) {
