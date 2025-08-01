@@ -49,6 +49,15 @@ This script:
 
 ### Load the Extension
 
+#### Option 1: From Source
+
+> ⚠️ Extensions loaded this way are not auto-updated. You will need to repeat the steps for future versions.
+>
+> ⚠️ **Disclaimer:** Unpacked Chrome extensions loaded via "Developer Mode" will remain active across browser restarts, but Chrome may display a warning banner each time. These extensions are intended for development and testing purposes only.  
+>
+> In Firefox, temporary add-ons loaded through `about:debugging` will be deactivated when the browser is closed. To persist an extension in Firefox, it must be signed and installed as a `.xpi` file which is not yet available.
+>
+
 **Chrome**:
 
 1. Navigate to `chrome://extensions`
@@ -62,3 +71,17 @@ This script:
 2. Click **This Firefox**
 3. Click **Load Temporary Add-on**
 4. Select the `distro/firefox/manifest.json` file
+
+---
+
+#### Option 2: From Prebuilt ZIP (Recommended for Testing)
+
+You can also download prebuilt versions from the [latest GitHub Release](https://github.com/jacobtender/marian-extension/releases/latest). Look for files named:
+
+* `<repo>-chrome.<version>.zip`
+* `<repo>-firefox.<version>.zip`
+
+**Steps**:
+
+1. Download and extract the `.zip` file for your browser.
+2. Follow the same steps as **Option 1**, but select the extracted folder instead of `distro/`.

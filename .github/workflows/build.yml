@@ -27,21 +27,28 @@ jobs:
       - name: Build extension
         run: node build.js
 
-      - name: Zip browser builds (only for release)
+      - name: Set environment variables
+        if: github.event_name == 'release'
+        run: |
+          echo "REPO_NAME=$(basename ${{ github.repository }})" >> $GITHUB_ENV
+          echo "RELEASE_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+
+      - name: Zip and rename browser builds (only for release)
         if: github.event_name == 'release'
         run: |
           cd distro
           zip -r chrome.zip chrome/
           zip -r firefox.zip firefox/
-          mkdir -p ../packaged
-          mv chrome.zip firefox.zip ../packaged/
+          cd ..
+          mkdir -p packaged
+          mv distro/chrome.zip "packaged/${REPO_NAME}-chrome.${RELEASE_TAG}.zip"
+          mv distro/firefox.zip "packaged/${REPO_NAME}-firefox.${RELEASE_TAG}.zip"
 
       - name: Upload zips to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            packaged/chrome.zip
-            packaged/firefox.zip
+            packaged/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
