@@ -1,22 +1,22 @@
 {
-  "name": "hardcover-librarian",
-  "version": "1.0.0",
-  "description": "",
+  "name": "marian-extension",
+  "version": "1.2.0",
+  "description": "Extracts book details from Amazon product pages. Created for the fine librarian corps of Hardcover.app.",
   "main": "background.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node build.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jacobtender/hardcover-librarian.git"
+    "url": "git+https://github.com/jacobtender/marian-extension.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/jacobtender/hardcover-librarian/issues"
+    "url": "https://github.com/jacobtender/marian-extension/issues"
   },
-  "homepage": "https://github.com/jacobtender/hardcover-librarian#readme",
+  "homepage": "https://github.com/jacobtender/marian-extension#readme",
   "devDependencies": {
     "esbuild": "^0.25.8"
   }

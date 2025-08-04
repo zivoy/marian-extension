@@ -25,7 +25,7 @@ jobs:
         run: npm ci
 
       - name: Build extension
-        run: node build.js
+        run: npm run build
 
       - name: Set environment variables
         if: github.event_name == 'release'
@@ -37,8 +37,8 @@ jobs:
         if: github.event_name == 'release'
         run: |
           cd distro
-          zip -r chrome.zip chrome/
-          zip -r firefox.zip firefox/
+          (cd chrome && zip -r ../chrome.zip .)
+          (cd firefox && zip -r ../firefox.zip .)
           cd ..
           mkdir -p packaged
           mv distro/chrome.zip "packaged/${REPO_NAME}-chrome.${RELEASE_TAG}.zip"
