@@ -7,18 +7,19 @@ const SRC_DIR = "src";
 const DIST_DIR = "distro";
 
 function copyDir(src, dest) {
-  if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
   for (const item of fs.readdirSync(src)) {
     const srcPath = path.join(src, item);
     const destPath = path.join(dest, item);
 
-    // Skip manifests and content.js since handled separately
-    if (!item.startsWith("manifest.") && item !== "content.js") {
-      if (fs.statSync(srcPath).isDirectory()) {
-        copyDir(srcPath, destPath);
-      } else {
-        fs.copyFileSync(srcPath, destPath);
-      }
+    if (item.endsWith("json") || item.endsWith("js")) {
+      continue
+    }
+    // only copy non-script files
+    if (fs.statSync(srcPath).isDirectory()) {
+      copyDir(srcPath, destPath);
+    } else {
+      if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+      fs.copyFileSync(srcPath, destPath);
     }
   }
 }
@@ -37,12 +38,11 @@ function copyManifests(target) {
   fs.writeFileSync(path.join(destDir, "manifest.json"), JSON.stringify(combinedManifest, null, 2))
 }
 
-async function buildContentScript(target) {
-  const outFile = path.join(DIST_DIR, target, "dist", "content.js");
+async function buildScripts(outDir) {
   await esbuild.build({
-    entryPoints: [path.join(SRC_DIR, "content.js")],
+    entryPoints: [path.join(SRC_DIR, "*.js")],
     bundle: true,
-    outfile: outFile,
+    outdir: outDir,
     format: "iife",
     target: ["chrome109"],
     logLevel: "info",
@@ -56,8 +56,8 @@ async function build(target) {
   copyDir(SRC_DIR, destDir);
   copyManifests(target);
 
-  // Bundle content.js specifically for this target
-  await buildContentScript(target);
+  // Bundle js specifically for this target
+  await buildScripts(destDir);
 
   console.log(`Built ${target} extension to ${destDir}`);
 }

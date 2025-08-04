@@ -1,3 +1,5 @@
+import { isAllowedUrl } from "./shared/allowed-patterns";
+
 const loadingEl = document.getElementById('loading');
 const errorEl = document.getElementById('error');
 const detailsEl = document.getElementById('details');
@@ -177,7 +179,7 @@ function renderDetails(details) {
 
   Object.entries(details).forEach(([key, value]) => {
     if (key === 'img' || key === 'Title' || key === 'Description' || rendered.has(key)) return;
-        renderRow(container, key, value);
+    renderRow(container, key, value);
   });
 }
 
@@ -209,7 +211,7 @@ function renderRow(container, key, value) {
       }
 
       div.appendChild(itemSpan);
-      
+
       if (item !== value[value.length - 1]) {
         if (key === 'Author' || key === 'Narrator') {
           div.appendChild(document.createTextNode(', ')); // comma between authors/narrators
@@ -283,7 +285,7 @@ function tryGetDetails(retries = 8, delay = 300) {
               return;
             }
             resolve(details);
-            });
+          });
         });
       });
     }

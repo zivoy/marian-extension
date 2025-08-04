@@ -5,8 +5,8 @@ const ALLOWED_PATTERNS = [
   /https:\/\/www\.goodreads\.com\/book\/show\/\d+(-[a-zA-Z0-9-]+)?/
 ];
 
-function isAllowedUrl(url) {
-    console.log(`Checking if URL is allowed: ${url}`);
-    console.log(ALLOWED_PATTERNS.some(pattern => pattern.test(url)))
+export function isAllowedUrl(url) {
+  console.log(`Checking if URL is allowed: ${url}`);
+  console.log(ALLOWED_PATTERNS.some(pattern => pattern.test(url)))
   return ALLOWED_PATTERNS.some(pattern => pattern.test(url));
 }
