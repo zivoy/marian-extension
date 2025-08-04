@@ -34,7 +34,7 @@ To build the extension for both browsers:
 
 ```bash
 npm install
-node build.js
+npm run build
 ```
 
 This script:
@@ -42,8 +42,8 @@ This script:
 * Copies all files from `app/` into the `distro/` directory
 * Applies the correct manifest version for each browser:
 
-  * Chrome → `distro/chrome/manifest.json` (uses `manifest.v3.json`)
-  * Firefox → `distro/firefox/manifest.json` (uses `manifest.v2.json`)
+  * Chrome → `distro/chrome/manifest.json` (uses `manifest.base.json` and `manifest.chrome.json`)
+  * Firefox → `distro/firefox/manifest.json` (uses `manifest.base.json` and `manifest.firefox.json`)
 
 ---
 
