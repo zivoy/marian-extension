@@ -1,3 +1,4 @@
+import { getImageScore } from '../shared/utils.js';
 const bookSeriesRegex = /^Book (\d+) of \d+$/i;
 
 const includedLabels = [
@@ -16,7 +17,7 @@ const includedLabels = [
     'Series Place',
   ];
 
-function getAmazonDetails() {
+async function getAmazonDetails() {
 	console.log('[👩🏻‍🏫 Marian] Extracting Amazon details');
 
   const imgEl = document.querySelector('#imgBlkFront, #landingImage');
@@ -28,6 +29,7 @@ function getAmazonDetails() {
   bookDetails["Title"] = document.querySelector('#productTitle')?.innerText.trim();
   bookDetails["Description"] = getBookDescription() || '';
   bookDetails["img"] = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
+  bookDetails["imgScore"] = imgEl?.src ? await getImageScore(imgEl.src) : 0;
   bookDetails["Contributors"] = contributors;
   
   if (bookDetails["Edition Format"] == "Kindle") {
@@ -159,12 +161,12 @@ function getBookDescription() {
   const container = document.querySelector('#bookDescription_feature_div .a-expander-content');
   if (!container) return '';
   
-  // Get all text from inside the description, ignoring tags like <br>
-  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
-  let text = '';
-  while (walker.nextNode()) {
-    text += walker.currentNode.nodeValue;
-  }
+  // Replace <br> tags with newlines, then get all text content
+  let html = container.innerHTML.replace(/<br\s*\/?>/gi, '\n');
+  // Create a temporary element to parse the modified HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  let text = tempDiv.textContent || '';
   
   return text.trim().replace(/\s+/g, ' ');
 }
