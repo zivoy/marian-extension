@@ -24,14 +24,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build extension
-        run: node build.js
-
       - name: Set environment variables
         if: github.event_name == 'release'
         run: |
           echo "REPO_NAME=$(basename ${{ github.repository }})" >> $GITHUB_ENV
           echo "RELEASE_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+
+      - name: Build extension
+        run: node build.js
 
       - name: Zip and rename browser builds (only for release)
         if: github.event_name == 'release'

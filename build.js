@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const esbuild = require("esbuild");
+const package = require("./package.json");
 
 const SRC_DIR = "src";
 const DIST_DIR = "distro";
@@ -24,8 +25,16 @@ function copyDir(src, dest) {
 
 function copyManifests(target) {
   const destDir = path.join(DIST_DIR, target);
-  const manifest = target === "chrome" ? "manifest.v3.json" : "manifest.v2.json";
-  fs.copyFileSync(path.join(SRC_DIR, manifest), path.join(destDir, "manifest.json"));
+  const baseManifest = JSON.parse(fs.readFileSync(path.join(SRC_DIR, "manifest.base.json")));
+  baseManifest.version = process.env.RELEASE_TAG || package.version;
+  const targetManifest = JSON.parse(fs.readFileSync(path.join(SRC_DIR, `manifest.${target}.json`)));
+
+  const combinedManifest = {
+    ...baseManifest,
+    ...targetManifest
+  }
+
+  fs.writeFileSync(path.join(destDir, "manifest.json"), JSON.stringify(combinedManifest, null, 2))
 }
 
 async function buildContentScript(target) {
