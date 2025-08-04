@@ -1,10 +1,14 @@
 {
 	"manifest_version": 3,
 	"name": "Marian",
-	"author": "Jacob Tender",
 	"version": "",
 	"description": "Extracts book details from Amazon product pages. Created for the fine librarian corps of Hardcover.app.",
+	"author": {
+		"name": "Jacob Tender",
+		"url": "https://jacobtender.net"
+	},
 	"homepage_url": "https://hardcover.app/join?referrer_id=8753",
+	"support_url": "mailto:marian@jacobtender.net",
 	"permissions": [
 		"scripting",
 		"activeTab",
