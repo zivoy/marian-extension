@@ -8,7 +8,6 @@
 		"url": "https://jacobtender.net"
 	},
 	"homepage_url": "https://hardcover.app/join?referrer_id=8753",
-	"support_url": "mailto:marian@jacobtender.net",
 	"permissions": [
 		"scripting",
 		"activeTab",
