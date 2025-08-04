@@ -4,6 +4,10 @@ const detailsEl = document.getElementById('details');
 
 function copyToClipboard(text, labelEl) {
   navigator.clipboard.writeText(text).then(() => {
+    // Remove any existing feedback first
+    const existing = labelEl.querySelector('.feedback');
+    if (existing) existing.remove();
+    
     const feedback = document.createElement('span');
     feedback.className = 'feedback';
     feedback.textContent = 'Copied!';
