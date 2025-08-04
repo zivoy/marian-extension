@@ -34,7 +34,7 @@ To build the extension for both browsers:
 
 ```bash
 npm install
-node build.js
+npm run build
 ```
 
 This script:
