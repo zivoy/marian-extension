@@ -1,7 +1,4 @@
-// importScripts('shared/included-labels.js');
-
 const bookSeriesRegex = /^Book (\d+) of \d+$/i;
-// const includedLabels = getIncludedLabels();
 
 const includedLabels = [
     'Author',
