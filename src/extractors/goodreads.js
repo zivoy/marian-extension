@@ -1,19 +1,4 @@
 import { getImageScore } from '../shared/utils.js';
-const includedLabels = [
-    'Contributors',
-    'Publisher',
-    'Publication date',
-    'Audible.com Release Date',
-    'Program Type',
-    'Language',
-    'Print length',
-    'Listening Length', //todo
-    'ISBN-10',
-    'ISBN-13',
-    'ASIN',
-    'Series',
-    'Series Place',
-  ];
 
 async function getGoodreadsDetails() {
     console.log('[👩🏻‍🏫 Marian] Extracting GoodReads details');
