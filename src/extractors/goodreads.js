@@ -1,4 +1,3 @@
-const bookSeriesRegex = "";
 const includedLabels = [
     'Author',
     'Narrator',
@@ -56,17 +55,6 @@ async function getGoodreadsDetails() {
     } else {
         bookDetails['Reading Format'] = 'Physical Book';
     }
-
-    // bookDetails["Publisher"] = "";
-    // bookDetails["Publication date"] = "";
-    // bookDetails["Language"] = "";
-    // bookDetails["Listening Length"] = "";
-    // bookDetails["ISBN-10"] = "";
-    // bookDetails["ISBN-13"] = "";
-    // bookDetails["ASIN"] = document.querySelector('[data-testid="asin"]')?.innerText.trim();
-    // bookDetails["Series"] = "";
-    // bookDetails["Series Place"] = "";
-
 
     console.log("Final:", bookDetails);
 
