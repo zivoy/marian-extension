@@ -1,11 +1,7 @@
-// importScripts('shared/included-labels.js');
-
 const bookSeriesRegex = /^Book (\d+) of \d+$/i;
-// const includedLabels = getIncludedLabels();
 
 const includedLabels = [
-    'Author',
-    'Narrator',
+    'Contributors',
     'Publisher',
     'Publication date',
     'Audible.com Release Date',
@@ -26,11 +22,13 @@ function getAmazonDetails() {
   const imgEl = document.querySelector('#imgBlkFront, #landingImage');
   const bookDetails = getDetailBullets();
   const audibleDetails = getAudibleDetails();
+  const contributors = extractAmazonContributors();
 
   bookDetails["Edition Format"] = getSelectedFormat() || '';
   bookDetails["Title"] = document.querySelector('#productTitle')?.innerText.trim();
   bookDetails["Description"] = getBookDescription() || '';
   bookDetails["img"] = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
+  bookDetails["Contributors"] = contributors;
   
   if (bookDetails["Edition Format"] == "Kindle") {
     bookDetails['Reading Format'] = 'Ebook'; 
@@ -143,12 +141,7 @@ function getAudibleDetails() {
       } else {
         details['Listening Length'] = value;
       }
-    } else if (label === 'Narrator' || label === 'Author') {
-      // Handle multiple narrators/authors
-      const names = value.split(/,\s*|\band\b\s*/).map(name => name.trim());
-      details[label] = names.length > 1 ? names : names[0];
-    }
-     else if (label && value) {
+    } else if (label && value) {
       details[label] = value;
     }
   });
@@ -183,5 +176,45 @@ function getSelectedFormat() {
   }
   return null;
 }
+
+function extractAmazonContributors() {
+  const contributors = [];
+
+  const authorSpans = document.querySelectorAll('#bylineInfo .author');
+  authorSpans.forEach(span => {
+    const name = span.querySelector('a')?.innerText.trim();
+    const roleText = span.querySelector('.contribution span')?.innerText.trim();
+    let roles = [];
+
+    if (roleText) {
+      // e.g., "(Author)", "(Illustrator)", "(Author, Narrator)"
+      const roleMatch = roleText.match(/\(([^)]+)\)/);
+      if (roleMatch) {
+        // Split by comma and trim each role
+        roles = roleMatch[1].split(',').map(r => r.trim());
+      }
+    } else {
+      roles.push("Contributor"); // fallback if role is missing
+    }
+
+    // Ignore if any role is Publisher
+    if (roles.includes("Publisher")) return;
+
+    if (name) {
+      // Check for duplicates and merge roles
+      const existing = contributors.find(c => c.name === name);
+      if (existing) {
+        roles.forEach(role => {
+          if (!existing.roles.includes(role)) existing.roles.push(role);
+        });
+      } else {
+        contributors.push({ name, roles });
+      }
+    }
+  });
+
+  return contributors;
+}
+
 
 export { getAmazonDetails };
