@@ -1,11 +1,12 @@
 import { getAmazonDetails } from './extractors/amazon.js';
 import { getGoodreadsDetails } from './extractors/goodreads.js';
 import { getStoryGraphDetails } from './extractors/storygraph.js';
+import { logMarian } from './shared/utils.js';
 
 
 async function getDetails() {
   const url = window.location.href;
-  console.log(`[👩🏻‍🏫 Marian] Current URL: ${url}`);
+  logMarian(`[👩🏻‍🏫 Marian] Current URL: ${url}`);
   if (url.includes('amazon.com')) return await getAmazonDetails();
   if (url.includes('goodreads.com')) return await getGoodreadsDetails();
   if (url.includes('thestorygraph.com')) return await getStoryGraphDetails();
