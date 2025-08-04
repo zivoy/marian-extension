@@ -26,7 +26,7 @@ function copyDir(src, dest) {
 function copyManifests(target) {
   const destDir = path.join(DIST_DIR, target);
   const baseManifest = JSON.parse(fs.readFileSync(path.join(SRC_DIR, "manifest.base.json")));
-  baseManifest.version = process.env.RELEASE_TAG || package.version;
+  baseManifest.version = process.env.RELEASE_TAG?.replace("v", "") || package.version;
   const targetManifest = JSON.parse(fs.readFileSync(path.join(SRC_DIR, `manifest.${target}.json`)));
 
   const combinedManifest = {
