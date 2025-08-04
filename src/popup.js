@@ -156,8 +156,9 @@ function renderDetails(details) {
     'ISBN-13',
     'ISBN-10',
     'ASIN',
-    'Author',
-    'Narrator',
+    // 'Author',
+    // 'Narrator',
+    'Contributors',
     'Publisher',
     'Reading Format',
     'Edition Format',
@@ -193,31 +194,66 @@ function renderRow(container, key, value) {
   div.appendChild(document.createTextNode(' '));
 
   if (Array.isArray(value)) {
-    value.forEach(item => {
-      const itemSpan = document.createElement('span');
-      itemSpan.className = 'value';
-      itemSpan.textContent = item;
-      itemSpan.title = 'Click to copy';
-      itemSpan.style.cursor = 'pointer';
-      if (key === 'Listening Length') {
-        // Only copy the number part (e.g., "9" from "9 Hours")
-        const numberMatch = item.match(/\d+/);
-        const numberOnly = numberMatch ? numberMatch[0] : item;
-        itemSpan.addEventListener('click', () => copyToClipboard(numberOnly, div));
-      } else {
-        itemSpan.addEventListener('click', () => copyToClipboard(item, div));
-      }
+    // Special handling for Contributors: array of objects with name/roles[]
+    if (key === 'Contributors' && value.length && typeof value[0] === 'object' && Array.isArray(value[0].roles)) {
+      value.forEach((contributor, idx) => {
+        // Name span
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'value contributor-name';
+        nameSpan.textContent = contributor.name;
+        nameSpan.title = 'Click to copy name';
+        nameSpan.style.cursor = 'pointer';
+        nameSpan.addEventListener('click', () => copyToClipboard(contributor.name, div));
+        div.appendChild(nameSpan);
 
-      div.appendChild(itemSpan);
-      
-      if (item !== value[value.length - 1]) {
-        if (key === 'Author' || key === 'Narrator') {
-          div.appendChild(document.createTextNode(', ')); // comma between authors/narrators
-        } else {
-          div.appendChild(document.createTextNode(' ')); // space between items
+        div.appendChild(document.createTextNode(' ('));
+
+        // Roles, each clickable
+        contributor.roles.forEach((role, roleIdx) => {
+          const roleSpan = document.createElement('span');
+          roleSpan.className = 'value contributor-role';
+          roleSpan.textContent = role;
+          roleSpan.title = 'Click to copy role';
+          roleSpan.style.cursor = 'pointer';
+          roleSpan.addEventListener('click', () => copyToClipboard(role, div));
+          div.appendChild(roleSpan);
+
+          if (roleIdx !== contributor.roles.length - 1) {
+            div.appendChild(document.createTextNode(', '));
+          }
+        });
+
+        div.appendChild(document.createTextNode(')'));
+
+        if (idx !== value.length - 1) {
+          div.appendChild(document.createTextNode(', '));
         }
-      }
-    });
+      });
+    } else {
+      value.forEach(item => {
+        const itemSpan = document.createElement('span');
+        itemSpan.className = 'value';
+        itemSpan.textContent = item;
+        itemSpan.title = 'Click to copy';
+        itemSpan.style.cursor = 'pointer';
+        if (key === 'Listening Length') {
+          const numberMatch = item.match(/\d+/);
+          const numberOnly = numberMatch ? numberMatch[0] : item;
+          itemSpan.addEventListener('click', () => copyToClipboard(numberOnly, div));
+        } else {
+          itemSpan.addEventListener('click', () => copyToClipboard(item, div));
+        }
+        div.appendChild(itemSpan);
+
+        if (item !== value[value.length - 1]) {
+          if (key === 'Author' || key === 'Narrator') {
+            div.appendChild(document.createTextNode(', '));
+          } else {
+            div.appendChild(document.createTextNode(' '));
+          }
+        }
+      });
+    }
   } else {
     const val = document.createElement('span');
     val.className = 'value';
