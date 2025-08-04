@@ -1,7 +1,7 @@
 import { getImageScore } from '../shared/utils.js';
 
 async function getStoryGraphDetails() {
-    console.log('[👩🏻‍🏫 Marian] Extracting The StoryGraph details');
+    logMarian('Extracting The StoryGraph details');
     const bookDetails = {};
 
     // Book cover image
@@ -29,7 +29,8 @@ async function getStoryGraphDetails() {
     extractEditionInfo(bookDetails);
     await extractEditionDescription(bookDetails);
 
-    console.log(bookDetails)
+    // logMarian("bookDetails", bookDetails);
+
     return {
         ...bookDetails
     };

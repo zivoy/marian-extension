@@ -6,3 +6,13 @@ export async function getImageScore(url) {
     img.src = url;
   });
 }
+
+export function logMarian(message, object = null) {
+  if (!object) {
+    console.log(`[👩🏻‍🏫 Marian] ${message}`);
+  } else {
+    console.group(`[👩🏻‍🏫 Marian] ${message}`);
+    console.log(object);
+    console.groupEnd();
+  }
+}

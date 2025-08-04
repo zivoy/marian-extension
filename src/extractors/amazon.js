@@ -18,7 +18,7 @@ const includedLabels = [
   ];
 
 async function getAmazonDetails() {
-	console.log('[👩🏻‍🏫 Marian] Extracting Amazon details');
+	logMarian('Extracting Amazon details');
 
   const imgEl = document.querySelector('#imgBlkFront, #landingImage');
   const bookDetails = getDetailBullets();
@@ -39,6 +39,9 @@ async function getAmazonDetails() {
   } else {
     bookDetails['Reading Format'] = 'Physical Book';
   }
+
+  // logMarian("bookDetails", audibleDetails);
+  // logMarian("bookDetails", audibleDetails);
  
   return {
     ...bookDetails,
@@ -77,11 +80,11 @@ function getDetailBullets() {
       return;
     }
 
-    // console.log(label, includedLabels.includes(label));
+    // logMarian(label, includedLabels.includes(label));
     // Print debug info for labels not included
     // skip if not included in the list
     if (!includedLabels.includes(label)) {
-      // console.log(`Label not currently included: "${label}"`);
+      // logMarian(`Label not currently included: "${label}"`);
       return;
     }
 
@@ -120,11 +123,11 @@ function getAudibleDetails() {
       return;
     }
 
-    // console.log(label, includedLabels.includes(label));
+    // logMarian(label, includedLabels.includes(label));
     // Print debug info for labels not included
     // skip if not included in the list
     if (!includedLabels.includes(label)) {
-      // console.log(`Label not currently included: "${label}"`);
+      // logMarian(`Label not currently included: "${label}"`);
       return;
     }
 
