@@ -1,4 +1,4 @@
-import { getImageScore, logMarian } from '../shared/utils.js';
+import { getImageScore, logMarian, delay } from '../shared/utils.js';
 
 async function getGoodreadsDetails() {
     logMarian('Extracting GoodReads details');
@@ -46,10 +46,6 @@ async function getGoodreadsDetails() {
     return {
     ...bookDetails,
   };
-}
-
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function getHighResImageUrl(src) {
@@ -154,7 +150,5 @@ function extractSeriesInfo(bookDetails) {
     }
   });
 }
-
-
 
 export { getGoodreadsDetails };

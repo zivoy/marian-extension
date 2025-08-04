@@ -1,4 +1,4 @@
-import { getImageScore } from '../shared/utils.js';
+import { getImageScore, logMarian, delay } from '../shared/utils.js';
 const bookSeriesRegex = /^Book (\d+) of \d+$/i;
 
 const includedLabels = [
@@ -220,6 +220,5 @@ function extractAmazonContributors() {
 
   return contributors;
 }
-
 
 export { getAmazonDetails };

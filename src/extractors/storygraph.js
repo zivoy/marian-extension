@@ -1,4 +1,4 @@
-import { getImageScore } from '../shared/utils.js';
+import { getImageScore, logMarian, delay } from '../shared/utils.js';
 
 async function getStoryGraphDetails() {
     logMarian('Extracting The StoryGraph details');
@@ -145,10 +145,6 @@ async function extractEditionDescription(bookDetails) {
 function getHighResImageUrl(src) {
 //   return src.replace(/\/compressed\.photo\./, '/');
     return src
-}
-
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export { getStoryGraphDetails };

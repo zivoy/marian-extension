@@ -16,3 +16,7 @@ export function logMarian(message, object = null) {
     console.groupEnd();
   }
 }
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
