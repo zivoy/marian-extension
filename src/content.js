@@ -6,7 +6,7 @@ import { logMarian } from './shared/utils.js';
 
 async function getDetails() {
   const url = window.location.href;
-  logMarian(`[👩🏻‍🏫 Marian] Current URL: ${url}`);
+  logMarian(`Current URL: ${url}`);
   if (url.includes('amazon.com')) return await getAmazonDetails();
   if (url.includes('goodreads.com')) return await getGoodreadsDetails();
   if (url.includes('thestorygraph.com')) return await getStoryGraphDetails();

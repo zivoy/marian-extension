@@ -92,7 +92,6 @@ function extractEditionDetails(bookDetails) {
   const editionRoot = document.querySelector('.EditionDetails dl');
   if (!editionRoot) return;
 
-  logMarian('Extracting edition details');
   editionRoot.querySelectorAll('.DescListItem').forEach(item => {
     const label = item.querySelector('dt')?.innerText.trim();
     const content = item.querySelector('[data-testid="contentContainer"]')?.innerText.trim();
