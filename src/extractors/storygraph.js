@@ -1,3 +1,5 @@
+import { getImageScore } from '../shared/utils.js';
+
 const includedLabels = [
     'Contributors',
     'Publisher',
@@ -21,6 +23,7 @@ async function getStoryGraphDetails() {
     // Book cover image
     const imgEl = document.querySelector('.book-cover img');
     bookDetails["img"] = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
+    bookDetails["imgScore"] = imgEl?.src ? await getImageScore(imgEl.src) : 0;
 
     // Book title
     const h3 = document.querySelector('.book-title-author-and-series h3');
