@@ -3,12 +3,12 @@ import { getGoodreadsDetails } from './extractors/goodreads.js';
 import { getStoryGraphDetails } from './extractors/storygraph.js';
 
 
-function getDetails() {
+async function getDetails() {
   const url = window.location.href;
   console.log(`[👩🏻‍🏫 Marian] Current URL: ${url}`);
   if (url.includes('amazon.com')) return getAmazonDetails();
-  if (url.includes('goodreads.com')) return getGoodreadsDetails();
-  if (url.includes('thestorygraph.com')) return getStoryGraphDetails();
+  if (url.includes('goodreads.com')) return await getGoodreadsDetails();
+  if (url.includes('thestorygraph.com')) return await getStoryGraphDetails();
   if (url.includes('isbnsearch.org')) return getIsbnSearchDetails();
   return {};
 }

@@ -1,7 +1,5 @@
-const bookSeriesRegex = "";
 const includedLabels = [
-    'Author',
-    'Narrator',
+    'Contributors',
     'Publisher',
     'Publication date',
     'Audible.com Release Date',
@@ -30,10 +28,9 @@ async function getGoodreadsDetails() {
         await delay(1500); // wait for contributors to load
     }
 
-    getContributors(bookDetails);
-    extractEditionDetails(bookDetails);
-    extractSeriesInfo(bookDetails);
-
+  getContributors(bookDetails);
+  extractEditionDetails(bookDetails);
+  extractSeriesInfo(bookDetails);
 
     // Extract edition format and pages
     const editionFormatEl = document.querySelector('[data-testid="pagesFormat"]')?.innerText.trim();
@@ -57,18 +54,7 @@ async function getGoodreadsDetails() {
         bookDetails['Reading Format'] = 'Physical Book';
     }
 
-    // bookDetails["Publisher"] = "";
-    // bookDetails["Publication date"] = "";
-    // bookDetails["Language"] = "";
-    // bookDetails["Listening Length"] = "";
-    // bookDetails["ISBN-10"] = "";
-    // bookDetails["ISBN-13"] = "";
-    // bookDetails["ASIN"] = document.querySelector('[data-testid="asin"]')?.innerText.trim();
-    // bookDetails["Series"] = "";
-    // bookDetails["Series Place"] = "";
-
-
-    console.log("Final:", bookDetails);
+    // console.log("Final:", bookDetails);
 
     return {
     ...bookDetails,
@@ -85,23 +71,38 @@ function getHighResImageUrl(src) {
 }
 
 function getContributors(bookDetails) {
-    // Extract authors and narrators
-    const authorList = [];
-    const narratorList = [];
+  // Collect contributors as { name, roles: [] }
+  const contributors = [];
 
-    document.querySelectorAll('.ContributorLinksList [data-testid="name"]').forEach(nameEl => {
-        const roleEl = nameEl.parentElement.querySelector('[data-testid="role"]');
-        const name = nameEl.innerText.trim();
-        const roles = roleEl?.innerText || "";
-        console.log(`Found name: "${name}" with roles: "${roles}"`);
+  document.querySelectorAll('.ContributorLinksList [data-testid="name"]').forEach(nameEl => {
+    const roleEl = nameEl.parentElement.querySelector('[data-testid="role"]');
+    const name = nameEl.innerText.trim();
+    let roles = roleEl?.innerText || "Author";
+    // Remove parentheses from roles
+    roles = roles.replace(/[()]/g, '');
 
-        if (roles.includes("Author")) authorList.push(name);
-        if (!roles) authorList.push(name);
-        if (roles.includes("Narrator")) narratorList.push(name);
-    });
+    // Split roles by comma if multiple roles are present
+    const rolesArr = roles.split(',').map(roleRaw => roleRaw.trim() || "Author");
 
-    if (authorList.length) bookDetails["Author"] = authorList.length === 1 ? authorList[0] : authorList;
-    if (narratorList.length) bookDetails["Narrator"] = narratorList.length === 1 ? narratorList[0] : narratorList;
+    if (!name) return;
+
+    // Check if this name already exists in contributors
+    let contributor = contributors.find(c => c.name === name);
+    if (contributor) {
+      // Add any new roles not already present
+      rolesArr.forEach(role => {
+        if (!contributor.roles.includes(role)) {
+          contributor.roles.push(role);
+        }
+      });
+    } else {
+      contributors.push({ name, roles: rolesArr });
+    }
+  });
+
+  if (contributors.length) {
+    bookDetails["Contributors"] = contributors;
+  }
 }
 
 function extractEditionDetails(bookDetails) {
@@ -112,7 +113,7 @@ function extractEditionDetails(bookDetails) {
   editionRoot.querySelectorAll('.DescListItem').forEach(item => {
     const label = item.querySelector('dt')?.innerText.trim();
     const content = item.querySelector('[data-testid="contentContainer"]')?.innerText.trim();
-    console.log(`Found label: "${label}", content: "${content}"`);
+    // console.log(`Found label: "${label}", content: "${content}"`);
 
     if (!label || !content) return;
 
