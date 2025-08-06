@@ -22,6 +22,10 @@ async function getStoryGraphDetails() {
     const imgEl = document.querySelector('.book-cover img');
     bookDetails["img"] = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
 
+    // Source ID
+    const sourceId = getStoryGraphBookIdFromUrl(window.location.href);
+    if (sourceId) bookDetails["Source ID"] = sourceId;
+
     // Book title
     const h3 = document.querySelector('.book-title-author-and-series h3');
     const rawTitle = h3?.childNodes[0]?.textContent.trim();
@@ -161,6 +165,16 @@ function getHighResImageUrl(src) {
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+    
+}
+
+/**
+ * Extracts the StoryGraph book ID from a StoryGraph book URL.
+ */
+function getStoryGraphBookIdFromUrl(url) {
+  const regex = /thestorygraph\.com\/books\/([^/?]+)/i;
+  const match = url.match(regex);
+  return match ? match[1] : null;
 }
 
 export { getStoryGraphDetails };

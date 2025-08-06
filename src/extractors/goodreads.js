@@ -1,4 +1,5 @@
 const includedLabels = [
+    'Source ID',
     'Contributors',
     'Publisher',
     'Publication date',
@@ -17,6 +18,9 @@ const includedLabels = [
 async function getGoodreadsDetails() {
     console.log('[👩🏻‍🏫 Marian] Extracting GoodReads details');
     const bookDetails = {};
+
+    const sourceId = getGoodreadsBookIdFromUrl(window.location.href);
+    if (sourceId) bookDetails["Source ID"] = sourceId;
 
     const imgEl = document.querySelector('.BookCover__image img');
     bookDetails["img"] = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
@@ -166,6 +170,15 @@ function extractSeriesInfo(bookDetails) {
       bookDetails['Series Place'] = seriesPlaceMatch[1];
     }
   });
+}
+
+/**
+ * Extracts the Goodreads book ID from a Goodreads book URL.
+ */
+function getGoodreadsBookIdFromUrl(url) {
+  const regex = /goodreads\.com\/book\/show\/(\d+)(?:[.\-/]|$)/i;
+  const match = url.match(regex);
+  return match ? match[1] : null;
 }
 
 

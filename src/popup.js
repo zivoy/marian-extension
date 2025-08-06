@@ -155,6 +155,7 @@ function renderDetails(details) {
   container.appendChild(hr);
 
   const orderedKeys = [
+    'Source ID',
     'Series',
     'Series Place',
     'ISBN-13',
