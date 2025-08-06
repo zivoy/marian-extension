@@ -1,4 +1,5 @@
-import { isAllowedUrl } from "./shared/allowed-patterns"
+import { isAllowedUrl } from "./shared/allowed-patterns";
+
 function updateIcon(tabId, isAllowed) {
   // console.log(`Updating icon for tab ${tabId}: ${isAllowed ? 'allowed' : 'not allowed'}`);
   chrome.action.setIcon({
