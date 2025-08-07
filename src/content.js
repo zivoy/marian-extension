@@ -8,11 +8,11 @@ import { logMarian } from './shared/utils.js';
 async function getDetails() {
   const url = window.location.href;
   logMarian(`Current URL: ${url}`);
-  if (url.includes('amazon.com')) return await getAmazonDetails();
-  if (url.includes('goodreads.com')) return await getGoodreadsDetails();
-  if (url.includes('thestorygraph.com')) return await getStoryGraphDetails();
+  if (url.includes('amazon')) return await getAmazonDetails();
+  if (url.includes('goodreads')) return await getGoodreadsDetails();
+  if (url.includes('thestorygraph')) return await getStoryGraphDetails();
   if (url.includes('isbnsearch.org')) return getIsbnSearchDetails();
-  if (url.includes('google.com')) return await getGoogleBooksDetails();
+  if (url.includes('google')) return await getGoogleBooksDetails();
   return {};
 }
 
