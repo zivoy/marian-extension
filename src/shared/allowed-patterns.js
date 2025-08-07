@@ -1,14 +1,15 @@
 // shared/allowed-patterns.js
 const ALLOWED_PATTERNS = [
-  /https:\/\/www\.amazon\.com\/gp\/product\/[A-Z0-9]{10}/,
-  /https:\/\/www\.amazon\.com\/[^/]+\/dp\/[A-Z0-9]{10}/,
-  /https:\/\/www\.goodreads\.com\/book\/show\/\d+(-[a-zA-Z0-9-]+)?/,
-  /^https:\/\/app\.thestorygraph\.com\/books\/[0-9a-fA-F-]+$/,
+  /https:\/\/www\.amazon\.[a-z.]+\/(?:gp\/product|dp|[^/]+\/dp)\/[A-Z0-9]{10}/,
+  /https:\/\/www\.amazon\.[a-z.]+\/[^/]+\/dp\/[A-Z0-9]{10}/,
+  /https:\/\/www\.amazon\.[a-z.]+\/-\/[a-z]+\/[^/]+\/dp\/[A-Z0-9]{10}/, // for paths with language segments
+  /https:\/\/www\.goodreads\.[a-z.]+\/book\/show\/\d+(-[a-zA-Z0-9-]+)?/,
+  /^https:\/\/app\.thestorygraph\.[a-z.]+\/books\/[0-9a-fA-F-]+$/,
   /^https?:\/\/(www\.)?google\.[a-z.]+\/books/
 ];
 
 export function isAllowedUrl(url) {
-  // console.log(`Checking if URL is allowed: ${url}`);
-  // console.log(ALLOWED_PATTERNS.some(pattern => pattern.test(url)))
+  console.log(`Checking if URL is allowed: ${url}`);
+  console.log(ALLOWED_PATTERNS.some(pattern => pattern.test(url)))
   return ALLOWED_PATTERNS.some(pattern => pattern.test(url));
 }
