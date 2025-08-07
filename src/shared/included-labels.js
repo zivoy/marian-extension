@@ -1,8 +1,7 @@
 // Not currently in use.
 
 const includedLabels = [
-    'Author',
-    'Narrator',
+    'Contributors',
     'Publisher',
     'Publication date',
     'Audible.com Release Date',

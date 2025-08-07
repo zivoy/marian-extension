@@ -102,6 +102,47 @@ function renderDetails(details) {
     });
     sideBySideWrapper.appendChild(img);
 
+    const imgWrapper = document.createElement('div');
+    imgWrapper.style.display = 'flex';
+    imgWrapper.style.flexDirection = 'column';
+    imgWrapper.style.alignItems = 'center';
+    imgWrapper.style.position = 'relative';
+
+    imgWrapper.appendChild(img);
+
+    if (details.imgScore && typeof details.imgScore === 'number') {
+      const label = document.createElement('span');
+      label.className = 'img-score-label';
+      label.textContent = details.imgScore.toLocaleString();
+
+      // Color coding
+      if (details.imgScore < 33000) {
+        label.style.background = '#c0392b';
+        label.title = 'Low resolution (ex: 133 x 200)';
+        label.textContent = 'Poor';
+      } else if (details.imgScore < 100000) {
+        label.style.background = '#f39c12';
+        label.title = 'Medium resolution (ex: 200 x 300)';
+        label.textContent = 'Medium';
+      } else {
+        label.style.background = '#27ae60';
+        label.title = 'High resolution (ex: 300 x 450)';
+        label.textContent = 'High';
+      }
+      label.style.color = '#fff';
+      label.style.fontWeight = 'bold';
+      label.style.marginTop = '8px';
+      label.style.padding = '2px 10px';
+      label.style.borderRadius = '6px';
+      label.style.fontSize = '0.85em';
+      label.style.boxShadow = '0 1px 4px rgba(0,0,0,0.15)';
+      label.style.pointerEvents = 'none';
+
+      imgWrapper.appendChild(label);
+    }
+
+    sideBySideWrapper.appendChild(imgWrapper);
+
     const textWrapper = document.createElement('div');
     textWrapper.style.flex = '1';
 
@@ -121,7 +162,7 @@ function renderDetails(details) {
       titleVal.style.cursor = 'pointer';
       titleVal.addEventListener('click', () => copyToClipboard(details.title, titleDiv));
 
-      titleDiv.appendChild(titleLabel);
+      // titleDiv.appendChild(titleLabel);
       titleDiv.appendChild(document.createTextNode(' '));
       titleDiv.appendChild(titleVal);
       textWrapper.appendChild(titleDiv);
@@ -143,10 +184,9 @@ function renderDetails(details) {
       descVal.style.cursor = 'pointer';
       descVal.addEventListener('click', () => copyToClipboard(details.Description, descDiv));
 
-      descDiv.appendChild(descLabel);
+      // descDiv.appendChild(descLabel);
       descDiv.appendChild(document.createTextNode(' '));
       descDiv.appendChild(descVal);
-
       textWrapper.appendChild(descDiv);
     }
 
