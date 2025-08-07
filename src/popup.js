@@ -91,7 +91,18 @@ function renderDetails(details) {
     img.style.maxWidth = '100px';
     img.style.cursor = 'pointer';
     img.addEventListener('click', () => {
-      const fallbackId = details['ISBN-13'] || details['ISBN-10'] || details['ASIN'] || details['Source ID'];
+      const fallbackId =
+        details['ISBN-13'] ||
+        details['ISBN-10'] ||
+        details['ASIN'] ||
+        details['Source ID'] ||
+        details['Title'] ||
+        Date.now();
+      downloadImage(details.img, fallbackId);
+    });
+
+    img.addEventListener('click', () => {
+      const fallbackId = details['ISBN-13'] || details['ISBN-10'] || details['ASIN'] || details['Source ID'] || details['Title'] || Date.now();
        downloadImage(details.img, fallbackId);
     });
     sideBySideWrapper.appendChild(img);
