@@ -1,23 +1,8 @@
 // googlebooks.js
-
-const includedLabels = [
-    'Source ID',
-    'Contributors',
-    'Publisher',
-    'Publication date',
-    'Language',
-    'Print length',
-    'ISBN-10',
-    'ISBN-13',
-    'ASIN',
-    'Series',
-    'Series Place',
-    'Pages',
-    'Edition Format'
-];
+import { getImageScore, logMarian, delay } from '../shared/utils.js';
 
 async function getGoogleBooksDetails() {
-    console.log('[👩🏻‍🏫 Marian] Extracting Google Books details');
+    logMarian('Extracting Google Books details');
     const bookDetails = {};
     
 
@@ -27,6 +12,7 @@ async function getGoogleBooksDetails() {
 
     // Extract cover image using volume ID
     bookDetails["img"] = getGoogleBooksCoverUrl(sourceId);
+    bookDetails["imgScore"] = bookDetails["img"] ? await getImageScore(bookDetails["img"]) : 0;
 
     // Extract title
     bookDetails["Title"] = getGoogleBookTitle();
@@ -79,7 +65,7 @@ async function getGoogleBooksDetails() {
         }));
     }
 
-    console.log("[👩🏻‍🏫 Marian] Google Books extraction complete:", bookDetails);
+    logMarian("Google Books extraction complete:", bookDetails);
 
     return {
         ...bookDetails,
@@ -355,10 +341,6 @@ function getGoogleBooksCoverUrl(volumeId) {
     });
 
     return `${baseUrl}?${params.toString()}`;
-}
-
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export { getGoogleBooksDetails };
