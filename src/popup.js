@@ -49,7 +49,7 @@ function downloadFile(filename, content, type) {
   URL.revokeObjectURL(url);
 }
 
-function downloadImage(url, isbn13) {
+function downloadImage(url, bookId) {
   const highResUrl = url.replace(/\._[^.]+(?=\.)/, '');
   fetch(highResUrl)
     .then(res => res.blob())
@@ -58,8 +58,8 @@ function downloadImage(url, isbn13) {
       const a = document.createElement('a');
       a.href = blobUrl;
       // Clean the ISBN to avoid problematic chars in filename
-      const safeIsbn = isbn13.replace(/[^a-z0-9]/gi, '');
-      a.download = `${safeIsbn}_cover.jpg`;
+      const safeId = bookId.replace(/[^a-z0-9]/gi, '');
+      a.download = `${safeId}_cover.jpg`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -90,7 +90,10 @@ function renderDetails(details) {
     img.title = 'Click to download';
     img.style.maxWidth = '100px';
     img.style.cursor = 'pointer';
-    img.addEventListener('click', () => downloadImage(details.img, details['ISBN-13']));
+    img.addEventListener('click', () => {
+      const fallbackId = details['ISBN-13'] || details['ISBN-10'] || details['ASIN'] || details['Source ID'];
+       downloadImage(details.img, fallbackId);
+    });
     sideBySideWrapper.appendChild(img);
 
     const textWrapper = document.createElement('div');
