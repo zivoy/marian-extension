@@ -100,11 +100,6 @@ function renderDetails(details) {
         Date.now();
       downloadImage(details.img, fallbackId);
     });
-
-    img.addEventListener('click', () => {
-      const fallbackId = details['ISBN-13'] || details['ISBN-10'] || details['ASIN'] || details['Source ID'] || details['Title'] || Date.now();
-       downloadImage(details.img, fallbackId);
-    });
     sideBySideWrapper.appendChild(img);
 
     const textWrapper = document.createElement('div');
