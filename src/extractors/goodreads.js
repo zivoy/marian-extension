@@ -1,25 +1,12 @@
-const includedLabels = [
-    'Contributors',
-    'Publisher',
-    'Publication date',
-    'Audible.com Release Date',
-    'Program Type',
-    'Language',
-    'Print length',
-    'Listening Length', //todo
-    'ISBN-10',
-    'ISBN-13',
-    'ASIN',
-    'Series',
-    'Series Place',
-  ];
+import { getImageScore, logMarian, delay } from '../shared/utils.js';
 
 async function getGoodreadsDetails() {
-    console.log('[👩🏻‍🏫 Marian] Extracting GoodReads details');
+    logMarian('Extracting GoodReads details');
     const bookDetails = {};
 
     const imgEl = document.querySelector('.BookCover__image img');
     bookDetails["img"] = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
+    bookDetails["imgScore"] = imgEl?.src ? await getImageScore(imgEl.src) : 0;
     bookDetails["Title"] = document.querySelector('[data-testid="bookTitle"]')?.innerText.trim();
 
     const button = document.querySelector('.ContributorLinksList button[aria-label="Show all contributors"]');
@@ -54,15 +41,11 @@ async function getGoodreadsDetails() {
         bookDetails['Reading Format'] = 'Physical Book';
     }
 
-    // console.log("Final:", bookDetails);
+    // logMarian("bookDetails", bookDetails);
 
     return {
     ...bookDetails,
   };
-}
-
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function getHighResImageUrl(src) {
@@ -109,11 +92,10 @@ function extractEditionDetails(bookDetails) {
   const editionRoot = document.querySelector('.EditionDetails dl');
   if (!editionRoot) return;
 
-  console.log('Extracting edition details');
   editionRoot.querySelectorAll('.DescListItem').forEach(item => {
     const label = item.querySelector('dt')?.innerText.trim();
     const content = item.querySelector('[data-testid="contentContainer"]')?.innerText.trim();
-    // console.log(`Found label: "${label}", content: "${content}"`);
+    // logMarian(`Found label: "${label}", content: "${content}"`);
 
     if (!label || !content) return;
 
@@ -167,7 +149,5 @@ function extractSeriesInfo(bookDetails) {
     }
   });
 }
-
-
 
 export { getGoodreadsDetails };

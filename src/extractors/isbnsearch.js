@@ -1,3 +1,3 @@
-function getIsbnSearchDetails() {
+async function getIsbnSearchDetails() {
     
 }
