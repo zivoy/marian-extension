@@ -4,6 +4,9 @@ async function getGoodreadsDetails() {
     logMarian('Extracting GoodReads details');
     const bookDetails = {};
 
+    const sourceId = getGoodreadsBookIdFromUrl(window.location.href);
+    if (sourceId) bookDetails["Source ID"] = sourceId;
+
     const imgEl = document.querySelector('.BookCover__image img');
     bookDetails["img"] = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
     bookDetails["imgScore"] = imgEl?.src ? await getImageScore(imgEl.src) : 0;
@@ -149,5 +152,16 @@ function extractSeriesInfo(bookDetails) {
     }
   });
 }
+
+/**
+ * Extracts the Goodreads book ID from a Goodreads book URL.
+ */
+function getGoodreadsBookIdFromUrl(url) {
+  const regex = /goodreads\.com\/book\/show\/(\d+)(?:[.\-/]|$)/i;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
+
+
 
 export { getGoodreadsDetails };

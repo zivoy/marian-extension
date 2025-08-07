@@ -9,6 +9,10 @@ async function getStoryGraphDetails() {
     bookDetails["img"] = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
     bookDetails["imgScore"] = imgEl?.src ? await getImageScore(imgEl.src) : 0;
 
+    // Source ID
+    const sourceId = getStoryGraphBookIdFromUrl(window.location.href);
+    if (sourceId) bookDetails["Source ID"] = sourceId;
+
     // Book title
     const h3 = document.querySelector('.book-title-author-and-series h3');
     const rawTitle = h3?.childNodes[0]?.textContent.trim();
@@ -145,6 +149,15 @@ async function extractEditionDescription(bookDetails) {
 function getHighResImageUrl(src) {
 //   return src.replace(/\/compressed\.photo\./, '/');
     return src
+}
+
+/**
+ * Extracts the StoryGraph book ID from a StoryGraph book URL.
+ */
+function getStoryGraphBookIdFromUrl(url) {
+  const regex = /thestorygraph\.com\/books\/([^/?]+)/i;
+  const match = url.match(regex);
+  return match ? match[1] : null;
 }
 
 export { getStoryGraphDetails };

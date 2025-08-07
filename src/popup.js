@@ -49,7 +49,7 @@ function downloadFile(filename, content, type) {
   URL.revokeObjectURL(url);
 }
 
-function downloadImage(url, isbn13) {
+function downloadImage(url, bookId) {
   const highResUrl = url.replace(/\._[^.]+(?=\.)/, '');
   fetch(highResUrl)
     .then(res => res.blob())
@@ -58,8 +58,8 @@ function downloadImage(url, isbn13) {
       const a = document.createElement('a');
       a.href = blobUrl;
       // Clean the ISBN to avoid problematic chars in filename
-      const safeIsbn = isbn13.replace(/[^a-z0-9]/gi, '');
-      a.download = `${safeIsbn}_cover.jpg`;
+      const safeId = bookId.replace(/[^a-z0-9]/gi, '');
+      a.download = `${safeId}_cover.jpg`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -90,7 +90,16 @@ function renderDetails(details) {
     img.title = 'Click to download';
     img.style.maxWidth = '100px';
     img.style.cursor = 'pointer';
-    img.addEventListener('click', () => downloadImage(details.img, details['ISBN-13']));
+    img.addEventListener('click', () => {
+      const fallbackId =
+        details['ISBN-13'] ||
+        details['ISBN-10'] ||
+        details['ASIN'] ||
+        details['Source ID'] ||
+        details['Title'] ||
+        Date.now();
+      downloadImage(details.img, fallbackId);
+    });
     sideBySideWrapper.appendChild(img);
 
     const imgWrapper = document.createElement('div');
@@ -194,14 +203,14 @@ function renderDetails(details) {
   const hr = document.createElement('hr');
   container.appendChild(hr);
 
+  // Render details in a way that reflects the order of a Hardcover Edition edit form
   const orderedKeys = [
     'Series',
     'Series Place',
     'ISBN-13',
     'ISBN-10',
     'ASIN',
-    // 'Author',
-    // 'Narrator',
+    'Source ID',
     'Contributors',
     'Publisher',
     'Reading Format',
@@ -211,8 +220,8 @@ function renderDetails(details) {
     'Publication date',
     'Language'
   ];
-  const rendered = new Set();
 
+  const rendered = new Set();
   orderedKeys.forEach(key => {
     if (key in details) {
       renderRow(container, key, details[key]);
@@ -220,9 +229,18 @@ function renderDetails(details) {
     }
   });
 
+  // Filter out keys that shouldn't be rendered in the generic loop
+  const filteredKeys = [
+    'img',
+    'imgScore',
+    'Title',
+    'Description',
+  ];
+
+  // Render remaining keys that weren't in the ordered list
   Object.entries(details).forEach(([key, value]) => {
-    if (key === 'img' || key === 'Title' || key === 'Description' || rendered.has(key)) return;
-        renderRow(container, key, value);
+    if (filteredKeys.includes(key) || rendered.has(key)) return;
+    renderRow(container, key, value);
   });
 }
 
