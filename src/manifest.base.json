@@ -16,16 +16,6 @@
 	"host_permissions": [
 		"<all_urls>"
 	],
-	"web_accessible_resources": [
-		{
-			"resources": [
-				"shared/allowed-patterns.js"
-			],
-			"matches": [
-				"<all_urls>"
-			]
-		}
-	],
 	"icons": {
 		"16": "icons/icon.png",
 		"32": "icons/icon.png",
@@ -47,7 +37,7 @@
 
 			],
 			"js": [
-				"dist/content.js"
+				"content.js"
 			]
 		}
 	]

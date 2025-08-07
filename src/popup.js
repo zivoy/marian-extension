@@ -1,3 +1,5 @@
+import { isAllowedUrl } from "./shared/allowed-patterns";
+
 const loadingEl = document.getElementById('loading');
 const errorEl = document.getElementById('error');
 const detailsEl = document.getElementById('details');
@@ -7,7 +9,7 @@ function copyToClipboard(text, labelEl) {
     // Remove any existing feedback first
     const existing = labelEl.querySelector('.feedback');
     if (existing) existing.remove();
-    
+
     const feedback = document.createElement('span');
     feedback.className = 'feedback';
     feedback.textContent = 'Copied!';
@@ -381,7 +383,7 @@ function tryGetDetails(retries = 8, delay = 300) {
               return;
             }
             resolve(details);
-            });
+          });
         });
       });
     }

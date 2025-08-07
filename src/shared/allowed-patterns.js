@@ -7,7 +7,7 @@ const ALLOWED_PATTERNS = [
   /^https?:\/\/(www\.)?google\.[a-z.]+\/books/
 ];
 
-function isAllowedUrl(url) {
+export function isAllowedUrl(url) {
   // console.log(`Checking if URL is allowed: ${url}`);
   // console.log(ALLOWED_PATTERNS.some(pattern => pattern.test(url)))
   return ALLOWED_PATTERNS.some(pattern => pattern.test(url));

@@ -1,18 +1,18 @@
+import { isAllowedUrl } from "./shared/allowed-patterns";
+
 function updateIcon(tabId, isAllowed) {
   // console.log(`Updating icon for tab ${tabId}: ${isAllowed ? 'allowed' : 'not allowed'}`);
   chrome.action.setIcon({
     tabId,
     path: isAllowed
       ? {
-          128: "icons/icon.png"
-        }
+        128: "icons/icon.png"
+      }
       : {
-          128: "icons/icon-disabled.png",
-        }
+        128: "icons/icon-disabled.png",
+      }
   });
 }
-
-importScripts('shared/allowed-patterns.js');
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (!tab.url) return;
