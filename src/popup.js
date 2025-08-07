@@ -203,6 +203,7 @@ function renderDetails(details) {
   const hr = document.createElement('hr');
   container.appendChild(hr);
 
+  // Render details in a way that reflects the order of a Hardcover Edition edit form
   const orderedKeys = [
     'Series',
     'Series Place',
@@ -210,8 +211,6 @@ function renderDetails(details) {
     'ISBN-10',
     'ASIN',
     'Source ID',
-    // 'Author',
-    // 'Narrator',
     'Contributors',
     'Publisher',
     'Reading Format',
@@ -221,8 +220,8 @@ function renderDetails(details) {
     'Publication date',
     'Language'
   ];
-  const rendered = new Set();
 
+  const rendered = new Set();
   orderedKeys.forEach(key => {
     if (key in details) {
       renderRow(container, key, details[key]);
@@ -230,9 +229,18 @@ function renderDetails(details) {
     }
   });
 
+  // Filter out keys that shouldn't be rendered in the generic loop
+  const filteredKeys = [
+    'img',
+    'imgScore',
+    'Title',
+    'Description',
+  ];
+
+  // Render remaining keys that weren't in the ordered list
   Object.entries(details).forEach(([key, value]) => {
-    if (key === 'img' || key === 'Title' || key === 'Description' || rendered.has(key)) return;
-        renderRow(container, key, value);
+    if (filteredKeys.includes(key) || rendered.has(key)) return;
+    renderRow(container, key, value);
   });
 }
 
