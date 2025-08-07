@@ -16,7 +16,7 @@
       max-height: 100px;
       cursor: pointer;
       border-radius: 6px;
-      margin-bottom: 10px;
+      /* margin-bottom: 10px; */
     }
 
     hr {
@@ -41,17 +41,18 @@
     .value:hover {
       text-decoration: underline;
     }
-
+    .value.title {
+      font-size: 1rem;
+      color: white;
+    }
     .value.description,
     .value.title {
       display: -webkit-box;
-      -webkit-line-clamp: 2;
-      /* Limit to 2 lines */
+      -webkit-line-clamp: 4; /* Limit to 4 lines */
       -webkit-box-orient: vertical;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-height: 3em;
-      /* Optional: controls vertical space */
+      /* max-height: 3em; // Optional: controls vertical space */
     }
     .row, .value, .contributor-name, .contributor-role {
       user-select: none;
@@ -61,7 +62,12 @@
       color: #4d5b71;
       margin-left: 8px;
     }
-
+    .img-score-label {
+      display: inline-block;
+      text-align: center;
+      user-select: none;
+      letter-spacing: 0.5px;
+    }
     button {
       margin-top: 12px;
       margin-right: 8px;

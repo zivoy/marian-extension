@@ -1,26 +1,17 @@
-const includedLabels = [
-    'Contributors',
-    'Publisher',
-    'Publication date',
-    'Audible.com Release Date',
-    'Program Type',
-    'Language',
-    'Print length',
-    'Listening Length',
-    'ISBN-10',
-    'ISBN-13',
-    'ASIN',
-    'Series',
-    'Series Place',
-  ];
+import { getImageScore, logMarian, delay } from '../shared/utils.js';
 
 async function getStoryGraphDetails() {
-    console.log('[👩🏻‍🏫 Marian] Extracting The StoryGraph details');
+    logMarian('Extracting The StoryGraph details');
     const bookDetails = {};
 
     // Book cover image
     const imgEl = document.querySelector('.book-cover img');
     bookDetails["img"] = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
+    bookDetails["imgScore"] = imgEl?.src ? await getImageScore(imgEl.src) : 0;
+
+    // Source ID
+    const sourceId = getStoryGraphBookIdFromUrl(window.location.href);
+    if (sourceId) bookDetails["Source ID"] = sourceId;
 
     // Book title
     const h3 = document.querySelector('.book-title-author-and-series h3');
@@ -42,7 +33,8 @@ async function getStoryGraphDetails() {
     extractEditionInfo(bookDetails);
     await extractEditionDescription(bookDetails);
 
-    console.log(bookDetails)
+    // logMarian("bookDetails", bookDetails);
+
     return {
         ...bookDetails
     };
@@ -159,8 +151,13 @@ function getHighResImageUrl(src) {
     return src
 }
 
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+/**
+ * Extracts the StoryGraph book ID from a StoryGraph book URL.
+ */
+function getStoryGraphBookIdFromUrl(url) {
+  const regex = /thestorygraph\.com\/books\/([^/?]+)/i;
+  const match = url.match(regex);
+  return match ? match[1] : null;
 }
 
 export { getStoryGraphDetails };
