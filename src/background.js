@@ -25,3 +25,19 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
     updateIcon(tabId, isAllowedUrl(tab.url));
   });
 });
+
+function openSidebar(tab) {
+  if (typeof chrome.sidePanel !== "undefined" && chrome.sidePanel.open) {
+    // Chrome with Side Panel API
+    chrome.sidePanel.open({ windowId: tab.windowId });
+  } else if (chrome.sidebarAction && chrome.sidebarAction.open) {
+    // Firefox Sidebar Action API
+    chrome.sidebarAction.open();
+  } else {
+    console.warn("No native sidebar API available.");
+  }
+}
+
+chrome.action.onClicked.addListener((tab) => {
+  openSidebar(tab);
+});

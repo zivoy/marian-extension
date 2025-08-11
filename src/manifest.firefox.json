@@ -9,5 +9,9 @@
 		"gecko": {
 			"id": "marian@jacobtender.net"
 		}
+	},
+	"sidebar_action": {
+		"default_title": "Marian",
+		"default_panel": "popup.html"
 	}
 }

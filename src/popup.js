@@ -4,6 +4,22 @@ const loadingEl = document.getElementById('loading');
 const errorEl = document.getElementById('error');
 const detailsEl = document.getElementById('details');
 
+// --- Brave sidebar overlay offset ---
+const BRAVE_OVERLAY_PX = 56; // tweak if Brave’s buttons are wider/narrower
+
+(async () => {
+  try {
+    const isBrave = !!(navigator.brave && await navigator.brave.isBrave());
+    // apply padding so Brave's right-side buttons don't cover content
+    loadingEl.style.paddingRight = isBrave ? `${BRAVE_OVERLAY_PX}px` : '0px';
+    errorEl.style.paddingRight = isBrave ? `${BRAVE_OVERLAY_PX}px` : '0px';
+    detailsEl.style.paddingRight = isBrave ? `${BRAVE_OVERLAY_PX}px` : '0px';
+  } catch {
+    // if detection fails, do nothing
+  }
+})();
+
+
 function copyToClipboard(text, labelEl) {
   navigator.clipboard.writeText(text).then(() => {
     // Remove any existing feedback first
@@ -352,6 +368,7 @@ function showDetails() {
   errorEl.style.display = 'none';
   detailsEl.style.display = 'block';
 }
+
 
 // Polling function to try multiple times before giving up
 function tryGetDetails(retries = 8, delay = 300) {
