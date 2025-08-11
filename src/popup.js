@@ -4,22 +4,6 @@ const loadingEl = document.getElementById('loading');
 const errorEl = document.getElementById('error');
 const detailsEl = document.getElementById('details');
 
-// --- Brave sidebar overlay offset ---
-const BRAVE_OVERLAY_PX = 56; // tweak if Brave’s buttons are wider/narrower
-
-(async () => {
-  try {
-    const isBrave = !!(navigator.brave && await navigator.brave.isBrave());
-    // apply padding so Brave's right-side buttons don't cover content
-    loadingEl.style.paddingRight = isBrave ? `${BRAVE_OVERLAY_PX}px` : '0px';
-    errorEl.style.paddingRight = isBrave ? `${BRAVE_OVERLAY_PX}px` : '0px';
-    detailsEl.style.paddingRight = isBrave ? `${BRAVE_OVERLAY_PX}px` : '0px';
-  } catch {
-    // if detection fails, do nothing
-  }
-})();
-
-
 function copyToClipboard(text, labelEl) {
   navigator.clipboard.writeText(text).then(() => {
     // Remove any existing feedback first
@@ -430,21 +414,18 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg?.type === "REFRESH_SIDEBAR") {
-    const url = msg.url || "";
-    if (!isAllowedUrl(url)) {
-      showError("This extension only works on supported product pages.");
-      return;
-    }
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === "ping") {
+    sendResponse("pong");
+    return;
+  }
 
-    // Clear old details before loading new
-    detailsEl.innerHTML = "";
+  if (msg.type === "REFRESH_SIDEBAR" && msg.url && isAllowedUrl(msg.url)) {
     showLoading();
-
     tryGetDetails()
       .then(details => {
         showDetails();
+        detailsEl.innerHTML = ""; // clear previous content
         renderDetails(details);
       })
       .catch(err => {
