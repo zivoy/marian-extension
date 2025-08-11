@@ -31,7 +31,7 @@ function copyToClipboard(text, labelEl) {
     feedback.textContent = 'Copied!';
     labelEl.appendChild(feedback);
 
-    setTimeout(() => feedback.remove(), 8000);
+    setTimeout(() => feedback.remove(), 2000);
   });
 }
 
@@ -429,3 +429,27 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
 });
+
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg?.type === "REFRESH_SIDEBAR") {
+    const url = msg.url || "";
+    if (!isAllowedUrl(url)) {
+      showError("This extension only works on supported product pages.");
+      return;
+    }
+
+    // Clear old details before loading new
+    detailsEl.innerHTML = "";
+    showLoading();
+
+    tryGetDetails()
+      .then(details => {
+        showDetails();
+        renderDetails(details);
+      })
+      .catch(err => {
+        showError(err);
+      });
+  }
+});
+
