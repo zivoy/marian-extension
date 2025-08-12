@@ -109,6 +109,7 @@ function renderDetails(details) {
     imgWrapper.style.flexDirection = 'column';
     imgWrapper.style.alignItems = 'center';
     imgWrapper.style.position = 'relative';
+    imgWrapper.style.maxWidth = '100px';
 
     imgWrapper.appendChild(img);
 
@@ -131,14 +132,6 @@ function renderDetails(details) {
         label.title = 'High resolution (ex: 300 x 450)';
         label.textContent = 'High';
       }
-      label.style.color = '#fff';
-      label.style.fontWeight = 'bold';
-      label.style.marginTop = '8px';
-      label.style.padding = '2px 10px';
-      label.style.borderRadius = '6px';
-      label.style.fontSize = '0.85em';
-      label.style.boxShadow = '0 1px 4px rgba(0,0,0,0.15)';
-      label.style.pointerEvents = 'none';
 
       imgWrapper.appendChild(label);
     }
