@@ -7,7 +7,7 @@
 		"default_path": "popup.html"
 	},
 	"permissions": [
-		"sidePanel"
+		"sidePanel",
+		"notifications"
 	]
-
 }

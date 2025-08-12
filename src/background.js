@@ -33,7 +33,6 @@ function openSidebar(tab) {
   }
 }
 
-// ---- NEW: Send message when sidebar is ready ----
 function sendWhenReady(msg, retries = 10, delay = 150) {
   function attempt(remaining) {
     chrome.runtime.sendMessage({ type: "ping" }, (response) => {
@@ -47,11 +46,34 @@ function sendWhenReady(msg, retries = 10, delay = 150) {
   attempt(retries);
 }
 
+function showUnsupportedNotification(tab) {
+  try {
+    chrome.notifications.create(
+      // use a unique id so repeated clicks update the same notification
+      "marian-unsupported",
+      {
+        type: "basic",
+        iconUrl: "icons/icon-shush.png",
+        title: "Shhhh...",
+        message: "You cannot do that here!"
+      },
+      (id) => {
+        setTimeout(() => chrome.notifications.clear(id || "marian-unsupported"), 3000);
+      }
+    );
+  } catch (e) {
+    console.warn("Notification failed:", e);
+  }
+}
+
 chrome.action.onClicked.addListener((tab) => {
-  if (!tab?.url || !isAllowedUrl(tab.url)) {
-    console.warn("Sidebar not available for this page:", tab?.url);
+  if (!tab?.url) return;
+
+  if (!isAllowedUrl(tab.url)) {
+    showUnsupportedNotification(tab);
     return;
   }
+
   openSidebar(tab);
   setTimeout(() => {
     sendWhenReady({ type: "REFRESH_SIDEBAR", url: tab.url });
