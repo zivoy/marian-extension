@@ -3,12 +3,18 @@
 
 <head>
   <style>
-    :root { --right-overlay-offset: 0px; }
+    html, body { height: 100%; }
+
     body {
+      height: 100vh;               /* not min-height */
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;      /* include borders/padding in height calc */
       font-family: sans-serif;
-      padding: 12px;
       background-color: #1f2937;
       color: white;
+      padding: 0;                  /* move padding to #content */
     }
 
     img {
@@ -84,18 +90,116 @@
       font-size: 12px;
       cursor: pointer;
     }
+
+    .tilt {
+      transform: rotate(-18deg);
+    }
+
+    #content {
+      flex: 1 1 auto;
+      overflow: auto;
+      padding: 12px;
+    }
+
+    /* sticky footer */
+    #footer {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: #0f2233;
+      border-top: 2px solid #384151;
+    }
+
+    #hardcover-callout {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 13px;
+      line-height: 1.4em;
+      color: #cbd5e1;
+      max-width: 100%;
+      margin: 10px 0;
+    }
+
+    #hardcover-callout img {
+      height: 32px;
+      width: auto;
+      flex-shrink: 0;
+      padding: 4px; /* extra padding around the icon */
+      box-sizing: content-box;
+    }
+
+    #hardcover-callout .callout-text {
+      flex: 1;
+    }
+
+    #hardcover-callout a {
+      color: #6466E9;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    #hardcover-callout a:hover {
+      text-decoration: underline;
+    }
+
+    #footer-icons {
+      display: none;
+      /* display: flex; */
+      gap: 14px;
+      margin: 0 0 5px;
+    }
+
+    #footer-icons img {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+
   </style>
 </head>
 
 <body>
-  <div id="loading" style="display: none;">Loading details...</div>
-  <div id="error" style="display: none; color: red;"></div>
-  <div id="details"></div>
+  <div id="content">
+    <div id="loading" style="display: none;">Loading details...</div>
+    <div id="error" style="display: none; color: red;"></div>
+    <div id="details"></div>
+  </div>
   <!-- <div>
     <button id="download-json">Download JSON</button>
     <button id="download-csv">Download CSV</button>
   </div> -->
   <script src="popup.js"></script>
+
+  <footer id="footer">
+    <div id="hardcover-callout">
+      <img class="tilt" src="icons/third-party/hardcover.svg" alt="Hardcover">
+      <div class="callout-text">
+        Discover life-changing books, track your reading habits, and connect with other passionate readers on
+        <a href="https://hardcover.app/join?referrer_id=8753" target="_blank" title="Hardcover">Hardcover</a>!
+      </div>
+    </div>
+    <div id="footer-icons">
+      <a href="https://github.com/jacobtender/marian-extension" target="_blank" title="GitHub">
+        <img src="icons/third-party/github-white.svg" alt="GitHub">
+      </a>
+      <a href="https://ko-fi.com/jacobtender" target="_blank" title="Buy me a coffee">
+        <img src="icons/third-party/kofi.svg" alt="Ko-fi">
+      </a>
+      <a href="https://jacobtender.net/" target="_blank" title="Jacob Tender">
+        <img src="icons/third-party/jacob-tender-pilcrow.png" alt="Jacob Tender">
+      </a>
+      <a href="https://hardcover.app/join?referrer_id=8753" target="_blank" title="Hardcover">
+        <img class="tilt" src="icons/third-party/hardcover.svg" alt="Hardcover">
+      </a>
+    </div>
+  </footer>
 </body>
 
 </html>
