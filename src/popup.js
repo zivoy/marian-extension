@@ -79,6 +79,7 @@ function toCSV(obj) {
 function renderDetails(details) {
   console.log('[Extension] Rendering details:', details);
   const container = document.getElementById('details');
+  container.innerHTML = ""; // safety clear 
 
   if (details.img) {
     const sideBySideWrapper = document.createElement('div');
