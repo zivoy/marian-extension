@@ -1,6 +1,6 @@
 {
 	"manifest_version": 3,
-	"name": "Marian",
+	"name": "Marian The Librarian",
 	"version": "",
 	"description": "Extracts book details from Amazon product pages. Created for the fine librarian corps of Hardcover.app.",
 	"author": {
@@ -23,7 +23,6 @@
 		"128": "icons/icon.png"
 	},
 	"action": {
-		"default_popup": "popup.html",
 		"default_title": "Get Book Details"
 	},
 	"content_scripts": [

@@ -40,8 +40,8 @@ async function getAmazonDetails() {
     bookDetails['Reading Format'] = 'Physical Book';
   }
 
-  // logMarian("bookDetails", audibleDetails);
-  // logMarian("bookDetails", audibleDetails);
+  // logMarian("bookDetails", bookDetails);
+  // logMarian("audibleDetails", audibleDetails);
  
   return {
     ...bookDetails,

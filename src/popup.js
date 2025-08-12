@@ -15,7 +15,7 @@ function copyToClipboard(text, labelEl) {
     feedback.textContent = 'Copied!';
     labelEl.appendChild(feedback);
 
-    setTimeout(() => feedback.remove(), 8000);
+    setTimeout(() => feedback.remove(), 2000);
   });
 }
 
@@ -79,6 +79,7 @@ function toCSV(obj) {
 function renderDetails(details) {
   console.log('[Extension] Rendering details:', details);
   const container = document.getElementById('details');
+  container.innerHTML = ""; // safety clear 
 
   if (details.img) {
     const sideBySideWrapper = document.createElement('div');
@@ -102,13 +103,13 @@ function renderDetails(details) {
         Date.now();
       downloadImage(details.img, fallbackId);
     });
-    sideBySideWrapper.appendChild(img);
 
     const imgWrapper = document.createElement('div');
     imgWrapper.style.display = 'flex';
     imgWrapper.style.flexDirection = 'column';
     imgWrapper.style.alignItems = 'center';
     imgWrapper.style.position = 'relative';
+    imgWrapper.style.maxWidth = '100px';
 
     imgWrapper.appendChild(img);
 
@@ -117,7 +118,6 @@ function renderDetails(details) {
       label.className = 'img-score-label';
       label.textContent = details.imgScore.toLocaleString();
 
-      // Color coding
       if (details.imgScore < 33000) {
         label.style.background = '#c0392b';
         label.title = 'Low resolution (ex: 133 x 200)';
@@ -131,14 +131,6 @@ function renderDetails(details) {
         label.title = 'High resolution (ex: 300 x 450)';
         label.textContent = 'High';
       }
-      label.style.color = '#fff';
-      label.style.fontWeight = 'bold';
-      label.style.marginTop = '8px';
-      label.style.padding = '2px 10px';
-      label.style.borderRadius = '6px';
-      label.style.fontSize = '0.85em';
-      label.style.boxShadow = '0 1px 4px rgba(0,0,0,0.15)';
-      label.style.pointerEvents = 'none';
 
       imgWrapper.appendChild(label);
     }
@@ -162,15 +154,15 @@ function renderDetails(details) {
       titleVal.textContent = details.Title;
       titleVal.title = 'Click to copy';
       titleVal.style.cursor = 'pointer';
-      titleVal.addEventListener('click', () => copyToClipboard(details.title, titleDiv));
+      // fix: use Title with capital T
+      titleVal.addEventListener('click', () => copyToClipboard(details.Title, titleDiv));
 
-      // titleDiv.appendChild(titleLabel);
       titleDiv.appendChild(document.createTextNode(' '));
       titleDiv.appendChild(titleVal);
       textWrapper.appendChild(titleDiv);
     }
 
-    // Description row (truncate if needed via CSS)
+    // Description row
     if (details.Description) {
       const descDiv = document.createElement('div');
       descDiv.className = 'row';
@@ -186,7 +178,6 @@ function renderDetails(details) {
       descVal.style.cursor = 'pointer';
       descVal.addEventListener('click', () => copyToClipboard(details.Description, descDiv));
 
-      // descDiv.appendChild(descLabel);
       descDiv.appendChild(document.createTextNode(' '));
       descDiv.appendChild(descVal);
       textWrapper.appendChild(descDiv);
@@ -196,19 +187,37 @@ function renderDetails(details) {
     container.appendChild(sideBySideWrapper);
   }
 
+  // ===== NEW: Series + Series Place block under the header =====
+  if (details.Series || details['Series Place']) {
+    const metaTop = document.createElement('div');
+    // style to sit a bit under the header block
+    metaTop.style.margin = '8px 0 0 0';
+
+    if (details.Series) {
+      renderRow(metaTop, 'Series', details.Series);
+    }
+    if (details['Series Place']) {
+      renderRow(metaTop, 'Series Place', details['Series Place']);
+    }
+
+    container.appendChild(metaTop);
+  }
+  // =============================================================
+
   // Format date if available
   if (details["Publication date"]) {
     details["Publication date"] = formatDate(details["Publication date"]);
   }
 
-  // Separator below image/title/description block
+  // Separator below image/title/description + metaTop block
   const hr = document.createElement('hr');
   container.appendChild(hr);
 
   // Render details in a way that reflects the order of a Hardcover Edition edit form
+  // NOTE: 'Series' and 'Series Place' were moved up, so we exclude them here
   const orderedKeys = [
-    'Series',
-    'Series Place',
+    // 'Series',
+    // 'Series Place',
     'ISBN-13',
     'ISBN-10',
     'ASIN',
@@ -223,7 +232,7 @@ function renderDetails(details) {
     'Language'
   ];
 
-  const rendered = new Set();
+  const rendered = new Set(['Series', 'Series Place']); // mark as already rendered
   orderedKeys.forEach(key => {
     if (key in details) {
       renderRow(container, key, details[key]);
@@ -353,6 +362,7 @@ function showDetails() {
   detailsEl.style.display = 'block';
 }
 
+
 // Polling function to try multiple times before giving up
 function tryGetDetails(retries = 8, delay = 300) {
   return new Promise((resolve, reject) => {
@@ -412,3 +422,24 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
 });
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === "ping") {
+    sendResponse("pong");
+    return;
+  }
+
+  if (msg.type === "REFRESH_SIDEBAR" && msg.url && isAllowedUrl(msg.url)) {
+    showLoading();
+    tryGetDetails()
+      .then(details => {
+        showDetails();
+        detailsEl.innerHTML = ""; // clear previous content
+        renderDetails(details);
+      })
+      .catch(err => {
+        showError(err);
+      });
+  }
+});
+

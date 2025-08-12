@@ -12,9 +12,15 @@ async function getGoodreadsDetails() {
     bookDetails["imgScore"] = imgEl?.src ? await getImageScore(imgEl.src) : 0;
     bookDetails["Title"] = document.querySelector('[data-testid="bookTitle"]')?.innerText.trim();
 
-    const button = document.querySelector('.ContributorLinksList button[aria-label="Show all contributors"]');
-    if (button) {
-        button.click();
+    const contributorsButton = document.querySelector('.ContributorLinksList button[aria-label="Show all contributors"]');
+    if (contributorsButton) {
+        contributorsButton.click();
+        await delay(1500); // wait for contributors to load
+    }
+
+    const detailsButton = document.querySelector('.BookDetails button[aria-label="Book details and editions"]');
+    if (detailsButton) {
+        detailsButton.click();
         await delay(1500); // wait for contributors to load
     }
 
