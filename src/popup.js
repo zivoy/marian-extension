@@ -103,7 +103,6 @@ function renderDetails(details) {
         Date.now();
       downloadImage(details.img, fallbackId);
     });
-    sideBySideWrapper.appendChild(img);
 
     const imgWrapper = document.createElement('div');
     imgWrapper.style.display = 'flex';
@@ -119,7 +118,6 @@ function renderDetails(details) {
       label.className = 'img-score-label';
       label.textContent = details.imgScore.toLocaleString();
 
-      // Color coding
       if (details.imgScore < 33000) {
         label.style.background = '#c0392b';
         label.title = 'Low resolution (ex: 133 x 200)';
@@ -156,15 +154,15 @@ function renderDetails(details) {
       titleVal.textContent = details.Title;
       titleVal.title = 'Click to copy';
       titleVal.style.cursor = 'pointer';
-      titleVal.addEventListener('click', () => copyToClipboard(details.title, titleDiv));
+      // fix: use Title with capital T
+      titleVal.addEventListener('click', () => copyToClipboard(details.Title, titleDiv));
 
-      // titleDiv.appendChild(titleLabel);
       titleDiv.appendChild(document.createTextNode(' '));
       titleDiv.appendChild(titleVal);
       textWrapper.appendChild(titleDiv);
     }
 
-    // Description row (truncate if needed via CSS)
+    // Description row
     if (details.Description) {
       const descDiv = document.createElement('div');
       descDiv.className = 'row';
@@ -180,7 +178,6 @@ function renderDetails(details) {
       descVal.style.cursor = 'pointer';
       descVal.addEventListener('click', () => copyToClipboard(details.Description, descDiv));
 
-      // descDiv.appendChild(descLabel);
       descDiv.appendChild(document.createTextNode(' '));
       descDiv.appendChild(descVal);
       textWrapper.appendChild(descDiv);
@@ -190,19 +187,37 @@ function renderDetails(details) {
     container.appendChild(sideBySideWrapper);
   }
 
+  // ===== NEW: Series + Series Place block under the header =====
+  if (details.Series || details['Series Place']) {
+    const metaTop = document.createElement('div');
+    // style to sit a bit under the header block
+    metaTop.style.margin = '8px 0 0 0';
+
+    if (details.Series) {
+      renderRow(metaTop, 'Series', details.Series);
+    }
+    if (details['Series Place']) {
+      renderRow(metaTop, 'Series Place', details['Series Place']);
+    }
+
+    container.appendChild(metaTop);
+  }
+  // =============================================================
+
   // Format date if available
   if (details["Publication date"]) {
     details["Publication date"] = formatDate(details["Publication date"]);
   }
 
-  // Separator below image/title/description block
+  // Separator below image/title/description + metaTop block
   const hr = document.createElement('hr');
   container.appendChild(hr);
 
   // Render details in a way that reflects the order of a Hardcover Edition edit form
+  // NOTE: 'Series' and 'Series Place' were moved up, so we exclude them here
   const orderedKeys = [
-    'Series',
-    'Series Place',
+    // 'Series',
+    // 'Series Place',
     'ISBN-13',
     'ISBN-10',
     'ASIN',
@@ -217,7 +232,7 @@ function renderDetails(details) {
     'Language'
   ];
 
-  const rendered = new Set();
+  const rendered = new Set(['Series', 'Series Place']); // mark as already rendered
   orderedKeys.forEach(key => {
     if (key in details) {
       renderRow(container, key, details[key]);
