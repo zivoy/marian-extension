@@ -20,24 +20,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     showStatus("DOM Loaded, fetching details...");
-
-    addRefreshButton(() => {
-      showStatus("Refreshing...");
-      tryGetDetails()
-        .then(details => {
-          showDetails();
-          renderDetails(details);
-        })
-        .catch(err => showStatus(err));
-    });
-
-
     tryGetDetails()
       .then(details => {
         showDetails();
         const detailsEl = document.getElementById('details');
         if (detailsEl) detailsEl.innerHTML = "";
         renderDetails(details);
+
+        addRefreshButton(() => {
+          showStatus("Refreshing...");
+          tryGetDetails()
+            .then(details => {
+              showDetails();
+              renderDetails(details);
+            })
+            .catch(err => showStatus(err));
+        });
 
         chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
           const currentUrl = tab?.url || '';

@@ -142,6 +142,7 @@ export function renderDetails(details) {
     img.title = 'Click to download';
     img.style.maxWidth = '100px';
     img.style.cursor = 'pointer';
+		img.loading = 'lazy'; // lazy load for performance
     img.addEventListener('click', () => {
       const fallbackId =
         details['ISBN-13'] ||
@@ -279,10 +280,8 @@ export function showStatus(message) {
 }
 
 export function showDetails() {
-  const statusEl = statusBox();
   const detailsEl = detailsBox();
-  if (!statusEl || !detailsEl) return;
-  statusEl.style.display = 'none';
+if (!detailsEl) return;
   detailsEl.style.display = 'block';
 }
 
@@ -326,6 +325,7 @@ export function addRefreshButton(onClick) {
   const btn = document.createElement('button');
   btn.id = 'refresh-button';
   btn.textContent = 'Refresh details from current tab';
+	btn.style.display = 'none';
 
   btn.addEventListener('click', () => {
     if (btn.disabled) return; // bail if not allowed
@@ -351,13 +351,15 @@ export function addRefreshButton(onClick) {
 
 export function updateRefreshButtonForUrl(url) {
   const btn = document.getElementById('refresh-button');
+	const statusEl = statusBox();
   if (!btn) return;
 
   const allowed = isAllowedUrl(url);
   const norm = normalizeUrl(url);
   const alreadyFetched = norm === getLastFetchedUrl();
-
   const enabled = allowed && !alreadyFetched;
+
+	btn.style.display = allowed ? 'inline' : 'none';
 
   btn.disabled = !enabled;
   btn.style.opacity = enabled ? '' : '0.5';
@@ -367,8 +369,10 @@ export function updateRefreshButtonForUrl(url) {
   btn.textContent = !allowed
     ? 'This page is not supported'
     : alreadyFetched
-      ? 'Already up to date'
-      : 'Refresh details from current tab';
+      ? 'You have these details checkout out'
+      : 'Check out details from current tab';
+
+	if (statusEl && allowed) statusEl.style.display = 'none';
 }
 
 export function checkActiveTabAndUpdateButton() {
