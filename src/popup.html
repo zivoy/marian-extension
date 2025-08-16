@@ -105,16 +105,47 @@
       padding: 12px;
     }
 
-    /* sticky footer */
-    #footer {
-      flex-shrink: 0;
+    #refresh-button {
+      width: 100%;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 6px;
-      padding: 8px 12px;
-      background: #0f2233;
-      border-top: 2px solid #384151;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 8px;
+      margin: 10px 0 12px;
+      font-size: 13px;
+      line-height: 1.4em;
+      border: none;
+      cursor: pointer;
+      color: black;
+    }
+
+    #refresh-button.refresh-enabled {
+      background-color: #E6B313;
+      color: #000;
+      cursor: pointer;
+      border-bottom: 2px solid #B8970B;
+      margin-bottom: 10px;
+    }
+
+    #refresh-button.refresh-enabled:active {
+      background-color: #d6a912; /* slightly darker yellow */
+      border: none;
+      transform: translateY(1px);
+      margin-bottom: 12px;
+    }
+
+    #refresh-button.refresh-disabled {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      cursor: not-allowed;
+    }
+
+    #refresh-button.refresh-unsupported {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      cursor: not-allowed;
     }
 
     #hardcover-callout, 
@@ -130,6 +161,18 @@
       color: #cbd5e1;
       max-width: 100%;
       margin: 10px 0;
+    }
+
+    /* sticky footer */
+    #footer {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: #0f2233;
+      border-top: 2px solid #384151;
     }
 
     #hardcover-callout img {
@@ -179,7 +222,7 @@
     <button id="download-json">Download JSON</button>
     <button id="download-csv">Download CSV</button>
   </div> -->
-  <script src="popup.js"></script>
+  <script type="module" src="./popup.js"></script>
 
   <footer id="footer">
     <div id="hardcover-callout">
