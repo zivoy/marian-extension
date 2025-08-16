@@ -251,8 +251,8 @@ export function renderDetails(details) {
   container.appendChild(hr);
 
   const orderedKeys = [
-    'ISBN-13','ISBN-10','ASIN','Source ID','Contributors','Publisher',
-    'Reading Format','Edition Format','Listening Length','Pages',
+    'ISBN-10','ISBN-13','ASIN','Source ID','Contributors','Publisher',
+    'Reading Format','Listening Length','Pages','Edition Format',
     'Publication date','Language'
   ];
 
