@@ -383,7 +383,6 @@ export function updateRefreshButtonForUrl(url) {
   if (statusEl && allowed) statusEl.style.display = 'none';
 }
 
-
 export function checkActiveTabAndUpdateButton() {
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
     updateRefreshButtonForUrl(tab?.url || "");
