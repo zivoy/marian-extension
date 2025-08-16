@@ -16,6 +16,10 @@
       color: white;
       padding: 0;                  /* move padding to #content */
     }
+    a {
+      color: white;
+      text-decoration: underline;
+    }
 
     img {
       max-width: 100%;
@@ -113,7 +117,8 @@
       border-top: 2px solid #384151;
     }
 
-    #hardcover-callout {
+    #hardcover-callout, 
+    .callout {
       display: flex;
       align-items: center;
       gap: 10px;
@@ -167,8 +172,7 @@
 
 <body>
   <div id="content">
-    <div id="loading" style="display: none;">Loading details...</div>
-    <div id="error" style="display: none; color: red;"></div>
+    <div id="status" class="callout" style="display: none;">Loading details...</div>
     <div id="details"></div>
   </div>
   <!-- <div>
