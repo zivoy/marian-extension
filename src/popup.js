@@ -1,6 +1,6 @@
 import { isAllowedUrl } from "./shared/allowed-patterns";
 
-const DEBUG = true;
+const DEBUG = false;
 
 const statusEl = document.getElementById('status');
 const detailsEl = document.getElementById('details');
