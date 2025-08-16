@@ -347,7 +347,7 @@ function buildIssueUrl(tabUrl) {
   const domain = new URL(tabUrl).hostname.replace(/^www\./, '');
   const title = `Unsupported URL detected on ${domain}`;
   const body = [
-    'This page is not currently supported by the Marian extension:',
+    'This page is not currently supported by Marian:',
     '',
     tabUrl, // <-- raw URL here; we encode the whole body once
     '',
@@ -440,14 +440,14 @@ function tryGetDetails(retries = 8, delay = 300) {
               // reload the TAB once, then retry after it finishes loading
               if (!didRefresh) {
                 didRefresh = true;
-                showStatus("Content script not ready, refreshing tab...");
+                // showStatus("Content script not ready, refreshing tab...");
                 chrome.tabs.reload(tab.id, { bypassCache: true });
-                showStatus("Tab reloaded, waiting for content script...");
+                showStatus("Tab reloaded, fetching details...");
 
                 const onUpdated = (updatedTabId, info) => {
                   if (updatedTabId === tab.id && info.status === 'complete') {
                     chrome.tabs.onUpdated.removeListener(onUpdated);
-                    console.log(retries, 'Tab reloaded, retrying to get details...');
+                    console.log(retries, 'Tab reloaded, fetching details again...');
                     setTimeout(() => attempt(retries), 350); // retry fresh after reload
                   }
                 };
