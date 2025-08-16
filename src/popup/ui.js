@@ -141,6 +141,7 @@ export function renderDetails(details) {
     img.alt = 'Cover Image';
     img.title = 'Click to download';
     img.style.maxWidth = '100px';
+		img.style.minHeight = '100px';
     img.style.cursor = 'pointer';
 		img.loading = 'lazy'; // lazy load for performance
     img.addEventListener('click', () => {
@@ -351,7 +352,7 @@ export function addRefreshButton(onClick) {
 
 export function updateRefreshButtonForUrl(url) {
   const btn = document.getElementById('refresh-button');
-	const statusEl = statusBox();
+  const statusEl = statusBox();
   if (!btn) return;
 
   const allowed = isAllowedUrl(url);
@@ -359,21 +360,29 @@ export function updateRefreshButtonForUrl(url) {
   const alreadyFetched = norm === getLastFetchedUrl();
   const enabled = allowed && !alreadyFetched;
 
-	btn.style.display = allowed ? 'inline' : 'none';
+  // always visible
+  btn.style.display = 'flex';
 
+  // set functional disabled state
   btn.disabled = !enabled;
-  btn.style.opacity = enabled ? '' : '0.5';
-  btn.style.cursor = enabled ? 'pointer' : 'not-allowed';
-  btn.style.backgroundColor = enabled ? '#E6B313' : '#384151';
-	btn.style.color = enabled ? '#000' : '#fff';
-  btn.textContent = !allowed
-    ? 'This page is not supported'
-    : alreadyFetched
-      ? 'You have these details checkout out'
-      : 'Check out details from current tab';
 
-	if (statusEl && allowed) statusEl.style.display = 'none';
+  // reset classes
+  btn.classList.remove('refresh-enabled', 'refresh-disabled', 'refresh-unsupported');
+
+  if (!allowed) {
+    btn.classList.add('refresh-unsupported');
+    btn.textContent = 'This page is not supported';
+  } else if (alreadyFetched) {
+    btn.classList.add('refresh-disabled');
+    btn.textContent = 'You have these details checked out';
+  } else {
+    btn.classList.add('refresh-enabled');
+    btn.textContent = 'Check out details from current tab';
+  }
+
+  if (statusEl && allowed) statusEl.style.display = 'none';
 }
+
 
 export function checkActiveTabAndUpdateButton() {
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
