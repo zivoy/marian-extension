@@ -1,7 +1,8 @@
 import { isAllowedUrl } from "./shared/allowed-patterns";
 
-const loadingEl = document.getElementById('loading');
-const errorEl = document.getElementById('error');
+const DEBUG = true;
+
+const statusEl = document.getElementById('status');
 const detailsEl = document.getElementById('details');
 
 function copyToClipboard(text, labelEl) {
@@ -342,25 +343,59 @@ function renderRow(container, key, value) {
   container.appendChild(div);
 }
 
-
-function showLoading() {
-  loadingEl.style.display = 'block';
-  errorEl.style.display = 'none';
-  detailsEl.style.display = 'none';
-}
-
-function showError(message) {
-  loadingEl.style.display = 'none';
-  errorEl.textContent = message;
-  errorEl.style.display = 'block';
+function showStatus(message) {
+  statusEl.style.display = 'block';
+  statusEl.textContent = message;
   detailsEl.style.display = 'none';
 }
 
 function showDetails() {
-  loadingEl.style.display = 'none';
-  errorEl.style.display = 'none';
+  statusEl.style.display = 'none';
   detailsEl.style.display = 'block';
 }
+
+// DEBUG: Sidebar logger: mirrors console.* into a sidebar status area
+function initSidebarLogger() {
+  // find or create a status container in your sidebar
+  let host = document.getElementById('sidebar-status');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'sidebar-status';
+    host.style.cssText = 'font:12px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding:8px 12px; border-bottom:1px solid #eee; max-height:160px; overflow:auto;';
+    // insert above your details area if you have one
+    const container = document.getElementById('details') || document.body;
+    container.parentNode.insertBefore(host, container);
+  }
+
+  const append = (level, parts) => {
+    const line = document.createElement('div');
+    line.style.margin = '2px 0';
+    if (level === 'warn') line.style.color = '#9a6b00';
+    if (level === 'error') line.style.color = '#b00020';
+    if (level === 'debug') line.style.opacity = '0.8';
+
+    const ts = new Date().toLocaleTimeString();
+    const text = parts.map(p => {
+      try { return typeof p === 'string' ? p : JSON.stringify(p); }
+      catch { return String(p); }
+    }).join(' ');
+    line.textContent = `[${ts}] ${level.toUpperCase()}: ${text}`;
+    host.appendChild(line);
+    host.scrollTop = host.scrollHeight;
+  };
+
+  // patch console methods to also write to the sidebar
+  ['log', 'warn', 'error', 'debug'].forEach(fn => {
+    const original = console[fn].bind(console);
+    console[fn] = (...args) => {
+      append(fn, args);
+      original(...args);
+    };
+  });
+
+  console.debug('Sidebar logger initialized');
+}
+
 
 
 // Polling function to try multiple times before giving up
@@ -416,15 +451,17 @@ function tryGetDetails(retries = 8, delay = 300) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  if (DEBUG) initSidebarLogger(); // DEBUG: Initialize sidebar logger
+
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
     const url = tab?.url || "";
 
     if (!isAllowedUrl(url)) {
-      showError("This extension only works on supported product pages.");
+      showStatus("This extension only works on supported product pages.");
       return;
     }
 
-    showLoading();
+    showStatus("DOM Loaded, fetching details...");
 
     tryGetDetails()
       .then(details => {
@@ -432,7 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
         renderDetails(details);
       })
       .catch(err => {
-        showError(err);
+        showStatus(err);
       });
   });
 });
@@ -444,7 +481,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === "REFRESH_SIDEBAR" && msg.url && isAllowedUrl(msg.url)) {
-    showLoading();
+    showStatus("Loading details...");
     tryGetDetails()
       .then(details => {
         showDetails();
@@ -452,7 +489,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         renderDetails(details);
       })
       .catch(err => {
-        showError(err);
+        showStatus(err);
       });
   }
 });
