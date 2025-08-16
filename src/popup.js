@@ -343,9 +343,32 @@ function renderRow(container, key, value) {
   container.appendChild(div);
 }
 
+function buildIssueUrl(tabUrl) {
+  const domain = new URL(tabUrl).hostname.replace(/^www\./, '');
+  const title = `Unsupported URL detected on ${domain}`;
+  const body = [
+    'This page is not currently supported by the Marian extension:',
+    '',
+    tabUrl, // <-- raw URL here; we encode the whole body once
+    '',
+    '**Steps to reproduce:**',
+    '1. Open the above URL with the extension installed',
+    '2. Open the extension sidebar',
+    '3. See that details are not loaded',
+    '',
+    '**Expected behavior:**',
+    'Details should load for supported product pages.'
+  ].join('\n');
+
+  return 'https://github.com/jacobtender/marian-extension/issues/new'
+    + `?title=${encodeURIComponent(title)}`
+    + `&body=${encodeURIComponent(body)}`
+    + `&labels=${encodeURIComponent('bug')}`;
+}
+
 function showStatus(message) {
   statusEl.style.display = 'block';
-  statusEl.textContent = message;
+  statusEl.innerHTML = message;
   detailsEl.style.display = 'none';
 }
 
@@ -361,7 +384,7 @@ function initSidebarLogger() {
   if (!host) {
     host = document.createElement('div');
     host.id = 'sidebar-status';
-    host.style.cssText = 'font:12px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding:8px 12px; border-bottom:1px solid #eee; max-height:160px; overflow:auto;';
+    host.style.cssText = 'font:12px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding:8px 12px; margin-bottom: 2rem; max-height:160px; overflow:auto;';
     // insert above your details area if you have one
     const container = document.getElementById('details') || document.body;
     container.parentNode.insertBefore(host, container);
@@ -396,8 +419,6 @@ function initSidebarLogger() {
   console.debug('Sidebar logger initialized');
 }
 
-
-
 // Polling function to try multiple times before giving up
 function tryGetDetails(retries = 8, delay = 300) {
   let didRefresh = false;
@@ -419,7 +440,9 @@ function tryGetDetails(retries = 8, delay = 300) {
               // reload the TAB once, then retry after it finishes loading
               if (!didRefresh) {
                 didRefresh = true;
+                showStatus("Content script not ready, refreshing tab...");
                 chrome.tabs.reload(tab.id, { bypassCache: true });
+                showStatus("Tab reloaded, waiting for content script...");
 
                 const onUpdated = (updatedTabId, info) => {
                   if (updatedTabId === tab.id && info.status === 'complete') {
@@ -430,7 +453,13 @@ function tryGetDetails(retries = 8, delay = 300) {
                 };
                 chrome.tabs.onUpdated.addListener(onUpdated);
               } else {
-                reject('Sorry, the content script is not ready or unavailable after refresh.');
+                // After the refresh and retry, still no handshake → unsupported page
+                const issueUrl = buildIssueUrl(tab?.url || '(unknown URL)');
+                showStatus(`
+                  This site is supported, but this page isn't yet.<br/>
+                  Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a> the full URL of this page so we can add support!
+                `);
+                // reject('Unsupported URL or no content script after refresh.');
               }
             }
             return;
