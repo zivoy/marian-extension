@@ -10,8 +10,8 @@ async function getKoboDetails() {
     bookDetails["imgScore"] = imggrab?.src ? await getImageScore(imggrab.src) : 0;
 
     // Source ID
-    const sourceId = getKoboIdFromUrl(window.location.href);
-    if (sourceId) bookDetails["Source ID"] = sourceId;
+    // const sourceId = getKoboIdFromUrl(window.location.href);
+    // if (sourceId) bookDetails["Source ID"] = sourceId;
 
     // Title
     getKoboBookTitle(bookDetails);
