@@ -1,18 +1,16 @@
-// Keys
-export const LAST_FETCHED_URL_KEY = 'lastFetchedUrl';
-
-// Compare origin+path to avoid noisy query/hash differences
 export function normalizeUrl(u) {
-  try {
-    const url = new URL(u);
-    return `${url.origin}${url.pathname}`;
-  } catch { return u || ''; }
+  try { const x = new URL(u); return `${x.origin}${x.pathname}`; }
+  catch { return u || ''; }
 }
 
-// Simple guards
-export function once(fn) {
-  let ran = false;
-  return (...args) => { if (!ran) { ran = true; return fn(...args); } };
+let __lastFetchedNorm = '';
+
+export function setLastFetchedUrl(url) {
+  __lastFetchedNorm = normalizeUrl(url);
+}
+
+export function getLastFetchedUrl() {
+  return __lastFetchedNorm;
 }
 
 export function buildIssueUrl(tabUrl) {

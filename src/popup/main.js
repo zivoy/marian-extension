@@ -2,6 +2,7 @@ import { isAllowedUrl } from "../shared/allowed-patterns.js";
 import { tryGetDetails } from "./messaging.js";
 import { showStatus, showDetails, renderDetails, initSidebarLogger, 
   addRefreshButton, updateRefreshButtonForUrl } from "./ui.js";
+import { setLastFetchedUrl } from "./utils.js";
 
 const DEBUG = false;
 
@@ -10,6 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
     const url = tab?.url || "";
+
+    updateRefreshButtonForUrl(url);
 
     if (!isAllowedUrl(url)) {
       showStatus("This extension only works on supported product pages.");
@@ -35,6 +38,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const detailsEl = document.getElementById('details');
         if (detailsEl) detailsEl.innerHTML = "";
         renderDetails(details);
+
+        chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+          const currentUrl = tab?.url || '';
+          setLastFetchedUrl(currentUrl);
+          updateRefreshButtonForUrl(currentUrl);
+        });
       })
       .catch(err => {
         showStatus(err);
@@ -58,6 +67,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         const detailsEl = document.getElementById('details');
         if (detailsEl) detailsEl.innerHTML = "";
         renderDetails(details);
+
+        chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+          const currentUrl = tab?.url || '';
+          setLastFetchedUrl(currentUrl);
+          updateRefreshButtonForUrl(currentUrl);
+        });
       })
       .catch(err => {
         showStatus(err);

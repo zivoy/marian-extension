@@ -1,5 +1,6 @@
 import { tryGetDetails } from "./messaging.js";
 import { isAllowedUrl } from "../shared/allowed-patterns.js";
+import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl } from "./utils.js";
 
 // DOM refs (looked up when functions are called)
 function statusBox() { return document.getElementById('status'); }
@@ -327,16 +328,23 @@ export function addRefreshButton(onClick) {
   btn.textContent = 'Refresh details from current tab';
 
   btn.addEventListener('click', () => {
-		if (btn.disabled) return; // bail if not allowed
-		showStatus("Refreshing...");
-		tryGetDetails()
-			.then(details => {
-				showDetails();
-				renderDetails(details);
-			})
-			.catch(err => showStatus(err));
-	});
+    if (btn.disabled) return; // bail if not allowed
+    showStatus("Refreshing...");
 
+    tryGetDetails()
+      .then(details => {
+        showDetails();
+        renderDetails(details);
+
+        // 👇 After refreshing, set last fetched & disable if same tab
+        chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+          const currentUrl = tab?.url || '';
+          setLastFetchedUrl(currentUrl);
+          updateRefreshButtonForUrl(currentUrl);
+        });
+      })
+      .catch(err => showStatus(err));
+  });
 
   container.prepend(btn);
 }
@@ -344,14 +352,24 @@ export function addRefreshButton(onClick) {
 export function updateRefreshButtonForUrl(url) {
   const btn = document.getElementById('refresh-button');
   if (!btn) return;
-  const allowed = isAllowedUrl(url);
-  btn.disabled = !allowed;
-  btn.style.opacity = allowed ? '' : '0.5';
-  btn.style.cursor = allowed ? 'pointer' : 'not-allowed';
-	btn.style.backgroundColor = allowed ? '#E6B313' : '#384151';
-	btn.textContent = allowed ? 'Refresh details from current tab' : 'This page is not supported';
-}
 
+  const allowed = isAllowedUrl(url);
+  const norm = normalizeUrl(url);
+  const alreadyFetched = norm === getLastFetchedUrl();
+
+  const enabled = allowed && !alreadyFetched;
+
+  btn.disabled = !enabled;
+  btn.style.opacity = enabled ? '' : '0.5';
+  btn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+  btn.style.backgroundColor = enabled ? '#E6B313' : '#384151';
+	btn.style.color = enabled ? '#000' : '#fff';
+  btn.textContent = !allowed
+    ? 'This page is not supported'
+    : alreadyFetched
+      ? 'Already up to date'
+      : 'Refresh details from current tab';
+}
 
 export function checkActiveTabAndUpdateButton() {
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
