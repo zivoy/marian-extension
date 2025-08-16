@@ -365,6 +365,8 @@ function showDetails() {
 
 // Polling function to try multiple times before giving up
 function tryGetDetails(retries = 8, delay = 300) {
+  let didRefresh = false;
+
   return new Promise((resolve, reject) => {
     function attempt(remaining) {
       chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
@@ -374,15 +376,27 @@ function tryGetDetails(retries = 8, delay = 300) {
         }
 
         chrome.tabs.sendMessage(tab.id, 'ping', (response) => {
+          console.log('Ping response:', response, 'Remaining attempts:', remaining);
           if (chrome.runtime.lastError || response !== 'pong') {
             if (remaining > 0) {
               setTimeout(() => attempt(remaining - 1), delay);
             } else {
-              chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-                if (tab?.id) chrome.tabs.reload(tab.id);
-              });
-              setTimeout(() => location.reload(), 1500);
-              reject('Content script not ready or unavailable. Refreshing Page...');
+              // reload the TAB once, then retry after it finishes loading
+              if (!didRefresh) {
+                didRefresh = true;
+                chrome.tabs.reload(tab.id, { bypassCache: true });
+
+                const onUpdated = (updatedTabId, info) => {
+                  if (updatedTabId === tab.id && info.status === 'complete') {
+                    chrome.tabs.onUpdated.removeListener(onUpdated);
+                    console.log(retries, 'Tab reloaded, retrying to get details...');
+                    setTimeout(() => attempt(retries), 350); // retry fresh after reload
+                  }
+                };
+                chrome.tabs.onUpdated.addListener(onUpdated);
+              } else {
+                reject('Sorry, the content script is not ready or unavailable after refresh.');
+              }
             }
             return;
           }

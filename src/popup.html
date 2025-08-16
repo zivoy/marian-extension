@@ -113,7 +113,8 @@
       border-top: 2px solid #384151;
     }
 
-    #hardcover-callout {
+    #hardcover-callout, 
+    .callout {
       display: flex;
       align-items: center;
       gap: 10px;
@@ -167,8 +168,8 @@
 
 <body>
   <div id="content">
-    <div id="loading" style="display: none;">Loading details...</div>
-    <div id="error" style="display: none; color: red;"></div>
+    <div id="loading" class="callout" style="display: none;">Loading details...</div>
+    <div id="error" class="callout" style="display: none;"></div>
     <div id="details"></div>
   </div>
   <!-- <div>
