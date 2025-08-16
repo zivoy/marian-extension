@@ -51,7 +51,8 @@ async function buildScripts(outDir) {
 
   // Popup (separately, as module)
   const popupEntry = path.join(SRC_DIR, "popup", "main.js");
-  const popupOutFile = path.join(outDir, "popup", "main.js");
+  const popupOutFile = path.join(outDir, "popup.js");
+
   const popupDir = path.dirname(popupOutFile);
   if (!fs.existsSync(popupDir)) fs.mkdirSync(popupDir, { recursive: true });
 

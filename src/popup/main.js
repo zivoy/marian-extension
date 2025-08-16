@@ -1,6 +1,7 @@
 import { isAllowedUrl } from "../shared/allowed-patterns.js";
 import { tryGetDetails } from "./messaging.js";
-import { showStatus, showDetails, renderDetails, initSidebarLogger } from "./ui.js";
+import { showStatus, showDetails, renderDetails, initSidebarLogger, 
+  addRefreshButton, updateRefreshButtonForUrl } from "./ui.js";
 
 const DEBUG = false;
 
@@ -17,9 +18,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     showStatus("DOM Loaded, fetching details...");
 
+    addRefreshButton(() => {
+      showStatus("Refreshing...");
+      tryGetDetails()
+        .then(details => {
+          showDetails();
+          renderDetails(details);
+        })
+        .catch(err => showStatus(err));
+    });
+
+
     tryGetDetails()
       .then(details => {
         showDetails();
+        const detailsEl = document.getElementById('details');
+        if (detailsEl) detailsEl.innerHTML = "";
         renderDetails(details);
       })
       .catch(err => {
@@ -48,5 +62,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       .catch(err => {
         showStatus(err);
       });
+  }
+
+  if (msg.type === "TAB_URL_CHANGED") {
+    updateRefreshButtonForUrl(msg.url);
   }
 });
