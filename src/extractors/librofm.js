@@ -95,13 +95,7 @@ function joinContent(elements) {
 }
 
 function extractTextNode(element) {
-	if (!element) {
-		return null;
-	}
-	if (!element.childNodes) {
-		return null
-	}
-	return Array.from(element.childNodes)
+	return Array.from(element?.childNodes || [])
 		.filter(n => n.nodeType == Node.TEXT_NODE)
 		.map(n => n.textContent.trim())
 		.join("\n")
@@ -110,16 +104,21 @@ function extractTextNode(element) {
 
 function extractSection(title) {
 	const sections = document.querySelectorAll('section')
-	return Array.from(sections).find(section => section.querySelector('h2')?.textContent.trim().toLowerCase() == title)
+	return Array.from(sections)
+		.find(section => section.querySelector('h2')?.textContent.trim().toLowerCase() == title)
 }
 
 function getLibroFormatInfo(bookDetails) {
 	bookDetails['Reading Format'] = 'Audiobook';
 	const informationSections = document.querySelectorAll(".audiobook-information .audiobook-information__section");
 
-	const audioLength = extractTextNode(Array.from(informationSections).find(section => section.querySelector("strong")?.textContent.trim().toLowerCase() == 'length'));
+	const audioLength = extractTextNode(
+		Array.from(informationSections)
+			.find(section => section.querySelector("strong")?.textContent.trim().toLowerCase() == 'length')
+	);
 
-	const lengthParts = audioLength.split(/ (?=\d+)/); // split the length by number boundary
+	// split the length by number boundary
+	const lengthParts = audioLength.split(/ (?=\d+)/);
 
 	bookDetails['Listening Length'] = lengthParts;
 
@@ -164,7 +163,8 @@ function extraLibroInfo(bookDetails) {
 	// no nice itemprop attribute for edition type :(
 	const cells = section.querySelectorAll('.cell')
 	// try to find the relevant cell with the 'Edition' header
-	const editionCell = Array.from(cells).find(cell => cell.querySelector('strong')?.textContent.trim().toLowerCase() == 'edition');
+	const editionCell = Array.from(cells)
+		.find(cell => cell.querySelector('strong')?.textContent.trim().toLowerCase() == 'edition');
 	if (editionCell) {
 		let editionFormat = editionCell.querySelector('span')?.textContent.trim()
 		bookDetails['Edition Format'] = editionFormat;
