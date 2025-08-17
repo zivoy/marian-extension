@@ -71,7 +71,7 @@ function getLibroSeries(bookDetails) {
 		bookDetails['Series'] = name;
 		let seriesPlace = extractTextNode(document.querySelector('.audiobook-title__series'));
 		let number = seriesPlace.match(/\d+/);
-		if (number.length > 0) {
+		if (number) {
 			bookDetails['Series Place'] = number[0];
 		}
 	}
