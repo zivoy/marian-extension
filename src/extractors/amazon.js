@@ -123,7 +123,7 @@ function getAudibleDetails() {
     }
 
     // Match any Audible.<TLD> Release Date
-    if (/^Audible\.[a-z]{2,3} Release Date$/i.test(label)) {
+    if (/^Audible\.[^\s]+ Release Date$/i.test(label)) {
       details['Publication date'] = value;
     } else if (label === 'Audible.com Release Date') {
       details['Publication date'] = value;
