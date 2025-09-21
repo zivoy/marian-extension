@@ -5,7 +5,6 @@ const includedLabels = [
     'Contributors',
     'Publisher',
     'Publication date',
-    'Audible.com Release Date',
     'Program Type',
     'Language',
     'Print length',
@@ -123,15 +122,10 @@ function getAudibleDetails() {
       return;
     }
 
-    // logMarian(label, includedLabels.includes(label));
-    // Print debug info for labels not included
-    // skip if not included in the list
-    if (!includedLabels.includes(label)) {
-      // logMarian(`Label not currently included: "${label}"`);
-      return;
-    }
-
-    if (label === 'Audible.com Release Date') {
+    // Match any Audible.<TLD> Release Date
+    if (/^Audible\.[a-z]{2,3} Release Date$/i.test(label)) {
+      details['Publication date'] = value;
+    } else if (label === 'Audible.com Release Date') {
       details['Publication date'] = value;
     } else if (label === 'Program Type') {
       details['Reading Format'] = value;
