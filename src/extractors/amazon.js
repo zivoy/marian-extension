@@ -2,22 +2,22 @@ import { getImageScore, logMarian, getFormattedText } from '../shared/utils.js';
 const bookSeriesRegex = /^Book (\d+) of \d+$/i;
 
 const includedLabels = [
-    'Contributors',
-    'Publisher',
-    'Publication date',
-    'Program Type',
-    'Language',
-    'Print length',
-    'Listening Length',
-    'ISBN-10',
-    'ISBN-13',
-    'ASIN',
-    'Series',
-    'Series Place',
-  ];
+  'Contributors',
+  'Publisher',
+  'Publication date',
+  'Program Type',
+  'Language',
+  'Print length',
+  'Listening Length',
+  'ISBN-10',
+  'ISBN-13',
+  'ASIN',
+  'Series',
+  'Series Place',
+];
 
 async function getAmazonDetails() {
-	logMarian('Extracting Amazon details');
+  logMarian('Extracting Amazon details');
 
   const imgEl = document.querySelector('#imgBlkFront, #landingImage');
   const bookDetails = getDetailBullets();
@@ -30,9 +30,9 @@ async function getAmazonDetails() {
   bookDetails["img"] = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
   bookDetails["imgScore"] = imgEl?.src ? await getImageScore(imgEl.src) : 0;
   bookDetails["Contributors"] = contributors;
-  
+
   if (bookDetails["Edition Format"] == "Kindle") {
-    bookDetails['Reading Format'] = 'Ebook'; 
+    bookDetails['Reading Format'] = 'Ebook';
   } else if (bookDetails["Edition Format"] == "Audible") {
     bookDetails['Reading Format'] = 'Audiobook';
   } else {
@@ -41,7 +41,7 @@ async function getAmazonDetails() {
 
   // logMarian("bookDetails", bookDetails);
   // logMarian("audibleDetails", audibleDetails);
- 
+
   return {
     ...bookDetails,
     ...audibleDetails,
