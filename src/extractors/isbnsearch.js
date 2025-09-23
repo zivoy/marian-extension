@@ -26,6 +26,11 @@ async function getIsbnSearchDetails() {
   }
 
   getContributers(bookDetails);
+
+  // Treat as local time when parsing
+  bookDetails['Publication date'] = bookDetails['Publication date'] + "T00:00:00";
+
+
   // TODO: check if book is actually physical, they don't seem to have pages for ebooks with ISBNs
   bookDetails['Reading Format'] = 'Physical Book';
 
