@@ -71,7 +71,8 @@
 				"https://app.thestorygraph.com/books/*",
 				"https://www.google.com/books/*",
 				"https://www.kobo.com/*/*/*book/*",
-				"https://libro.fm/audiobooks/*"
+				"https://libro.fm/audiobooks/*",
+				"https://isbnsearch.org/isbn/*"
 			],
 			"js": [
 				"content.js"
