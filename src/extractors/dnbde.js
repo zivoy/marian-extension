@@ -21,7 +21,7 @@ async function getDnbDeDetails() {
 
   const bookDetails = extractTable(container)
 
-  logMarian("bookDetails", bookDetails);
+  // logMarian("bookDetails", bookDetails);
 
   return {
     ...bookDetails,
@@ -134,7 +134,6 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
       const contributors = [];
       children[1].childNodes.forEach(el => {
         if (el.nodeName === "BR") return;
-        console.log(el);
         const authorTextRaw = el.textContent?.trim();
         if (authorTextRaw) contributors.push(extactAuthor(authorTextRaw))
       })
@@ -148,6 +147,10 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
       }
       // leave the original for if there is an `Originalsprache(n)`
       table["Language"] = value.split(",")[0].trim();;
+    }
+    if (key === "Zeitliche Einordnung") {
+      table["Publication date"] = new Date(value).toISOString();
+      continue;
     }
 
     // rest of table
