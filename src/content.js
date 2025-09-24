@@ -5,6 +5,7 @@ import { getGoogleBooksDetails } from './extractors/googlebooks.js';
 import { getKoboDetails } from './extractors/kobo.js';
 import { getLibroDetails } from './extractors/librofm.js';
 import { getIsbnDeDetails } from './extractors/isbnde.js';
+import { getDnbDeDetails } from './extractors/dnbde.js';
 import { logMarian } from './shared/utils.js';
 
 
@@ -19,6 +20,7 @@ async function getDetails() {
   if (url.includes('kobo')) return await getKoboDetails();
   if (url.includes('libro.fm')) return await getLibroDetails();
   if (url.includes('isbn.de')) return await getIsbnDeDetails();
+  if (url.includes('dnb.de')) return await getDnbDeDetails();
   return {};
 }
 

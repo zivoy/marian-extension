@@ -78,7 +78,9 @@
 				"https://isbn.de/hoerbuch/*",
 				"https://www.isbn.de/buch/*",
 				"https://www.isbn.de/ebook/*",
-				"https://www.isbn.de/hoerbuch/*"
+				"https://www.isbn.de/hoerbuch/*",
+
+				"https://portal.dnb.de/*"
 			],
 			"js": [
 				"content.js"
