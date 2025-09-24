@@ -1,3 +1,7 @@
+/**
+  * @param {string} url URL of image to check  
+  * @returns {number} The score of the image
+  */
 export async function getImageScore(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();
