@@ -11,6 +11,9 @@
 		}
 	},
 	"sidebar_action": {
+		"default_icon": {
+			"128": "icons/icon.png"
+		},
 		"default_title": "Marian",
 		"default_panel": "popup.html"
 	},
