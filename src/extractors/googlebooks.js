@@ -4,7 +4,7 @@ import { getImageScore, logMarian, delay } from '../shared/utils.js';
 async function getGoogleBooksDetails() {
     logMarian('Extracting Google Books details');
     const bookDetails = {};
-    
+
 
     // Store the source ID
     const sourceId = getGoogleBooksIdFromUrl(window.location.href);
@@ -227,7 +227,8 @@ function getGoogleBookPageCount() {
  */
 function getGoogleBookDescription() {
     try {
-        const descriptionContainer = document.querySelector("div.Y0Qrof");
+        // NOTE: this seems very fragile, if the class name changes then this breaks 
+        const descriptionContainer = document.querySelector("g-expandable-content[data-eb='0'] div.Y0Qrof");
         if (!descriptionContainer) {
             return "";
         }
@@ -252,7 +253,7 @@ function normalizeReadingFormat(rawFormat) {
     if (format.includes("ebook") || format.includes("e-book") || format.includes("digital")) {
         return "Ebook";  // Match your extension's format
     }
-    if (format.includes("physical") || format.includes("hardcover") || 
+    if (format.includes("physical") || format.includes("hardcover") ||
         format.includes("paperback") || format.includes("book")) {
         return "Physical Book";
     }
