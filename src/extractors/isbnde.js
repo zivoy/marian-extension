@@ -120,10 +120,14 @@ function extractTable() {
       }
       return;
     }
-    if (title === "erschienen am" || title === "Erscheinungsjahr") {
+    if (title === "erschienen am" || title === "Erscheinungsjahr" || title === "erschienen im") {
       let date = children[1].textContent.trim()
       if (title === "Erscheinungsjahr") date = "1.1." + date;
-      table["Publication date"] = parseDate(date).toISOString();
+      try {
+        table["Publication date"] = parseDate(date).toISOString();
+      } catch {
+        table["Publication date"] = new Date(date).toISOString();
+      }
       return;
     }
     if (title === "ISBN-13") { // because of the fancy link
@@ -136,7 +140,15 @@ function extractTable() {
     }
     if (title === "Autor") {
       table["Contributors"] = [{ name: children[1].textContent.trim(), roles: ["Author"] }];
-      // TODO: check for how multiple authors are handled
+      return;
+    }
+    if (title === "Autoren") {
+      const contributors = []
+      children.forEach((node) => {
+        if (node.nodeName !== "A") return;
+        contributors.push({ name: node.textContent.trim(), roles: ["Author"] });
+      })
+      table["Contributors"] = contributors
       return;
     }
     if (title === "Abmessungen") return; // dimensions -- skip
