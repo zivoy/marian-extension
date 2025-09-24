@@ -29,21 +29,6 @@ async function getDnbDeDetails() {
   };
 }
 
-function getTitle() {
-  const container = document.querySelector(".isbnhead");
-  let title = container.querySelector("h1")?.textContent?.trim();
-  const subtitle = container.querySelector("h2")?.textContent?.trim();
-  if (subtitle && !subtitle.toLowerCase().includes("kein Untertitel".toLowerCase())) {
-    title = `${title}: ${subtitle}`;
-  }
-  return title;
-}
-
-function getDescription() {
-  const container = document.querySelector("#bookdesc");
-  return container?.innerText || null;
-}
-
 async function getCover(container) {
   /**@type{string|null}*/
   const coverUrl = container.querySelector("img[title='Cover']")?.src || null;
@@ -65,22 +50,6 @@ async function getCover(container) {
     img: coverUrl,
     imgScore: coverUrl ? await getImageScore(coverUrl) : 0
   }
-}
-
-/** 
-  * js date function is dumb, ensuring it will parse date correctly if you are not in us
-  *
-  * @param {string} date A date string written as DD.MM.YYYY
-  * @returns {Date} A js date object
-  */
-function parseDate(date) {
-  const parts = date.split('.');
-
-  const day = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
-  const year = parseInt(parts[2], 10);
-
-  return new Date(year, month, day);
 }
 
 function extractTable(/**@type{HTMLTableElement}*/container) {
