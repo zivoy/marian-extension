@@ -103,10 +103,15 @@ function extractTable() {
     if (title.includes("Digitalprodukt")) return; // part of ebook -- skip
     if (title === "Buch" || title === "Softcover" || title.includes("eBook")) {
       let cover = "";
+      let format = "Physical Book";
       if (title === "Buch") cover = "Hardcover";
       else if (title === "Softcover") cover = "Paperback";
-      else cover = "Ebook";
-      table["Reading Format"] = cover;
+      else {
+        format = "Ebook";
+        cover = title.split(",")[1]?.trim();
+      }
+      table["Reading Format"] = format;
+      table["Edition Format"] = cover;
 
       const pages = children[1].textContent.trim();
       if (!pages.includes("Seiten")) {
