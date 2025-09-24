@@ -119,7 +119,13 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
       table["Language"] = value.split(",")[0].trim();;
     }
     if (key === "Zeitliche Einordnung") {
-      table["Publication date"] = new Date(value).toISOString();
+      let date;
+      try {
+        date = new Date(value).toISOString();
+      } catch {
+        date = value.split(":")[1]?.trim() || value;
+      }
+      table["Publication date"] = date;
       continue;
     }
     if (key === "Weiterführende Informationen" && value === "Inhaltstext") {  // description
