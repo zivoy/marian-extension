@@ -1,21 +1,47 @@
 import { getImageScore, logMarian } from '../shared/utils.js';
 
+const remapings = {
+  'Ausgabe': 'Edition Information',
+  'Verlag': "Publisher",
+  "Titel": "Title",
+
+  "Herausgeber": "Editor",
+  "Verfasser": "Author",
+  "Mitwirkender": "Contributor",
+}
+const remappingKeys = Object.keys(remapings);
+
 async function getDnbDeDetails() {
   logMarian('Extracting isbn.de details');
 
   const container = document.querySelector("#fullRecordTable");
   if (!container) return null;
 
-  const bookDetails = {};
-
   const coverData = getCover(container);
 
-  logMarian("bookDetails", { ...bookDetails, ...details });
+  const bookDetails = extractTable(container)
+
+  logMarian("bookDetails", bookDetails);
 
   return {
     ...bookDetails,
     ...(await coverData)
   };
+}
+
+function getTitle() {
+  const container = document.querySelector(".isbnhead");
+  let title = container.querySelector("h1")?.textContent?.trim();
+  const subtitle = container.querySelector("h2")?.textContent?.trim();
+  if (subtitle && !subtitle.toLowerCase().includes("kein Untertitel".toLowerCase())) {
+    title = `${title}: ${subtitle}`;
+  }
+  return title;
+}
+
+function getDescription() {
+  const container = document.querySelector("#bookdesc");
+  return container?.innerText || null;
 }
 
 async function getCover(container) {
@@ -39,6 +65,133 @@ async function getCover(container) {
     img: coverUrl,
     imgScore: coverUrl ? await getImageScore(coverUrl) : 0
   }
+}
+
+/** 
+  * js date function is dumb, ensuring it will parse date correctly if you are not in us
+  *
+  * @param {string} date A date string written as DD.MM.YYYY
+  * @returns {Date} A js date object
+  */
+function parseDate(date) {
+  const parts = date.split('.');
+
+  const day = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+  const year = parseInt(parts[2], 10);
+
+  return new Date(year, month, day);
+}
+
+function extractTable(/**@type{HTMLTableElement}*/container) {
+  const table = {};
+  const rows = container.querySelectorAll("tr");
+  for (let i = 1; i < rows.length; i++) {
+    const el = rows[i];
+    const children = el.querySelectorAll("td");
+    if (children.length === 0) {
+      continue;
+    }
+
+    if (children.length !== 2) {
+      logMarian('invalid row', el.textContent);
+      continue;
+    }
+
+    const key = children[0].textContent?.trim();
+    let value = children[1].textContent?.trim();
+    // exceptions
+    if (key.includes("Datensatz")) { // db link
+      // https://d-nb.info/XXXXXXXXXXX
+      table["Source ID"] = value.split("https://d-nb.info/")[1] || value;
+      continue
+    }
+    if (key === "EAN" && !table["ISBN-13"]) {
+      table["ISBN-13"] = value;
+      // leave it in as an extra field in case its different from isbn, true for older books
+      // continue;
+    }
+    if (key === "Andere Ausgabe(n)") continue; // not this novel
+    if (key === "Umfang/Format") {
+      const [pages, size] = value.split(";").map(item => item.trim());
+      table["Pages"] = pages.split(" ")[0].trim();
+      continue;
+    }
+    if (key === "ISBN/Einband/Preis") {
+      const isbn10 = children[1].childNodes[2]?.textContent?.trim();
+      if (!!isbn10 && isbn10.replaceAll("-", "").length === 10) {
+        table["ISBN-10"] = isbn10;
+      }
+
+      const isbn13AndPrice = children[1].childNodes[0]?.textContent?.trim();
+      const isbn13 = isbn13AndPrice?.split(" ")[0]?.trim();
+      if (!!isbn13 && isbn13.replaceAll("-", "").length === 13) {
+        table["ISBN-13"] = isbn13;
+      }
+      continue;
+    }
+    if (key === "Person(en)") {
+      const contributors = [];
+      children[1].childNodes.forEach(el => {
+        if (el.nodeName === "BR") return;
+        console.log(el);
+        const authorTextRaw = el.textContent?.trim();
+        if (authorTextRaw) contributors.push(extactAuthor(authorTextRaw))
+      })
+      table["Contributors"] = contributors;
+      continue;
+    }
+    if (key === "Sprache(n)") {
+      if (!value.includes(",")) {
+        table["Language"] = value;
+        continue;
+      }
+      // leave the original for if there is an `Originalsprache(n)`
+      table["Language"] = value.split(",")[0].trim();;
+    }
+
+    // rest of table
+    if (!key) {
+      logMarian("empty key", el.textContent);
+      continue;
+    }
+
+    table[key] = value
+  }
+
+
+  for (let [key, value] of Object.entries(table)) {
+    if (remappingKeys.includes(key)) {
+      delete table[key];
+      key = remapings[key];
+    }
+    table[key] = value;
+  }
+
+  return table;
+}
+
+/**
+  * extracts an author in format `last name, first name (role)` and returns a contributor object
+  *
+  * @param {string} author 
+  * @returns {{name: string, roles: Array<string>}}
+  */
+function extactAuthor(author) {
+  const match = author.match(/^(?<lastname>[^,]+), (?<firstname>.+?)(?: \((?<role>[^)]+)\))?$/);
+  if (match == null) {
+    return { name: author, roles: ["Other"] }
+  }
+
+  const name = match.groups["firstname"] + " " + match.groups["lastname"];
+  let role = match.groups["role"] ?? "Author";
+
+  // translate some roles
+  if (remappingKeys.includes(role)) {
+    role = remapings[role];
+  }
+
+  return { name, roles: [role] }
 }
 
 export { getDnbDeDetails };
