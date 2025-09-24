@@ -1,4 +1,4 @@
-import { getImageScore, logMarian } from '../shared/utils.js';
+import { getImageScore, logMarian, sendMessage } from '../shared/utils.js';
 
 const remapings = {
   'Ausgabe': 'Edition Information',
@@ -20,13 +20,14 @@ async function getDnbDeDetails() {
   const coverData = getCover(container);
 
   const bookDetails = extractTable(container)
+  const bookDescription = getDescription(bookDetails);
 
   // logMarian("bookDetails", bookDetails);
 
-  return {
-    ...bookDetails,
-    ...(await coverData)
-  };
+  return (await Promise.all([
+    coverData,
+    bookDescription,
+  ])).reduce((acc, currentVal) => ({ ...acc, ...currentVal }), bookDetails);
 }
 
 async function getCover(container) {
@@ -121,6 +122,14 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
       table["Publication date"] = new Date(value).toISOString();
       continue;
     }
+    if (key === "Weiterführende Informationen" && value === "Inhaltstext") {  // description
+      const descriptionLink = children[1].querySelector("a")?.href || null;
+      if (!!descriptionLink) {
+        table["descriptionLink"] = descriptionLink;
+        continue;
+      }
+    }
+    if (key === "Beziehungen") continue;
 
     // rest of table
     if (!key) {
@@ -164,6 +173,35 @@ function extactAuthor(author) {
   }
 
   return { name, roles: [role] }
+}
+
+async function getDescription(bookDetails) {
+  if (!("descriptionLink" in bookDetails)) {
+    return;
+  }
+  const link = bookDetails["descriptionLink"];
+  delete bookDetails["descriptionLink"];
+
+  const url = new URL(link);
+  url.protocol = "https:"; // have to be done
+  const res = await sendMessage({
+    action: 'fetchDepositData',
+    url: url.toString()
+  });
+  if (!res || res.status !== 'success') {
+    logMarian('Error from background script:', res && res.message);
+    return {}
+  }
+
+  const text = extractTextFromHTML(res.data);
+  return { "Description": text }
+}
+
+function extractTextFromHTML(htmlString) {
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlString;
+
+  return tempDiv.textContent || tempDiv.innerText || '';
 }
 
 export { getDnbDeDetails };

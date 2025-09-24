@@ -1,4 +1,5 @@
 import { isAllowedUrl } from "./shared/allowed-patterns";
+import { runtime } from "./shared/utils"
 
 function updateIcon(tabId, isAllowed) {
   chrome.action.setIcon({
@@ -93,3 +94,42 @@ chrome.tabs.onActivated.addListener(() => {
     chrome.runtime.sendMessage({ type: "TAB_URL_CHANGED", url: tab?.url || "" });
   });
 });
+
+// Listen for messages from the content script.
+runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log("got message", request);
+
+  if (request.action === 'fetchDepositData') {
+    handleFetchRequest(request.url).then(sendResponse);
+    return true;
+  }
+  return false;
+});
+
+async function handleFetchRequest(url) {
+  // console.log("got request", url);
+  try {
+    const response = await fetch(url);
+    // console.log("fetched", response);
+
+    if (!response.ok) {
+      return {
+        status: 'error',
+        message: `HTTP error! status: ${response.status}`
+      };
+    }
+
+    const text = await response.text();
+    // console.log("got text", text);
+
+    return {
+      status: 'success',
+      data: text
+    };
+  } catch (error) {
+    return {
+      status: 'error',
+      message: `Failed to fetch data: ${error.message}`
+    };
+  }
+}

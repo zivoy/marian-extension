@@ -1,3 +1,7 @@
+// Check if the 'browser' namespace is available (Firefox) and use it,
+// otherwise fall back to the 'chrome' namespace (Chrome).
+export const runtime = typeof browser !== 'undefined' ? browser.runtime : chrome.runtime;
+
 /**
   * @param {string} url URL of image to check  
   * @returns {Promise<number>} The score of the image
@@ -23,4 +27,10 @@ export function logMarian(message, object = null) {
 
 export function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function sendMessage(message) {
+  return new Promise(async (resolve) => {
+    await runtime.sendMessage(message, resolve);
+  });
 }

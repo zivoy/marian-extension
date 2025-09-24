@@ -80,7 +80,8 @@
 				"https://www.isbn.de/ebook/*",
 				"https://www.isbn.de/hoerbuch/*",
 
-				"https://portal.dnb.de/*"
+				"https://portal.dnb.de/*",
+				"https://deposit.dnb.de/*"
 			],
 			"js": [
 				"content.js"
