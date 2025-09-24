@@ -11,12 +11,6 @@ const remappingKeys = Object.keys(remapings);
 async function getIsbnDeDetails() {
   logMarian('Extracting isbn.de details');
 
-  // return for now on audiobooks and ebooks
-  if (document.URL.includes("hoerbuch")) {
-    logMarian("Not implemented");
-    return {};
-  }
-
   const bookDetails = {};
 
   const coverData = getCover();
@@ -101,11 +95,16 @@ function extractTable() {
     const title = children[0].textContent.trim();
     if (title.includes("Einband")) return; // part of paperback -- skip
     if (title.includes("Digitalprodukt")) return; // part of ebook -- skip
-    if (title === "Buch" || title === "Softcover" || title.includes("eBook")) {
+    if (title === "Audio CD") return; // part of audiobook -- skip
+    if (title === "Buch" || title === "Softcover" || title.includes("eBook") || title === "Audio-CD") {
       let cover = "";
       let format = "Physical Book";
       if (title === "Buch") cover = "Hardcover";
       else if (title === "Softcover") cover = "Paperback";
+      else if (title === "Audio-CD") {
+        format = "Audiobook";
+        cover = "Audio CD";
+      }
       else {
         format = "Ebook";
         cover = title.split(",")[1]?.trim();
@@ -141,6 +140,10 @@ function extractTable() {
       return;
     }
     if (title === "Abmessungen") return; // dimensions -- skip
+    if (title === "Reihe") {
+      table["Series"] = children[1].textContent.trim();
+      return;
+    }
 
     // rest of table
     if (children.length !== 2 || children[0].nodeName !== 'DIV') {
