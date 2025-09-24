@@ -1,4 +1,4 @@
-import { getImageScore, logMarian, sendMessage } from '../shared/utils.js';
+import { getImageScore, logMarian, sendMessage, getFormattedText } from '../shared/utils.js';
 
 const remapings = {
   'Ausgabe': 'Edition Information',
@@ -201,7 +201,12 @@ function extractTextFromHTML(htmlString) {
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = htmlString;
 
-  return tempDiv.textContent || tempDiv.innerText || '';
+  return getFormattedText(tempDiv)
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n /g, '\n')
+    .replace(/ \n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 export { getDnbDeDetails };

@@ -29,6 +29,43 @@ export function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/**
+ * Extract text from HTML element while preserving paragraph breaks
+ *
+ * @param {HTMLElement} element HTML element to extract text from
+ * @returns {string} Formatted text with preserved paragraph breaks
+ */
+export function getFormattedText(element) {
+  let result = '';
+
+  function processNode(/**@type {HTMLElement}*/node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      // Add text content, normalizing whitespace
+      result += node.textContent.replace(/\s+/g, ' ');
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const tagName = node.tagName.toLowerCase();
+
+      // Process child nodes first
+      for (const child of node.childNodes) {
+        processNode(child);
+      }
+
+      // Add appropriate line breaks after processing content
+      if (tagName === 'p') {
+        result += '\n\n'; // Double newline after paragraphs
+      } else if (tagName === 'br') {
+        result += '\n';   // Single newline for <br>
+      } else if (['div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li'].includes(tagName)) {
+        result += '\n';   // Single newline for other block elements
+      }
+    }
+  }
+
+  processNode(element);
+
+  return result;
+}
+
 export function sendMessage(message) {
   return new Promise(async (resolve) => {
     await runtime.sendMessage(message, resolve);
