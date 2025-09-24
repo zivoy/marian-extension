@@ -12,7 +12,7 @@ async function getIsbnDeDetails() {
   logMarian('Extracting isbn.de details');
 
   // return for now on audiobooks and ebooks
-  if (document.URL.includes("hoerbuch") || document.URL.includes("ebook")) {
+  if (document.URL.includes("hoerbuch")) {
     logMarian("Not implemented");
     return {};
   }
@@ -27,7 +27,7 @@ async function getIsbnDeDetails() {
 
   // TODO: get language from ISBN
 
-  logMarian("bookDetails", { ...bookDetails, ...details });
+  // logMarian("bookDetails", { ...bookDetails, ...details });
 
   return {
     ...bookDetails,
@@ -100,8 +100,13 @@ function extractTable() {
     // exceptions
     const title = children[0].textContent.trim();
     if (title.includes("Einband")) return; // part of paperback -- skip
-    if (title === "Buch" || title === "Softcover") {
-      table["Edition Format"] = title === "Buch" ? "Hardcover" : "Paperback"
+    if (title.includes("Digitalprodukt")) return; // part of ebook -- skip
+    if (title === "Buch" || title === "Softcover" || title.includes("eBook")) {
+      let cover = "";
+      if (title === "Buch") cover = "Hardcover";
+      else if (title === "Softcover") cover = "Paperback";
+      else cover = "Ebook";
+      table["Reading Format"] = cover;
 
       const pages = children[1].textContent.trim();
       if (!pages.includes("Seiten")) {
@@ -130,6 +135,7 @@ function extractTable() {
       // TODO: check for how multiple authors are handled
       return;
     }
+    if (title === "Abmessungen") return; // dimensions -- skip
 
     // rest of table
     if (children.length !== 2 || children[0].nodeName !== 'DIV') {
