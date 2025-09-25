@@ -119,13 +119,7 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
       table["Language"] = value.split(",")[0].trim();;
     }
     if (key === "Zeitliche Einordnung") {
-      let date;
-      try {
-        date = new Date(value).toISOString();
-      } catch {
-        date = value.split(":")[1]?.trim() || value;
-      }
-      table["Publication date"] = date;
+      table["Publication date"] = parseDate(value) || value;
       continue;
     }
     if (key === "Weiterführende Informationen" && value === "Inhaltstext") {  // description
@@ -213,6 +207,36 @@ function extractTextFromHTML(htmlString) {
     .replace(/ \n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+/**
+  * @param {string} dateString
+  * @returns {string} returns a parsed / normalized date
+  */
+function parseDate(dateString) {
+  if (dateString.includes(":")) {
+    // remove `Erscheinungsdatum` and `Erscheinungstermin`
+    dateString = dateString.split(":")[1].trim();
+  }
+
+  // check if its in the MM/YYYY format
+  if (/^(0?[1-9]|1[0-2])\/([0-9]{4})$/.test(dateString)) {
+    const [month, year] = dateString.split("/")
+    return new Date(year, month - 1).toISOString();
+  }
+
+  // check if its just a year
+  if (/^([0-9]{4})$/.test(dateString)) {
+    return new Date(dateString, 0).toISOString();
+  }
+
+  try {
+    // try parsing as is
+    return new Date(dateString).toISOString();
+  } catch {
+    // parsing failed, return date as it is
+    return dateString;
+  }
 }
 
 export { getDnbDeDetails };
