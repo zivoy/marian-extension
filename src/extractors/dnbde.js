@@ -234,6 +234,11 @@ function parseDate(dateString) {
     // try parsing as is
     return new Date(dateString).toISOString();
   } catch {
+    // give parsing one more shot, prepend a one
+    try {
+      return new Date("1 " + dateString).toISOString();
+    } catch { }
+
     // parsing failed, return date as it is
     return dateString;
   }
