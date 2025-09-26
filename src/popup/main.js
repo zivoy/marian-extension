@@ -6,7 +6,20 @@ import { setLastFetchedUrl } from "./utils.js";
 
 const DEBUG = false;
 
+function notifyBackground(type) {
+  chrome.windows.getCurrent((windowInfo) => {
+    const windowId = windowInfo?.id;
+    chrome.runtime.sendMessage({ type, windowId }, () => {
+      // ignore missing listeners; background may be sleeping in some contexts
+      void chrome.runtime.lastError;
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  notifyBackground("SIDEBAR_READY");
+  window.addEventListener("unload", () => notifyBackground("SIDEBAR_UNLOADED"));
+
   if (DEBUG) initSidebarLogger(); // DEBUG: Initialize sidebar logger
 
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
