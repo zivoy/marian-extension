@@ -158,14 +158,7 @@ function getBookDescription() {
   const container = document.querySelector('#bookDescription_feature_div .a-expander-content');
   if (!container) return '';
 
-  let text = getFormattedText(container);
-
-  return text
-    .replace(/[ \t]+/g, ' ')    // Multiple spaces/tabs to single space
-    .replace(/\n /g, '\n')      // Remove spaces after newlines
-    .replace(/ \n/g, '\n')      // Remove spaces before newlines
-    .replace(/\n{3,}/g, '\n\n') // Max 2 consecutive newlines
-    .trim();
+  return getFormattedText(container);
 }
 
 function getSelectedFormat() {
