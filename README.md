@@ -1,3 +1,5 @@
+<img src="src/icons/icon-full.png" alt="Marian the Librarian icon" width="160" />
+
 ## Marian the Librarian
 [![Latest Release](https://img.shields.io/github/v/release/jacobtender/marian-extension?color=16a34a&label=Latest%20Release)](https://github.com/jacobtender/marian-extension/releases/latest)
 [![Install in Chrome](https://img.shields.io/badge/Chrome%20Web%20Store-Install-blue?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/marian-the-librarian/gpnkkkbefalodcjhgafioibknoingann)
