@@ -92,7 +92,18 @@
 				"https://www.goodreads.com/book/show/*",
 				"https://app.thestorygraph.com/books/*",
 				"https://www.kobo.com/*/*/*book/*",
-				"https://libro.fm/audiobooks/*"
+				"https://libro.fm/audiobooks/*",
+				"https://isbnsearch.org/isbn/*",
+
+				"https://isbn.de/buch/*",
+				"https://isbn.de/ebook/*",
+				"https://isbn.de/hoerbuch/*",
+				"https://www.isbn.de/buch/*",
+				"https://www.isbn.de/ebook/*",
+				"https://www.isbn.de/hoerbuch/*",
+
+				"https://portal.dnb.de/*",
+				"https://deposit.dnb.de/*"
 			],
 			"js": [
 				"content.js"
