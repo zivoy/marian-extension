@@ -113,14 +113,14 @@ chrome.action.onClicked.addListener((tab) => {
 
   openSidebar(tab);
   setTimeout(() => {
-    sendWhenReady({ type: "REFRESH_SIDEBAR", url: tab.url });
+    sendWhenReady({ type: "REFRESH_SIDEBAR", url: tab.url, windowId: tab.windowId });
   }, 300); // give the sidebar a moment to load
 });
 
 // when tab URL changes in the current active tab
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (tab.active && changeInfo.url && hasActiveSidebar(tab.windowId)) {
-    safeRuntimeSend({ type: "TAB_URL_CHANGED", url: changeInfo.url });
+    safeRuntimeSend({ type: "TAB_URL_CHANGED", url: changeInfo.url, windowId: tab.windowId });
   }
 });
 
@@ -128,7 +128,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 chrome.tabs.onActivated.addListener(() => {
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
     if (!tab || !hasActiveSidebar(tab.windowId)) return;
-    safeRuntimeSend({ type: "TAB_URL_CHANGED", url: tab.url || "" });
+    safeRuntimeSend({ type: "TAB_URL_CHANGED", url: tab.url || "", windowId: tab.windowId });
   });
 });
 

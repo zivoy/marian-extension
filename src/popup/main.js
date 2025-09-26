@@ -5,10 +5,25 @@ import { showStatus, showDetails, renderDetails, initSidebarLogger,
 import { setLastFetchedUrl } from "./utils.js";
 
 const DEBUG = false;
+let sidebarWindowId = null;
+
+function rememberWindowId(windowInfo) {
+  if (windowInfo && typeof windowInfo.id === "number") {
+    sidebarWindowId = windowInfo.id;
+  }
+}
 
 function notifyBackground(type) {
+  if (type === "SIDEBAR_UNLOADED" && typeof sidebarWindowId === "number") {
+    chrome.runtime.sendMessage({ type, windowId: sidebarWindowId }, () => {
+      void chrome.runtime.lastError;
+    });
+    return;
+  }
+
   chrome.windows.getCurrent((windowInfo) => {
-    const windowId = windowInfo?.id;
+    rememberWindowId(windowInfo);
+    const windowId = typeof sidebarWindowId === "number" ? sidebarWindowId : windowInfo?.id;
     chrome.runtime.sendMessage({ type, windowId }, () => {
       // ignore missing listeners; background may be sleeping in some contexts
       void chrome.runtime.lastError;
@@ -16,9 +31,17 @@ function notifyBackground(type) {
   });
 }
 
+function isForThisSidebar(messageWindowId) {
+  if (typeof messageWindowId !== "number") return true;
+  if (typeof sidebarWindowId !== "number") return false;
+  return messageWindowId === sidebarWindowId;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   notifyBackground("SIDEBAR_READY");
   window.addEventListener("unload", () => notifyBackground("SIDEBAR_UNLOADED"));
+
+  chrome.windows.getCurrent(rememberWindowId);
 
   if (DEBUG) initSidebarLogger(); // DEBUG: Initialize sidebar logger
 
@@ -69,7 +92,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return;
   }
 
-  if (msg.type === "REFRESH_SIDEBAR" && msg.url && isAllowedUrl(msg.url)) {
+  if (msg.type === "REFRESH_SIDEBAR" && isForThisSidebar(msg.windowId) && msg.url && isAllowedUrl(msg.url)) {
     showStatus("Loading details...");
     tryGetDetails()
       .then(details => {
@@ -90,7 +113,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       });
   }
 
-  if (msg.type === "TAB_URL_CHANGED") {
+  if (msg.type === "TAB_URL_CHANGED" && isForThisSidebar(msg.windowId)) {
     updateRefreshButtonForUrl(msg.url);
   }
 });
