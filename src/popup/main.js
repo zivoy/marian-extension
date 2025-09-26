@@ -87,8 +87,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Keep your sidebar listener behavior exactly the same
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type === "ping") {
+  if (msg === "ping" || msg?.type === "ping") {
     sendResponse("pong");
+    return;
+  }
+
+  if (msg?.type === "SIDEBAR_PING") {
+    if (isForThisSidebar(msg.windowId)) {
+      sendResponse("pong");
+    }
     return;
   }
 

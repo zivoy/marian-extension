@@ -60,20 +60,23 @@ function safeRuntimeSend(message) {
 
 function sendWhenReady(msg, retries = 10, delay = 150) {
   function attempt(remaining) {
-    chrome.runtime.sendMessage("ping", (response) => {
+    if (msg?.windowId && !hasActiveSidebar(msg.windowId)) {
+      if (remaining > 0) {
+        setTimeout(() => attempt(remaining - 1), delay);
+      }
+      return;
+    }
+
+    chrome.runtime.sendMessage({ type: "SIDEBAR_PING", windowId: msg?.windowId }, (response) => {
       const error = chrome.runtime.lastError;
-      if (error) {
+      if (error || response !== "pong") {
         if (remaining > 0) {
           setTimeout(() => attempt(remaining - 1), delay);
         }
         return;
       }
 
-      if (response === "pong") {
-        safeRuntimeSend(msg);
-      } else if (remaining > 0) {
-        setTimeout(() => attempt(remaining - 1), delay);
-      }
+      safeRuntimeSend(msg);
     });
   }
   attempt(retries);
