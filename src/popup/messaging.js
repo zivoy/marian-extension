@@ -23,7 +23,7 @@ function buildIssueUrl(tabUrl) {
     + `&labels=${encodeURIComponent('bug')}`;
 }
 
-// Polling function to try multiple times before giving up (unchanged behavior)
+// Polling function to try multiple times before giving up
 export function tryGetDetails(retries = 8, delay = 300) {
   let didRefresh = false;
 
@@ -58,7 +58,7 @@ export function tryGetDetails(retries = 8, delay = 300) {
               } else {
                 const issueUrl = buildIssueUrl(tab?.url || '(unknown URL)');
                 showStatus(`
-                  This site is supported, but this page isn't yet.<br/>
+                  This site is supported, but either this page isn't yet or you've encountered an error.<br/><br/>
                   Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a> the full URL of this page so we can add support!
                 `);
                 // reject('Unsupported URL or no content script after refresh.');

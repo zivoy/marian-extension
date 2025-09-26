@@ -268,12 +268,12 @@ export function renderDetails(details) {
   });
 }
 
-export function showStatus(message) {
+export function showStatus(message, options = {}) {
   const statusEl = statusBox();
   const detailsEl = detailsBox();
   if (!statusEl || !detailsEl) return;
-  statusEl.style.display = 'flex';
-  statusEl.textContent = message;
+  statusEl.style.display = 'block';
+  statusEl.innerHTML = message;
   detailsEl.style.display = 'none';
 }
 
