@@ -1,5 +1,6 @@
 // shared/allowed-patterns.js
 const ALLOWED_PATTERNS = [
+  /https:\/\/www\.amazon\..*?\/(?:dp|gp\/product)\/.*?(B[\dA-Z]{9}|\d{9}(?:X|\d))/,
   /https:\/\/www\.amazon\.[a-z.]+\/(?:gp\/product|dp|[^/]+\/dp)\/[A-Z0-9]{10}/,
   /https:\/\/www\.amazon\.[a-z.]+\/[^/]+\/dp\/[A-Z0-9]{10}/,
   /https:\/\/www\.amazon\.[a-z.]+\/-\/[a-z]+\/[^/]+\/dp\/[A-Z0-9]{10}/, // for paths with language segments
@@ -8,7 +9,9 @@ const ALLOWED_PATTERNS = [
   /^https?:\/\/(www\.)?google\.[a-z.]+\/books/,
   /^https?:\/\/(www\.)?kobo\.[a-z]{2,10}\/[a-z]{2,5}\/[a-z]{2,5}\/[a-z]{1,5}book\/[0-9a-z\-]+/,
   /^https?:\/\/(www\.)?libro\.fm\/audiobooks\/\d+(-[a-zA-Z0-9-]+)?/,
-  /^https?:\/\/isbnsearch\.(?:org|com)\/isbn\/((?:\d{3})?\d{9}(?:X|\d))\b/
+  /^https?:\/\/isbnsearch\.(?:org|com)\/isbn\/((?:\d{3})?\d{9}(?:X|\d))\b/,
+  /https:\/\/(?:www\.)?isbn\.de\/(buch|ebook|hoerbuch)\/((?:\d{3})?\d{9}(?:X|\d))\b/,
+  /https:\/\/portal\.dnb\.de\/opac.*(simpleSearch|showFullRecord)/
 ];
 
 export function isAllowedUrl(url) {
