@@ -4,6 +4,7 @@ import { getStoryGraphDetails } from './extractors/storygraph.js';
 import { getGoogleBooksDetails } from './extractors/googlebooks.js';
 import { getKoboDetails } from './extractors/kobo.js';
 import { getLibroDetails } from './extractors/librofm.js';
+import { getIsbnSearchDetails } from './extractors/isbnsearch.js'
 import { getIsbnDeDetails } from './extractors/isbnde.js';
 import { getDnbDeDetails } from './extractors/dnbde.js';
 import { logMarian } from './shared/utils.js';
@@ -15,7 +16,7 @@ async function getDetails() {
   if (url.includes('amazon')) return await getAmazonDetails();
   if (url.includes('goodreads')) return await getGoodreadsDetails();
   if (url.includes('thestorygraph')) return await getStoryGraphDetails();
-  if (url.includes('isbnsearch.org')) return getIsbnSearchDetails();
+  if (url.includes('isbnsearch')) return await getIsbnSearchDetails();
   if (url.includes('google')) return await getGoogleBooksDetails();
   if (url.includes('kobo')) return await getKoboDetails();
   if (url.includes('libro.fm')) return await getLibroDetails();
