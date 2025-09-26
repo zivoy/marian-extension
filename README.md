@@ -1,4 +1,5 @@
 ## Marian the Librarian
+[![Latest Release](https://img.shields.io/github/v/release/jacobtender/marian-extension?color=16a34a&label=Latest%20Release)](https://github.com/jacobtender/marian-extension/releases/latest)
 [![Install in Chrome](https://img.shields.io/badge/Chrome%20Web%20Store-Install-blue?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/marian-the-librarian/gpnkkkbefalodcjhgafioibknoingann)
 [![Install in Firefox](https://img.shields.io/badge/Firefox%20Add--ons-Install-orange?logo=firefox&logoColor=white)](https://addons.mozilla.org/firefox/addon/marian-the-librarian/)
 [![Contributors](https://img.shields.io/github/contributors/jacobtender/marian-extension?color=8b5cf6&logo=github)](https://github.com/jacobtender/marian-extension/graphs/contributors)
