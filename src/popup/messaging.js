@@ -35,6 +35,12 @@ export function tryGetDetails(retries = 8, delay = 300) {
           return;
         }
 
+        if (tab.status !== 'complete') {
+          console.log('Tab is still loading, delaying content-script ping...');
+          setTimeout(() => attempt(remaining), delay);
+          return;
+        }
+
         chrome.tabs.sendMessage(tab.id, 'ping', (response) => {
           console.log('Ping response:', response, 'Remaining attempts:', remaining);
           if (chrome.runtime.lastError || response !== 'pong') {
