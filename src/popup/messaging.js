@@ -56,6 +56,7 @@ export function tryGetDetails(retries = 8, delay = 300) {
                 };
                 chrome.tabs.onUpdated.addListener(onUpdated);
               } else {
+                console.log('All attempts exhausted. Content script not responding.');
                 const issueUrl = buildIssueUrl(tab?.url || '(unknown URL)');
                 showStatus(`
                   This site is supported, but either this page isn't yet or you've encountered an error.<br/><br/>
