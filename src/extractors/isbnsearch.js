@@ -34,8 +34,6 @@ async function getIsbnSearchDetails() {
   // TODO: check if book is actually physical, they don't seem to have pages for ebooks with ISBNs
   bookDetails['Reading Format'] = 'Physical Book';
 
-  // TODO: get language from ISBN
-
   // logMarian("bookDetails", bookDetails);
 
   return {
