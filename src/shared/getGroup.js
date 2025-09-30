@@ -45,16 +45,3 @@ export function searchIsbn(isbn) {
   }
   return item[1];
 }
-
-
-compareList.forEach(item => {
-  let a = item[0]
-  while (a.length < 13) {
-    a = a + "0"
-  }
-  const res = searchIsbn(a);
-  if (res != item[1]) {
-    console.log("Mistmatch", item[1], res)
-  }
-})
-
