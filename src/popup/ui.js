@@ -1,6 +1,7 @@
 import { tryGetDetails } from "./messaging.js";
 import { isAllowedUrl } from "../shared/allowed-patterns.js";
 import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl } from "./utils.js";
+import { searchIsbn } from "../shared/getGroup.js";
 
 // DOM refs (looked up when functions are called)
 function statusBox() { return document.getElementById('status'); }
@@ -244,13 +245,29 @@ export function renderDetails(details) {
     details["Publication date"] = formatDate(details["Publication date"]);
   }
 
+  // Insert country (or language) from ISBN if not present
+  const isbn = details["ISBN-13"] || details["ISBN-10"];
+  if (isbn != undefined) {
+    try {
+      const groupName = searchIsbn(isbn);
+      if (groupName != undefined) {
+        if (groupName.toLowerCase().endsWith("language")) {
+          const language = groupName.split("language")[0].trim();
+          details["Language"] = details["Language"] || language
+        } else {
+          details["Country"] = details["Country"] || groupName
+        }
+      }
+    } catch { }
+  }
+
   const hr = document.createElement('hr');
   container.appendChild(hr);
 
   const orderedKeys = [
     'ISBN-10', 'ISBN-13', 'ASIN', 'Source ID', 'Contributors', 'Publisher',
     'Reading Format', 'Listening Length', 'Pages', 'Edition Format',
-    'Publication date', 'Language'
+    'Publication date', 'Language', 'Country'
   ];
 
   const rendered = new Set(['Series', 'Series Place']);
