@@ -1,8 +1,9 @@
-import groups from "./groups.json"
+import groups from "./groups.json";
 
-let compareList = Object.entries(groups)
-const searchList = compareList.map(([key]) => parseFloat(key.replace("-", ".")));  // search representation
-compareList = compareList.map(([key, value]) => [key.replace("-", ""), value[0]]); // tuple compare representation
+const entries = Object.entries(/**@type{{[prefix: string]: [string, [string, string][]]}}*/(groups))
+/**@type{[string, string][]}*/
+const compareList = entries.map(([key, [name]]) => [key.replace("-", ""), name]); // tuple compare representation
+const searchList = entries.map(([key]) => parseFloat(key.replace("-", ".")));            // search representation
 
 /** 
   * searches the groupname for an isbn, works with both isbn 13 and 10 
@@ -12,11 +13,23 @@ compareList = compareList.map(([key, value]) => [key.replace("-", ""), value[0]]
   * @returns {string|undefined} group name
   */
 export function searchIsbn(isbn) {
+  const item = getPrefix(isbn);
+  if (item == undefined) return undefined;
+  return item.name;
+}
+
+/**
+  * @param {string} isbn 
+  * @returns {{prefix:string, name: string, is10: bool, idx: number}|undefined}
+  */
+function getPrefix(isbn) {
   isbn = isbn.replaceAll("-", ""); // remove dashes
   if (isbn.length !== 13 && isbn.length !== 10) {
     throw "Unsupported isbn";
   }
+  let is10 = false;
   if (isbn.length === 10) {
+    is10 = true;
     isbn = "978" + isbn;
   }
   // only isbn 13 from here
@@ -43,5 +56,5 @@ export function searchIsbn(isbn) {
       return undefined;
     }
   }
-  return item[1];
+  return { name: item[1], prefix: item[0], is10, idx };
 }
