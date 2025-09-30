@@ -26,14 +26,11 @@ export function searchIsbn(isbn) {
   let idx = 0;
   for (; idx < compareList.length; idx++) {
     if (searchRepr < searchList[idx]) {
-      idx--;
       break;
     }
   }
+  idx--;
 
-  if (idx === compareList.length) {
-    idx--;
-  }
   if (idx === -1) {
     return undefined;
   }
@@ -48,3 +45,16 @@ export function searchIsbn(isbn) {
   }
   return item[1];
 }
+
+
+compareList.forEach(item => {
+  let a = item[0]
+  while (a.length < 13) {
+    a = a + "0"
+  }
+  const res = searchIsbn(a);
+  if (res != item[1]) {
+    console.log("Mistmatch", item[1], res)
+  }
+})
+
