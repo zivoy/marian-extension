@@ -1,8 +1,8 @@
 import groups from "./groups.json"
 
 let compareList = Object.entries(groups)
-const searchList = compareList.map(item => parseFloat(item[0].replace("-", "."))); // search representation
-compareList = compareList.map(item => [item[0].replace("-", ""), item[1]]); // tuple compare representation
+const searchList = compareList.map(([key]) => parseFloat(key.replace("-", ".")));  // search representation
+compareList = compareList.map(([key, value]) => [key.replace("-", ""), value[0]]); // tuple compare representation
 
 /** 
   * searches the groupname for an isbn, works with both isbn 13 and 10 
