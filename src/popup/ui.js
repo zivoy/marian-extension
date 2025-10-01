@@ -1,7 +1,7 @@
 import { tryGetDetails } from "./messaging.js";
 import { isAllowedUrl } from "../shared/allowed-patterns.js";
 import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl } from "./utils.js";
-import { searchIsbn } from "../shared/getGroup.js";
+import { hyphenate, searchIsbn } from "../shared/getGroup.js";
 
 // DOM refs (looked up when functions are called)
 function statusBox() { return document.getElementById('status'); }
@@ -260,6 +260,14 @@ export function renderDetails(details) {
       }
     } catch { }
   }
+
+  // Correct hyphenation on ISBNs
+  try {
+    details["ISBN-10"] = hyphenate(details["ISBN-10"])
+  } catch { }
+  try {
+    details["ISBN-13"] = hyphenate(details["ISBN-13"])
+  } catch { }
 
   const hr = document.createElement('hr');
   container.appendChild(hr);
