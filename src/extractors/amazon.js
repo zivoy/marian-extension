@@ -31,7 +31,7 @@ async function getAmazonDetails() {
   bookDetails["imgScore"] = imgEl?.src ? await getImageScore(imgEl.src) : 0;
   bookDetails["Contributors"] = contributors;
   
-  if (bookDetails["Edition Format"] == "Kindle") {
+  if (bookDetails["Edition Format"]?.includes("Kindle")) {
     bookDetails['Reading Format'] = 'Ebook'; 
   } else if (bookDetails["Edition Format"] == "Audible") {
     bookDetails['Reading Format'] = 'Audiobook';

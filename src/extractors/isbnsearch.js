@@ -32,7 +32,13 @@ async function getIsbnSearchDetails() {
 
 
   // TODO: check if book is actually physical, they don't seem to have pages for ebooks with ISBNs
-  bookDetails['Reading Format'] = 'Physical Book';
+  if (bookDetails["Edition Format"]?.includes("Kindle")) {
+    bookDetails['Reading Format'] = 'Ebook'; 
+  } else if (bookDetails["Edition Format"] == "Audible") {
+    bookDetails['Reading Format'] = 'Audiobook';
+  } else {
+    bookDetails['Reading Format'] = 'Physical Book';
+  }
 
   // TODO: get language from ISBN
 
