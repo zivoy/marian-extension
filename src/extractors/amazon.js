@@ -39,6 +39,13 @@ async function getAmazonDetails() {
     bookDetails['Reading Format'] = 'Physical Book';
   }
 
+  // combined publisher date
+  const pubDate = bookDetails["Publisher"].match(/^([^(]+) \((\d{1,2} \w+ \d{4})\)$/);
+  if (pubDate != undefined) {
+    bookDetails["Publisher"] = pubDate[1].trim();
+    bookDetails["Publication date"] = pubDate[2];
+  }
+
   // logMarian("bookDetails", bookDetails);
   // logMarian("audibleDetails", audibleDetails);
  
@@ -171,7 +178,11 @@ function getBookDescription() {
 function getSelectedFormat() {
   const selected = document.querySelector('#tmmSwatches .swatchElement.selected .slot-title span[aria-label]');
   if (selected) {
-    return selected.getAttribute('aria-label')?.replace(' Format:', '').trim();
+    let text = selected.getAttribute('aria-label')?.replace(' Format:', '').trim();
+    if (text.startsWith("Kindle") && text !== "Kindle") {
+      text = "Kindle";
+    }
+    return text;
   }
   return null;
 }
