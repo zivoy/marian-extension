@@ -40,10 +40,13 @@ async function getAmazonDetails() {
   }
 
   // combined publisher date
-  const pubDate = bookDetails["Publisher"]?.match(/^([^(]+) \((\d{1,2} \w+ \d{4})\)$/);
+  const pubDate = bookDetails["Publisher"]?.match(/^(?<pub>[^(;]+?)(?:; (?<edition>[\w ]+))? \((?<date>\d{1,2} \w+ \d{4})\)$/);
   if (pubDate != undefined) {
-    bookDetails["Publisher"] = pubDate[1].trim();
-    bookDetails["Publication date"] = pubDate[2];
+    bookDetails["Publisher"] = pubDate.groups["pub"].trim();
+    bookDetails["Publication date"] = pubDate.groups["date"];
+    if (pubDate.groups["edition"]) {
+      bookDetails["Edition Information"] = pubDate.groups["edition"].trim();
+    }
   }
 
   // logMarian("bookDetails", bookDetails);
