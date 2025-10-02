@@ -40,7 +40,7 @@ async function getAmazonDetails() {
   }
 
   // combined publisher date
-  const pubDate = bookDetails["Publisher"].match(/^([^(]+) \((\d{1,2} \w+ \d{4})\)$/);
+  const pubDate = bookDetails["Publisher"]?.match(/^([^(]+) \((\d{1,2} \w+ \d{4})\)$/);
   if (pubDate != undefined) {
     bookDetails["Publisher"] = pubDate[1].trim();
     bookDetails["Publication date"] = pubDate[2];
