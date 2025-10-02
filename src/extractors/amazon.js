@@ -112,11 +112,9 @@ function getDetailBullets() {
 
 
   // Double check book series
-  const series = document.querySelector("#seriesBulletWidget_feature_div a")
-  logMarian("series", series)
+  const series = document.querySelector("div[data-feature-name='seriesBulletWidget'] a")
   if (!details["Series"] && series != undefined) {
     const match = series.textContent.trim().match(/Book (\d+) of \d+: (.+)/i);
-    logMarian("match", match)
     if (match) {
       details['Series'] = match[2];
       details['Series Place'] = match[1];
