@@ -1,4 +1,4 @@
-import { getImageScore, logMarian, delay } from '../shared/utils.js';
+import { getImageScore, logMarian, getFormattedText } from '../shared/utils.js';
 const bookSeriesRegex = /^Book (\d+) of \d+$/i;
 
 const includedLabels = new Set([
@@ -17,7 +17,7 @@ const includedLabels = new Set([
   ]);
 
 async function getAmazonDetails() {
-	logMarian('Extracting Amazon details');
+  logMarian('Extracting Amazon details');
 
   const imgEl = document.querySelector('#imgBlkFront, #landingImage');
   const bookDetails = getDetailBullets();
@@ -190,15 +190,8 @@ function getAudibleDetails() {
 function getBookDescription() {
   const container = document.querySelector('#bookDescription_feature_div .a-expander-content');
   if (!container) return '';
-  
-  // Replace <br> tags with newlines, then get all text content
-  let html = container.innerHTML.replace(/<br\s*\/?>/gi, '\n');
-  // Create a temporary element to parse the modified HTML
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = html;
-  let text = tempDiv.textContent || '';
-  
-  return text.trim().replace(/\s+/g, ' ');
+
+  return getFormattedText(container);
 }
 
 function getSelectedFormat() {
