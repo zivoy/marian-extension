@@ -30,8 +30,6 @@ async function getIsbnSearchDetails() {
   // Treat as local time when parsing
   bookDetails['Publication date'] = bookDetails['Publication date'] + "T00:00:00";
 
-
-  // TODO: check if book is actually physical, they don't seem to have pages for ebooks with ISBNs
   if (bookDetails["Edition Format"]?.includes("Kindle")) {
     bookDetails['Reading Format'] = 'Ebook'; 
   } else if (
