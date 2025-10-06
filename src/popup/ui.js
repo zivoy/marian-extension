@@ -248,9 +248,19 @@ export function renderDetails(details) {
   container.appendChild(hr);
 
   const orderedKeys = [
-    'ISBN-10', 'ISBN-13', 'ASIN', 'Source ID', 'Contributors', 'Publisher',
-    'Reading Format', 'Listening Length', 'Pages', 'Edition Format',
-    'Publication date', 'Language'
+    'ISBN-10',
+    'ISBN-13',
+    'ASIN',
+    'Source ID',
+    'Contributors',
+    'Publisher',
+    'Reading Format',
+    'Listening Length',
+    'Pages',
+    'Edition Format',
+    'Edition Information',
+    'Publication date',
+    'Language'
   ];
 
   const rendered = new Set(['Series', 'Series Place']);
@@ -268,7 +278,7 @@ export function renderDetails(details) {
   });
 }
 
-export function showStatus(message) {
+export function showStatus(message, options = {}) {
   const statusEl = statusBox();
   const detailsEl = detailsBox();
   if (!statusEl || !detailsEl) return;
@@ -279,8 +289,10 @@ export function showStatus(message) {
 
 export function showDetails() {
   const detailsEl = detailsBox();
+  const statusEl = statusBox();
   if (!detailsEl) return;
   detailsEl.style.display = 'block';
+  if (statusEl) statusEl.style.display = 'none';
 }
 
 // DEBUG: Sidebar logger: mirrors console.* into a sidebar status area
