@@ -17,7 +17,8 @@ Book pages on these sites are currently supported by Marian. To request support 
 - The StoryGraph
 - Rakuten Kobo
 - Libro.fm
-- ISBN Search
+- ISBNdb
+- ISBN Search 
 - ISBN.de
 - German National Library
 
