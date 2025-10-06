@@ -13,9 +13,7 @@ const includedLabels = new Set([
     'ISBN-13',
     'ASIN',
     'Series',
-    'Series Place',
-    'Version',
-    'Edition'
+    'Series Place'
   ]);
 
 async function getAmazonDetails() {
@@ -53,18 +51,19 @@ async function getAmazonDetails() {
   } else { // otherwise pick one or leave it undefined if neither exist
     bookDetails["Edition Information"] = edition || version;
   }
-  // maybe delete? to prevent duplicates
-  // delete bookDetails['Version'];
-  // delete audibleDetails['Version'];
-  // delete bookDetails["Edition"]
 
   // logMarian("bookDetails", bookDetails);
   // logMarian("audibleDetails", audibleDetails);
  
-  return {
+  const mergedDetails = {
     ...bookDetails,
     ...audibleDetails,
   };
+
+  delete mergedDetails.Edition;
+  delete mergedDetails.Version;
+
+  return mergedDetails;
 }
 
 function getHighResImageUrl(src) {
@@ -98,7 +97,14 @@ function getDetailBullets() {
       return;
     }
 
-    // logMarian(label, includedLabels.has(label));
+    if ((label === 'Edition' || label === 'Version') && value) {
+      details[label] = value;
+      if (label === 'Edition' && !details['Edition Format']) {
+        details['Edition Format'] = value;
+      }
+      return;
+    }
+
     // Print debug info for labels not included
     // skip if not included in the list
     if (!includedLabels.has(label)) {
@@ -138,6 +144,14 @@ function getAudibleDetails() {
     if (match) {
       details['Series'] = value;
       details['Series Place'] = match[1];
+      return;
+    }
+
+    if ((label === 'Edition' || label === 'Version') && value) {
+      details[label] = value;
+      if (label === 'Edition' && !details['Edition Format']) {
+        details['Edition Format'] = value;
+      }
       return;
     }
 
