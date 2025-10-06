@@ -278,7 +278,7 @@ export function renderDetails(details) {
   });
 }
 
-export function showStatus(message) {
+export function showStatus(message, options = {}) {
   const statusEl = statusBox();
   const detailsEl = detailsBox();
   if (!statusEl || !detailsEl) return;
@@ -289,8 +289,10 @@ export function showStatus(message) {
 
 export function showDetails() {
   const detailsEl = detailsBox();
+  const statusEl = statusBox();
   if (!detailsEl) return;
   detailsEl.style.display = 'block';
+  if (statusEl) statusEl.style.display = 'none';
 }
 
 // DEBUG: Sidebar logger: mirrors console.* into a sidebar status area
