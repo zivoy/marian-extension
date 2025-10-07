@@ -67,8 +67,8 @@ async function getAmazonDetails() {
 
 async function getCover() {
   const imgEl = document.querySelector('#imgBlkFront, #landingImage');
-  /**@type{string|null}*/
-  const coverUrl = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
+  let coverUrl = imgEl?.dataset?.oldHires || imgEl?.src
+  coverUrl = coverUrl ? getHighResImageUrl(coverUrl) : null;
 
   return {
     img: coverUrl,
