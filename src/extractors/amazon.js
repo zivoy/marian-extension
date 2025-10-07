@@ -19,7 +19,7 @@ const includedLabels = new Set([
 async function getAmazonDetails() {
   logMarian('Extracting Amazon details');
 
-  const imgEl = document.querySelector('#imgBlkFront, #landingImage');
+  coverData = getCover()
   const bookDetails = getDetailBullets();
   const audibleDetails = getAudibleDetails();
   const contributors = extractAmazonContributors();
@@ -27,8 +27,6 @@ async function getAmazonDetails() {
   bookDetails["Edition Format"] = getSelectedFormat() || '';
   bookDetails["Title"] = document.querySelector('#productTitle')?.innerText.trim();
   bookDetails["Description"] = getBookDescription() || '';
-  bookDetails["img"] = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
-  bookDetails["imgScore"] = imgEl?.src ? await getImageScore(imgEl.src) : 0;
   bookDetails["Contributors"] = contributors;
   
   if (bookDetails["Edition Format"]?.includes("Kindle")) {
@@ -58,12 +56,24 @@ async function getAmazonDetails() {
   const mergedDetails = {
     ...bookDetails,
     ...audibleDetails,
+    ...(await coverData)
   };
 
   delete mergedDetails.Edition;
   delete mergedDetails.Version;
 
   return mergedDetails;
+}
+
+async function getCover() {
+  const imgEl = document.querySelector('#imgBlkFront, #landingImage');
+  /**@type{string|null}*/
+  const coverUrl = imgEl?.src ? getHighResImageUrl(imgEl.src) : null;
+
+  return {
+    img: coverUrl,
+    imgScore: coverUrl ? await getImageScore(coverUrl) : 0
+  }
 }
 
 function getHighResImageUrl(src) {
