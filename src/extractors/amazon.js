@@ -1,4 +1,4 @@
-import { getImageScore, logMarian, getFormattedText, getCoverData } from '../shared/utils.js';
+import { logMarian, getFormattedText, getCoverData } from '../shared/utils.js';
 const bookSeriesRegex = /^Book (\d+) of \d+$/i;
 
 const includedLabels = new Set([
@@ -19,7 +19,7 @@ const includedLabels = new Set([
 async function getAmazonDetails() {
   logMarian('Extracting Amazon details');
 
-  coverData = getCover()
+  const coverData = getCover();
   const bookDetails = getDetailBullets();
   const audibleDetails = getAudibleDetails();
   const contributors = extractAmazonContributors();
@@ -56,7 +56,7 @@ async function getAmazonDetails() {
   const mergedDetails = {
     ...bookDetails,
     ...audibleDetails,
-    ...(await coverData)
+    ...(await coverData),
   };
 
   delete mergedDetails.Edition;
@@ -68,9 +68,8 @@ async function getAmazonDetails() {
 async function getCover() {
   const imgEl = document.querySelector('#imgBlkFront, #landingImage');
   if (imgEl == undefined) return {};
-  const coverUrl = imgEl.dataset?.oldHires || imgEl.src;
 
-  return getCoverData([imgEl.src, imgEl.dataset?.oldHires, getHighResImageUrl(coverUrl)]);
+  return getCoverData([imgEl.src, imgEl.dataset?.oldHires, getHighResImageUrl(imgEl.dataset?.oldHires || imgEl.src)]);
 }
 
 function getHighResImageUrl(src) {
