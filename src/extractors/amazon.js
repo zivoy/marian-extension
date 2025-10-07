@@ -69,15 +69,16 @@ async function getCover() {
   const imgEl = document.querySelector("#landingImage, #imgTagWrapperId img"); // same element
   const imgEl2 = document.querySelector("#imgBlkFront");
   const imgEl3 = document.querySelector("#ebooksImgBlkFront");
+  const imgAudible = document.querySelector('#audibleProductImage img');
 
   const covers = new Set();
 
-  [imgEl, imgEl2, imgEl3].forEach(img => {
+  [imgEl, imgEl2, imgEl3, imgAudible].forEach(img => {
     if (!img) return;
     if (img) covers.add(img.src);
 
     const dataset = img.dataset;
-    if  (dataset ) {
+    if (dataset) {
       if (dataset.oldHires) covers.add(dataset.oldHires);
       // add highest res dynamic
       try {
@@ -87,7 +88,7 @@ async function getCover() {
           return currentScore > acc.score ? { url, score: currentScore } : acc;
         }, { url: null, score: 0 }).url;
         if (largest) covers.add(largest);
-      } catch  (err) 
+      } catch (err) {
         logMarian('Error parsing dynamic image data:', err);
       }
     }
@@ -210,12 +211,6 @@ function getAudibleDetails() {
       details[label] = value;
     }
   });
-
-  // Extract image (if available)
-  const imgEl = document.querySelector('#audibleProductImage img');
-  if (imgEl?.src) {
-    details.img = imgEl.src;
-  }
 
   return details;
 }
