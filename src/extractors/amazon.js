@@ -70,12 +70,28 @@ async function getCover() {
   const imgEl2 = document.querySelector("#imgBlkFront");
   const imgEl3 = document.querySelector("#ebooksImgBlkFront");
 
-  const covers = new Set([
-    imgEl?.src,
-    imgEl?.dataset?.oldHires,
-    imgEl2?.src,
-    imgEl3?.src,
-  ]);
+  const covers = new Set();
+
+  [imgEl, imgEl2, imgEl3].forEach(img => {
+    if (!img) return;
+    if (img) covers.add(img.src);
+
+    const dataset = img.dataset;
+    if  (dataset ) {
+      if (dataset.oldHires) covers.add(dataset.oldHires);
+      // add highest res dynamic
+      try {
+        const dynamicImage = JSON.parse(dataset.aDynamicImage);
+        const largest = Object.entries(dynamicImage).reduce((acc, [url, [height, width]]) => {
+          const currentScore = width * height;
+          return currentScore > acc.score ? { url, score: currentScore } : acc;
+        }, { url: null, score: 0 }).url;
+        if (largest) covers.add(largest);
+      } catch  (err) 
+        logMarian('Error parsing dynamic image data:', err);
+      }
+    }
+  });
 
   // get original image
   covers.forEach((value) => value && covers.add(getHighResImageUrl(value)));
