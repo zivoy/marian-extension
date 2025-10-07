@@ -33,6 +33,8 @@ async function getAmazonDetails() {
 
   if (bookDetails["Edition Format"]?.includes("Kindle")) {
     bookDetails['Reading Format'] = 'Ebook';
+    // Normalize `Kindle Edition` to to `Kindle` like it is on amazon.com 
+    bookDetails["Edition Format"] = "Kindle";
   } else if (
     bookDetails["Edition Format"]?.toLowerCase().includes("audio") ||
     bookDetails["Edition Format"]?.toLowerCase().includes("audible") ||
@@ -219,11 +221,7 @@ function getBookDescription() {
 function getSelectedFormat() {
   const selected = document.querySelector('#tmmSwatches .swatchElement.selected .slot-title span[aria-label]');
   if (selected) {
-    let text = selected.getAttribute('aria-label')?.replace(' Format:', '').trim();
-    if (text.startsWith("Kindle") && text !== "Kindle") {
-      text = "Kindle";
-    }
-    return text;
+    return selected.getAttribute('aria-label')?.replace(' Format:', '').trim();
   }
   return null;
 }
