@@ -52,7 +52,7 @@ async function getAmazonDetails() {
 
   // logMarian("bookDetails", bookDetails);
   // logMarian("audibleDetails", audibleDetails);
- 
+
   const mergedDetails = {
     ...bookDetails,
     ...audibleDetails,
@@ -66,15 +66,21 @@ async function getAmazonDetails() {
 }
 
 async function getCover() {
-  let imgEl = document.querySelector("#landingImage");
+  const imgEl = document.querySelector("#landingImage, #imgTagWrapperId img"); // same element
   const imgEl2 = document.querySelector("#imgBlkFront");
+  const imgEl3 = document.querySelector("#ebooksImgBlkFront");
 
-  return getCoverData([
+  const covers = new Set([
     imgEl?.src,
     imgEl?.dataset?.oldHires,
-    imgEl2?.src, 
-    getHighResImageUrl(imgEl?.dataset?.oldHires || imgEl?.src || imgEl2.src),
+    imgEl2?.src,
+    imgEl3?.src,
   ]);
+
+  // get original image
+  covers.forEach((value) => value && covers.add(getHighResImageUrl(value)));
+
+  return getCoverData(Array.from(covers));
 }
 
 function getHighResImageUrl(src) {
