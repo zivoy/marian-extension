@@ -2,19 +2,19 @@ import { logMarian, getFormattedText, getCoverData } from '../shared/utils.js';
 const bookSeriesRegex = /^Book (\d+) of \d+$/i;
 
 const includedLabels = new Set([
-    'Contributors',
-    'Publisher',
-    'Publication date',
-    'Program Type',
-    'Language',
-    'Print length',
-    'Listening Length',
-    'ISBN-10',
-    'ISBN-13',
-    'ASIN',
-    'Series',
-    'Series Place'
-  ]);
+  'Contributors',
+  'Publisher',
+  'Publication date',
+  'Program Type',
+  'Language',
+  'Print length',
+  'Listening Length',
+  'ISBN-10',
+  'ISBN-13',
+  'ASIN',
+  'Series',
+  'Series Place'
+]);
 
 async function getAmazonDetails() {
   logMarian('Extracting Amazon details');
@@ -28,9 +28,9 @@ async function getAmazonDetails() {
   bookDetails["Title"] = document.querySelector('#productTitle')?.innerText.trim();
   bookDetails["Description"] = getBookDescription() || '';
   bookDetails["Contributors"] = contributors;
-  
+
   if (bookDetails["Edition Format"]?.includes("Kindle")) {
-    bookDetails['Reading Format'] = 'Ebook'; 
+    bookDetails['Reading Format'] = 'Ebook';
   } else if (
     bookDetails["Edition Format"]?.toLowerCase().includes("audio") ||
     bookDetails["Edition Format"]?.toLowerCase().includes("audible") ||

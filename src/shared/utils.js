@@ -109,5 +109,7 @@ export async function getCoverData(covers) {
     current.imgScore > highest.imgScore ? current : highest
   );
 
+  // logMarian("covers", { covers, coversObj, highestScoreCover });
+
   return highestScoreCover;
 }
