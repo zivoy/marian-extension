@@ -30,9 +30,18 @@ async function getIsbnSearchDetails() {
   // Treat as local time when parsing
   bookDetails['Publication date'] = bookDetails['Publication date'] + "T00:00:00";
 
-
-  // TODO: check if book is actually physical, they don't seem to have pages for ebooks with ISBNs
-  bookDetails['Reading Format'] = 'Physical Book';
+  if (bookDetails["Edition Format"]?.includes("Kindle")) {
+    bookDetails['Reading Format'] = 'Ebook'; 
+  } else if (
+    bookDetails["Edition Format"]?.toLowerCase().includes("audio") ||
+    bookDetails["Edition Format"]?.toLowerCase().includes("audible") ||
+    bookDetails["Edition Format"]?.toLowerCase().includes("mp3") ||
+    bookDetails["Edition Format"]?.toLowerCase().includes("cd")
+  ) {
+    bookDetails['Reading Format'] = 'Audiobook';
+  } else {
+    bookDetails['Reading Format'] = 'Physical Book';
+  }
 
   // logMarian("bookDetails", bookDetails);
 

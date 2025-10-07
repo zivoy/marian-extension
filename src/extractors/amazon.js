@@ -1,7 +1,7 @@
-import { getImageScore, logMarian, delay } from '../shared/utils.js';
+import { getImageScore, logMarian, getFormattedText } from '../shared/utils.js';
 const bookSeriesRegex = /^Book (\d+) of \d+$/i;
 
-const includedLabels = [
+const includedLabels = new Set([
     'Contributors',
     'Publisher',
     'Publication date',
@@ -13,11 +13,11 @@ const includedLabels = [
     'ISBN-13',
     'ASIN',
     'Series',
-    'Series Place',
-  ];
+    'Series Place'
+  ]);
 
 async function getAmazonDetails() {
-	logMarian('Extracting Amazon details');
+  logMarian('Extracting Amazon details');
 
   const imgEl = document.querySelector('#imgBlkFront, #landingImage');
   const bookDetails = getDetailBullets();
@@ -31,21 +31,39 @@ async function getAmazonDetails() {
   bookDetails["imgScore"] = imgEl?.src ? await getImageScore(imgEl.src) : 0;
   bookDetails["Contributors"] = contributors;
   
-  if (bookDetails["Edition Format"] == "Kindle") {
+  if (bookDetails["Edition Format"]?.includes("Kindle")) {
     bookDetails['Reading Format'] = 'Ebook'; 
-  } else if (bookDetails["Edition Format"] == "Audible") {
+  } else if (
+    bookDetails["Edition Format"]?.toLowerCase().includes("audio") ||
+    bookDetails["Edition Format"]?.toLowerCase().includes("audible") ||
+    bookDetails["Edition Format"]?.toLowerCase().includes("mp3") ||
+    bookDetails["Edition Format"]?.toLowerCase().includes("cd")
+  ) {
     bookDetails['Reading Format'] = 'Audiobook';
   } else {
     bookDetails['Reading Format'] = 'Physical Book';
   }
 
+  const version = bookDetails['Version'] || audibleDetails['Version'];
+  const edition = bookDetails["Edition"];
+  if (!!version && !!edition) { // if both edition and version are present mix them
+    bookDetails["Edition Information"] = `${edition}; ${version}`;
+  } else { // otherwise pick one or leave it undefined if neither exist
+    bookDetails["Edition Information"] = edition || version;
+  }
+
   // logMarian("bookDetails", bookDetails);
   // logMarian("audibleDetails", audibleDetails);
  
-  return {
+  const mergedDetails = {
     ...bookDetails,
     ...audibleDetails,
   };
+
+  delete mergedDetails.Edition;
+  delete mergedDetails.Version;
+
+  return mergedDetails;
 }
 
 function getHighResImageUrl(src) {
@@ -79,10 +97,17 @@ function getDetailBullets() {
       return;
     }
 
-    // logMarian(label, includedLabels.includes(label));
+    if ((label === 'Edition' || label === 'Version') && value) {
+      details[label] = value;
+      if (label === 'Edition' && !details['Edition Format']) {
+        details['Edition Format'] = value;
+      }
+      return;
+    }
+
     // Print debug info for labels not included
     // skip if not included in the list
-    if (!includedLabels.includes(label)) {
+    if (!includedLabels.has(label)) {
       // logMarian(`Label not currently included: "${label}"`);
       return;
     }
@@ -122,6 +147,14 @@ function getAudibleDetails() {
       return;
     }
 
+    if ((label === 'Edition' || label === 'Version') && value) {
+      details[label] = value;
+      if (label === 'Edition' && !details['Edition Format']) {
+        details['Edition Format'] = value;
+      }
+      return;
+    }
+
     // Match any Audible.<TLD> Release Date
     if (/^Audible\.[^\s]+ Release Date$/i.test(label)) {
       details['Publication date'] = value;
@@ -140,7 +173,7 @@ function getAudibleDetails() {
       } else {
         details['Listening Length'] = value;
       }
-    } else if (label && value) {
+    } else if (label && value && includedLabels.has(label)) {
       details[label] = value;
     }
   });
@@ -157,15 +190,8 @@ function getAudibleDetails() {
 function getBookDescription() {
   const container = document.querySelector('#bookDescription_feature_div .a-expander-content');
   if (!container) return '';
-  
-  // Replace <br> tags with newlines, then get all text content
-  let html = container.innerHTML.replace(/<br\s*\/?>/gi, '\n');
-  // Create a temporary element to parse the modified HTML
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = html;
-  let text = tempDiv.textContent || '';
-  
-  return text.trim().replace(/\s+/g, ' ');
+
+  return getFormattedText(container);
 }
 
 function getSelectedFormat() {
