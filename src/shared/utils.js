@@ -85,6 +85,10 @@ export function sendMessage(message) {
   * @return {Promise<CoverObject>} the image URL and score of the best cover
   */
 export async function getCoverData(covers) {
+  if (covers && covers.length === 0) {
+    covers = undefined;
+  }
+
   if (!Array.isArray(covers)) {
     // single URL was passed
     const coverUrl = covers;

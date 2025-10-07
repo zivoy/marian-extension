@@ -66,10 +66,15 @@ async function getAmazonDetails() {
 }
 
 async function getCover() {
-  const imgEl = document.querySelector('#imgBlkFront, #landingImage');
-  if (imgEl == undefined) return {};
+  let imgEl = document.querySelector("#landingImage");
+  const imgEl2 = document.querySelector("#imgBlkFront");
 
-  return getCoverData([imgEl.src, imgEl.dataset?.oldHires, getHighResImageUrl(imgEl.dataset?.oldHires || imgEl.src)]);
+  return getCoverData([
+    imgEl?.src,
+    imgEl?.dataset?.oldHires,
+    imgEl2?.src, 
+    getHighResImageUrl(imgEl?.dataset?.oldHires || imgEl?.src || imgEl2.src),
+  ]);
 }
 
 function getHighResImageUrl(src) {
