@@ -1,4 +1,4 @@
-import { getImageScore, logMarian, getFormattedText } from '../shared/utils.js';
+import { getImageScore, logMarian, getFormattedText, getCoverData } from '../shared/utils.js';
 const bookSeriesRegex = /^Book (\d+) of \d+$/i;
 
 const includedLabels = new Set([
@@ -67,13 +67,10 @@ async function getAmazonDetails() {
 
 async function getCover() {
   const imgEl = document.querySelector('#imgBlkFront, #landingImage');
-  let coverUrl = imgEl?.dataset?.oldHires || imgEl?.src
-  coverUrl = coverUrl ? getHighResImageUrl(coverUrl) : null;
+  if (imgEl == undefined) return {};
+  const coverUrl = imgEl.dataset?.oldHires || imgEl.src;
 
-  return {
-    img: coverUrl,
-    imgScore: coverUrl ? await getImageScore(coverUrl) : 0
-  }
+  return getCoverData([imgEl.src, imgEl.dataset?.oldHires, getHighResImageUrl(coverUrl)]);
 }
 
 function getHighResImageUrl(src) {
