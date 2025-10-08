@@ -126,7 +126,7 @@ export async function renderDetails(details) {
   // get settings
   const settings = await settingsManager.get();
 
-  renderDetailsWithSettings(details, settings);
+  renderDetailsWithSettings({ ...details }, settings);
 
   const container = detailsBox();
   if (!container) return;
@@ -148,7 +148,7 @@ export async function renderDetails(details) {
     // update settings
     Object.entries(changes).forEach(([setting, { newValue }]) => settings[setting] = newValue);
 
-    renderDetailsWithSettings(details, settings);
+    renderDetailsWithSettings({ ...details }, settings);
     container.appendChild(marker);
   });
 }
