@@ -49,7 +49,9 @@ function stringify(/**@type{{[prefix:string]: {name:string, ranges: [string,stri
 
 // ----
 
-const filepath = "./RangeMessage.xml";
+const filepath =
+  null;
+//  "./RangeMessage.xml";
 
 let start;
 if (filepath) {
