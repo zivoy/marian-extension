@@ -53,9 +53,6 @@ function copyToClipboard(text, labelEl) {
   });
 }
 
-function getHighResImageUrl(src) {
-  return src.replace(/\._[^.]+(?=\.)/, '');
-}
 
 function formatDate(dateStr, format = "local") {
   const date = new Date(dateStr);
