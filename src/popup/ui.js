@@ -125,9 +125,32 @@ function renderRow(container, key, value) {
 export async function renderDetails(details) {
   // get settings
   const settings = await settingsManager.get();
-  // TODO: refresh on changes
 
   renderDetailsWithSettings(details, settings);
+
+  const container = detailsBox();
+  if (!container) return;
+
+  // Create a unique marker element to track if this render is still active
+  const markerId = `details-marker-${Date.now()}-${Math.random()}`;
+  const marker = document.createElement('span');
+  marker.id = markerId;
+  marker.style.display = 'none';
+  container.appendChild(marker);
+
+  const unsub = settingsManager.subscribe((changes) => {
+    // Check if marker still exists (component still mounted)
+    if (!document.getElementById(markerId)) {
+      unsub();
+      return;
+    }
+
+    // update settings
+    Object.entries(changes).forEach(([setting, { newValue }]) => settings[setting] = newValue);
+
+    renderDetailsWithSettings(details, settings);
+    container.appendChild(marker);
+  });
 }
 
 function renderDetailsWithSettings(details, settings = {}) {
