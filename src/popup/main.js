@@ -21,18 +21,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     showStatus("DOM Loaded, fetching details...");
     tryGetDetails()
-      .then(details => {
+      .then(async (details) => {
         showDetails();
         const detailsEl = document.getElementById('details');
         if (detailsEl) detailsEl.innerHTML = "";
-        renderDetails(details);
+        await renderDetails(details);
 
         addRefreshButton(() => {
           showStatus("Refreshing...");
           tryGetDetails()
-            .then(details => {
+            .then(async (details) => {
               showDetails();
-              renderDetails(details);
+              await renderDetails(details);
             })
             .catch(err => showStatus(err));
         });
@@ -59,12 +59,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "REFRESH_SIDEBAR" && msg.url && isAllowedUrl(msg.url)) {
     showStatus("Loading details...");
     tryGetDetails()
-      .then(details => {
+      .then(async (details) => {
         showDetails();
         // clear previous content (matches your original)
         const detailsEl = document.getElementById('details');
         if (detailsEl) detailsEl.innerHTML = "";
-        renderDetails(details);
+        await renderDetails(details);
 
         chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
           const currentUrl = tab?.url || '';

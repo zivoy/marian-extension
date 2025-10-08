@@ -19,6 +19,7 @@
 	},
 	"permissions": [
 		"scripting",
+		"storage",
 		"activeTab",
 		"tabs",
 		"notifications"
