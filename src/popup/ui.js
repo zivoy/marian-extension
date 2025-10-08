@@ -1,11 +1,12 @@
 import { tryGetDetails } from "./messaging.js";
 import { isAllowedUrl } from "../shared/allowed-patterns.js";
-import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl } from "./utils.js";
+import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl, SetupSettings } from "./utils.js";
+import { hyphenate, searchIsbn } from "../shared/getGroup.js";
 
-const settings = {
-  hyphenateIsbn: true,
-  filterNonHardcover: false,
-}
+const settingsManager = SetupSettings(document.querySelector("#settings"), {
+  hyphenateIsbn: { type: "selection", label: "Hyphenate ISBNs", options: { yes: "Yes", no: "No (Hardcover)", none: "Leave Alone" }, default: "yes" },
+  filterNonHardcover: { type: "toggle", label: "Filter out non hardcover fields", default: false },
+});
 
 // DOM refs (looked up when functions are called)
 function statusBox() { return document.getElementById('status'); }
@@ -121,8 +122,17 @@ function renderRow(container, key, value) {
   container.appendChild(div);
 }
 
-export function renderDetails(details) {
+export async function renderDetails(details) {
+  // get settings
+  const settings = await settingsManager.get();
+  // TODO: refresh on changes
+
+  renderDetailsWithSettings(details, settings);
+}
+
+function renderDetailsWithSettings(details, settings = {}) {
   console.log('[Extension] Rendering details:', details);
+  console.log('[Extension] Rendering settings:', settings);
   const container = detailsBox();
   if (!container) return;
   container.innerHTML = ""; // safety clear 
@@ -276,10 +286,10 @@ export function renderDetails(details) {
   }
 
   // Correct hyphenation on ISBNs according to settings
-  if (!settings.hyphenateIsbn) {
+  if (settings.hyphenateIsbn === "no") {
     details["ISBN-10"] = details["ISBN-10"].replaceAll("-", "");
     details["ISBN-13"] = details["ISBN-13"].replaceAll("-", "");
-  } else {
+  } else if (settings.hyphenateIsbn === "yes") {
     try {
       details["ISBN-10"] = hyphenate(details["ISBN-10"]);
     } catch { }
@@ -388,9 +398,9 @@ export function addRefreshButton(onClick) {
     showStatus("Refreshing...");
 
     tryGetDetails()
-      .then(details => {
+      .then(async (details) => {
         showDetails();
-        renderDetails(details);
+        await renderDetails(details);
 
         // 👇 After refreshing, set last fetched & disable if same tab
         chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
