@@ -4,6 +4,7 @@ import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl } from "./utils.js";
 
 const settings = {
   hyphenateIsbn: true,
+  filterNonHardcover: false,
 }
 
 // DOM refs (looked up when functions are called)
@@ -318,6 +319,7 @@ export function renderDetails(details) {
   const filteredKeys = ['img', 'imgScore', 'Title', 'Description'];
   Object.entries(details).forEach(([key, value]) => {
     if (filteredKeys.includes(key) || rendered.has(key)) return;
+    if (settings.filterNonHardcover && !orderedKeys.includes(key)) return; // filter non hardcover
     renderRow(container, key, value);
   });
 }
