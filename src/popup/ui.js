@@ -310,8 +310,8 @@ function renderDetailsWithSettings(details, settings = {}) {
 
   // Correct hyphenation on ISBNs according to settings
   if (settings.hyphenateIsbn === "no") {
-    details["ISBN-10"] = details["ISBN-10"].replaceAll("-", "");
-    details["ISBN-13"] = details["ISBN-13"].replaceAll("-", "");
+    if (details["ISBN-10"]) details["ISBN-10"] = details["ISBN-10"].replaceAll("-", "");
+    if (details["ISBN-13"]) details["ISBN-13"] = details["ISBN-13"]?.replaceAll("-", "");
   } else if (settings.hyphenateIsbn === "yes") {
     try {
       details["ISBN-10"] = hyphenate(details["ISBN-10"]);
