@@ -24,6 +24,10 @@ function copyToClipboard(text, labelEl) {
   });
 }
 
+function getHighResImageUrl(src) {
+  return src.replace(/\._[^.]+(?=\.)/, '');
+}
+
 function formatDate(dateStr) {
   const date = new Date(dateStr);
   if (!isNaN(date)) {
@@ -34,7 +38,8 @@ function formatDate(dateStr) {
 }
 
 function downloadImage(url, bookId) {
-  fetch(url)
+  const highResUrl = url.replace(/\._[^.]+(?=\.)/, '');
+  fetch(highResUrl)
     .then(res => res.blob())
     .then(blob => {
       const blobUrl = URL.createObjectURL(blob);
@@ -167,7 +172,7 @@ function renderDetailsWithSettings(details, settings = {}) {
     sideBySideWrapper.style.gap = '1rem';
 
     const img = document.createElement('img');
-    img.src = details.img;
+    img.src = getHighResImageUrl(details.img);
     img.alt = 'Cover Image';
     img.title = 'Click to download';
     img.style.maxWidth = '100px';
