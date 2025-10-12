@@ -57,7 +57,7 @@ async function getDetailsFromOverdriveId(id) {
 
   // cover
   const cover = Object.values(data.covers)
-    .reduce((cover, { width, height, href }) => cover.res > (width * height) ? cover : { res: width * height, href }) // get cover with highest resolution
+    .reduce((cover, { width, height, href }) => cover.res > (width * height) ? cover : { res: width * height, href }); // get cover with highest resolution
   details["img"] = cover.href;
   details["imgScore"] = cover.res; // save on calling getImageScore because we already have the resolution
 
@@ -73,7 +73,7 @@ async function getDetailsFromOverdriveId(id) {
 
   // description
   let description = data.fullDescription || data.description;
-  description = description.replaceAll("<br/>", "<br/><br/>") // double space paragraphs
+  description = description.replace(/<br\/?>/g, "<br/><br/>") // double space paragraphs
   const descriptionEl = document.createElement('div');
   descriptionEl.innerHTML = description;
   details["Description"] = getFormattedText(descriptionEl);
@@ -83,7 +83,7 @@ async function getDetailsFromOverdriveId(id) {
   if (data.subtitle) {
     title = title + ": " + data.subtitle
   }
-  details["Title"] = title
+  details["Title"] = title;
 
   // format
   details["Edition Format"] = data.type?.name; // eBook most of the time
@@ -112,11 +112,92 @@ async function getDetailsFromOverdriveId(id) {
   }
 
   // Format data
+  let formats = [];
+  if (data.formats != undefined && data.formats.length > 0) {
+    switch (data.type?.id) {
+      case "ebook":
+        formats = collapseEbookFormats(data.formats)
+        break;
+      case "audiobook":
+        formats = collapseAudiobookFormats(data.formats)
+        break;
+      default:
+        logMarian(`No format parser for ${data.type?.id} type`)
+    }
+  }
 
+  // logMarian("Formats", formats);
+  const format = formats.length > 0 ? formats[0] : {};
 
-  logMarian("book details", details);
+  // TODO: add support for showing multiple books / formats in marian
 
-  return details;
+  // logMarian("book details", details);
+
+  return { ...details, ...format };
+}
+
+function collapseEbookFormats(formats) {
+  const formatList = [];
+  for (let format of formats) {
+    let formatInfo = {};
+    let formatId = -1;
+
+    // match by date
+    let match = formatList.findIndex((el) => el.saleDate == format.onSaleDateUtc);
+    if (match != -1 && formatId == -1) {
+      formatId = match;
+      formatInfo = formatList[formatId];
+    }
+    // match by isbn
+    match = formatList.findIndex((el) => el["ISBN-13"] == format.isbn || el["ISBN-10"] == format.isbn);
+    if (match != -1 && formatId == -1) {
+      formatId = match;
+      formatInfo = formatList[formatId];
+    }
+
+    // treat it as a new entry if not matched
+    if (formatId == -1) {
+      formatId = formatList.length;
+      formatList.push(formatInfo);
+    }
+
+    // --
+
+    if (formatInfo.saleDate == undefined) {
+      formatInfo.saleDate = format.onSaleDateUtc;
+    }
+
+    if (format.isbn?.length == 13) {
+      formatInfo["ISBN-13"] = format.isbn;
+    } else if (format.isbn?.length == 10) {
+      formatInfo["ISBN-10"] = format.isbn;
+    }
+
+    // if kindle ebook
+    if (format.fulfillmentType == "kindle") { // canalso be bifocal, epub or kobo
+      formatInfo["Edition Format"] = "Kindle"; // force it to be a kindle edition to conform with hardcover eBooks
+
+      // fetch ASIN
+      const asin = format.identifiers.find(({ type }) => type == "ASIN")?.value;
+      if (asin != undefined) {
+        formatInfo["ASIN"] = asin;
+      }
+    }
+
+    if (formatInfo["Edition Format"] == undefined) {
+      formatInfo["Edition Format"] = format.name;
+    }
+
+    // formatList[formatId] = formatInfo;
+  }
+
+  formatList.forEach((value) => {
+    delete value["saleDate"]; // not needed
+  });
+
+  return formatList
+}
+function collapseAudiobookFormats(formats) {
 }
 
 export { getOverdriveDetails, getLibbyDetails };
