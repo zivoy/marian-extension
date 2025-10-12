@@ -106,6 +106,7 @@
 				"https://portal.dnb.de/*",
 				"https://deposit.dnb.de/*",
 
+				"https://thunder.api.overdrive.com/*",
 				"https://www.overdrive.com/*",
 				"https://libbyapp.com/*",
 				"https://share.libbyapp.com/title/*"
