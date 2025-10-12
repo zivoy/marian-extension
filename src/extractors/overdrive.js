@@ -1,4 +1,4 @@
-import { getImageScore, logMarian, sendMessage, getFormattedText } from '../shared/utils.js';
+import { logMarian, getFormattedText, delay } from '../shared/utils.js';
 
 async function getOverdriveDetails() {
   const id = document.querySelector(".cover img")?.dataset?.id;
@@ -7,6 +7,8 @@ async function getOverdriveDetails() {
 }
 
 async function getLibbyDetails() {
+  // await for data to load so we can rip it
+  await delay(300);
   // normal libby app
   let id = document.querySelector(".cover-box img")?.dataset?.coverId;
 
@@ -47,7 +49,12 @@ async function getDetailsFromOverdriveId(id) {
 
   const details = {};
 
+  // TODO: make sure JSON conforms to expectations
+
   // Get relevant details
+  // source id
+  details["Source ID"] = data.id;
+
   // cover
   const cover = Object.values(data.covers)
     .reduce((cover, { width, height, href }) => cover.res > (width * height) ? cover : { res: width * height, href }) // get cover with highest resolution
@@ -65,7 +72,11 @@ async function getDetailsFromOverdriveId(id) {
   details["Contributors"] = contributors;
 
   // description
-  details["Description"] = getFormattedText(data.fullDescription);
+  let description = data.fullDescription || data.description;
+  description = description.replaceAll("<br/>", "<br/><br/>") // double space paragraphs
+  const descriptionEl = document.createElement('div');
+  descriptionEl.innerHTML = description;
+  details["Description"] = getFormattedText(descriptionEl);
 
   // title
   let title = data.title;
@@ -76,6 +87,7 @@ async function getDetailsFromOverdriveId(id) {
 
   // format
   details["Edition Format"] = data.type?.name; // eBook most of the time
+  details["Edition Information"] = data.edition;
 
   // publisher
   details["Publisher"] = data.publisher?.name;
@@ -85,6 +97,19 @@ async function getDetailsFromOverdriveId(id) {
 
   // date
   details["Publication date"] = data.publishDate ?? data.estimatedReleaseDate;
+
+  // language
+  if (data.languages.length > 1) {
+    details["Languages"] = data.languages.map(language => language.name).join(", ");
+  }
+  details["Language"] = data.languages[0].name;
+
+
+  // series
+  if (data.detailedSeries) {
+    details["Series"] = data.detailedSeries.seriesName;
+    details["Series Place"] = data.detailedSeries.readingOrder;
+  }
 
   // Format data
 
