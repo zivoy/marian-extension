@@ -47,7 +47,7 @@ async function getDetailsFromOverdriveId(id) {
 
   // logMarian("book data", data);
 
-  const details = {};
+  let details = {};
 
   // TODO: make sure JSON conforms to expectations
 
@@ -131,9 +131,18 @@ async function getDetailsFromOverdriveId(id) {
 
   // TODO: add support for showing multiple books / formats in marian
 
+  details = { ...details, ...format };
+
+  // cleanup undefined or null keys
+  Object.entries(details).forEach(([key, value]) => {
+    if (value == undefined) {
+      delete details[key];
+    }
+  });
+
   // logMarian("book details", details);
 
-  return { ...details, ...format };
+  return details;
 }
 
 function collapseEbookFormats(formats) {
