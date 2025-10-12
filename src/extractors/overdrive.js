@@ -45,7 +45,7 @@ async function getDetailsFromOverdriveId(id) {
   }
   data = data[0];
 
-  logMarian("book data", data);
+  // logMarian("book data", data);
 
   const details = {};
 
