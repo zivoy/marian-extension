@@ -10,7 +10,7 @@ async function getLibbyDetails() {
   // await for data to load so we can rip it
   await delay(300);
   // normal libby app
-  let id = document.querySelector(".cover-box img")?.dataset?.coverId;
+  let id = document.querySelector(".view-train-car:not([aria-hidden='true']) .cover-box img")?.dataset?.coverId;
 
   // share page
   if (id == undefined) {
