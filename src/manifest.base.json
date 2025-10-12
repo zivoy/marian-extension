@@ -104,7 +104,11 @@
 				"https://www.isbn.de/hoerbuch/*",
 
 				"https://portal.dnb.de/*",
-				"https://deposit.dnb.de/*"
+				"https://deposit.dnb.de/*",
+
+				"https://www.overdrive.com/*",
+				"https://libbyapp.com/*",
+				"https://share.libbyapp.com/title/*"
 			],
 			"js": [
 				"content.js"
