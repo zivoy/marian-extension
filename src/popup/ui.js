@@ -6,6 +6,7 @@ import { hyphenate, searchIsbn } from "../shared/getGroup.js";
 const settingsManager = SetupSettings(document.querySelector("#settings"), {
   hyphenateIsbn: { type: "selection", label: "Hyphenate ISBNs", options: { yes: "Yes", no: "No (Hardcover)", none: "Leave Alone" }, default: "yes" },
   filterNonHardcover: { type: "toggle", label: "Filter out non hardcover fields", default: false },
+  dateFormat: { type: "selection", label: "Format date", default: "local", options: { local: `Local format (${getLocalDateFormat()})`, ymd: "yyyy-mm-dd", dmy: "dd/mm/yyyy", mdy: "mm/dd/yyyy" } },
 });
 
 // DOM refs (looked up when functions are called)
@@ -24,13 +25,51 @@ function copyToClipboard(text, labelEl) {
   });
 }
 
+<<<<<<< HEAD
 function formatDate(dateStr) {
+=======
+function getHighResImageUrl(src) {
+  return src.replace(/\._[^.]+(?=\.)/, '');
+}
+
+function formatDate(dateStr, format = "local") {
+>>>>>>> 703f096 (Date format option)
   const date = new Date(dateStr);
-  if (!isNaN(date)) {
-    // navigator.language should always be set, but adding a fallback just in case
-    return new Intl.DateTimeFormat(navigator.language || "en-US").format(date);
+
+  if (isNaN(date)) {
+    return dateStr;
   }
-  return dateStr;
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  switch (format) {
+    case 'ymd':
+      return `${year}-${month}-${day}`;
+    case 'dmy':
+      return `${day}/${month}/${year}`;
+    case 'mdy':
+      return `${month}/${day}/${year}`;
+    case 'local': // fall through
+    default:
+      // navigator.language should always be set, but adding a fallback just in case
+      return new Intl.DateTimeFormat(navigator.language || "en-US").format(date);
+  }
+}
+
+function getLocalDateFormat() {
+  const date = new Date(2025, 9, 31); // 2025-10-31
+  const formatted = new Intl.DateTimeFormat(navigator.language || "en-US").format(date);
+
+  // Replace the actual values with format placeholders
+  let pattern = formatted
+    .replace('2025', 'yyyy')
+    .replace('25', 'yy')
+    .replace('10', 'mm')
+    .replace('31', 'dd');
+
+  return pattern;
 }
 
 function downloadImage(url, bookId) {
@@ -276,7 +315,7 @@ function renderDetailsWithSettings(details, settings = {}) {
   // Normalization
 
   if (details["Publication date"]) {
-    details["Publication date"] = formatDate(details["Publication date"]);
+    details["Publication date"] = formatDate(details["Publication date"], settings.dateFormat);
   }
 
   if (details["Listening Length"] && details["Listening Length"].length >= 1) {
