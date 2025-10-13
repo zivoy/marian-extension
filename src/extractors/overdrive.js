@@ -29,7 +29,7 @@ async function getLibbyDetails() {
 
 async function getTeachingBooksDetails() {
   const idMatch = document.querySelector("a.book")?.href?.match(/overdrive.com\/media\/(\d+)\//);
-  if (idMatch == undefined && idMatch.length < 2) throw "Id not found";
+  if (idMatch == undefined || idMatch.length < 2) throw "Id not found";
   return getDetailsFromOverdriveId(idMatch[1]);
 }
 
