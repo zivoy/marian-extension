@@ -108,6 +108,7 @@
 
 				"https://thunder.api.overdrive.com/*",
 				"https://www.overdrive.com/*",
+				"https://school.teachingbooks.net/*",
 				"https://libbyapp.com/*",
 				"https://share.libbyapp.com/title/*"
 			],

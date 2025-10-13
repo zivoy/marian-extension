@@ -16,6 +16,7 @@ const ALLOWED_PATTERNS = [
   /https:\/\/(?:www\.)?overdrive\.com\/media\/(\d+)\/.+/,
   /https:\/\/share\.libbyapp\.com\/title\/(\d+)/,
   /https:\/\/libbyapp\.com\/.+\/(\d+)/,
+  /https:\/\/school\.teachingbooks\.net\/.+?tid=(\d+)/,
 ];
 
 export function isAllowedUrl(url) {
