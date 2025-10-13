@@ -59,15 +59,17 @@ function formatDate(dateStr, format = "local") {
 }
 
 function getLocalDateFormat() {
-  const date = new Date(2025, 9, 31); // 2025-10-31
+  const date = new Date(2025, 3, 8); // 2025-04-08
   const formatted = new Intl.DateTimeFormat(navigator.language || "en-US").format(date);
 
   // Replace the actual values with format placeholders
   let pattern = formatted
     .replace('2025', 'yyyy')
     .replace('25', 'yy')
-    .replace('10', 'mm')
-    .replace('31', 'dd');
+    .replace('04', 'mm')
+    .replace('4', 'm')
+    .replace('08', 'dd')
+    .replace('8', 'd');
 
   return pattern;
 }
