@@ -9,6 +9,31 @@ const settingsManager = SetupSettings(document.querySelector("#settings"), {
   dateFormat: { type: "selection", label: "Format date", default: "local", options: { local: `Local format (${getLocalDateFormat()})`, ymd: "yyyy-mm-dd", dmy: "dd/mm/yyyy", mdy: "mm/dd/yyyy" } },
 });
 
+const orderedKeys = [
+  'ISBN-10',
+  'ISBN-13',
+  'ASIN',
+  'Source ID',
+  'Contributors',
+  'Publisher',
+  'Reading Format',
+  'Listening Length',
+  'Pages',
+  'Edition Format',
+  'Publication date',
+  'Language',
+  'Country'
+];
+const hardcoverKeys = [ // for filtering
+  "Title",
+  "Description",
+  "Series",
+  "Series Place",
+  "img",
+  "imgScore",
+  ...orderedKeys,
+]
+
 // DOM refs (looked up when functions are called)
 function statusBox() { return document.getElementById('status'); }
 function detailsBox() { return document.getElementById('details'); }
@@ -160,11 +185,66 @@ function renderRow(container, key, value) {
   container.appendChild(div);
 }
 
+function normalizeDetails(details, settings, inplace = true) {
+  if (!inplace) {
+    details = { ...details }; // shallow clone
+  }
+
+  // normalize
+
+  // Insert country (or language) from ISBN if not present
+  const isbn = details["ISBN-13"] || details["ISBN-10"];
+  if (isbn != undefined) {
+    try {
+      const groupName = searchIsbn(isbn);
+      if (groupName != undefined) {
+        if (groupName.toLowerCase().endsWith("language")) {
+          const language = groupName.split("language")[0].trim();
+          details["Language"] = details["Language"] || language
+        } else {
+          details["Country"] = details["Country"] || groupName
+        }
+      }
+    } catch { }
+  }
+
+  // apply settings
+
+  // format date
+  if (details["Publication date"]) {
+    details["Publication date"] = formatDate(details["Publication date"], settings.dateFormat);
+  }
+
+  // Correct hyphenation on ISBNs according to settings
+  if (settings.hyphenateIsbn === "no") {
+    if (details["ISBN-10"]) details["ISBN-10"] = details["ISBN-10"].replaceAll("-", "");
+    if (details["ISBN-13"]) details["ISBN-13"] = details["ISBN-13"].replaceAll("-", "");
+  } else if (settings.hyphenateIsbn === "yes") {
+    try {
+      details["ISBN-10"] = hyphenate(details["ISBN-10"]);
+    } catch { }
+    try {
+      details["ISBN-13"] = hyphenate(details["ISBN-13"]);
+    } catch { }
+  }
+
+  // filter out non hardcover
+  if (settings.filterNonHardcover) {
+    Object.keys(details).forEach((key) => {
+      if (!hardcoverKeys.includes(key)) {
+        delete details[key];
+      }
+    });
+  }
+
+  return details;
+}
+
 export async function renderDetails(details) {
   // get settings
   const settings = await settingsManager.get();
 
-  renderDetailsWithSettings({ ...details }, settings);
+  renderDetailsWithSettings(details, settings);
 
   const container = detailsBox();
   if (!container) return;
@@ -186,14 +266,16 @@ export async function renderDetails(details) {
     // update settings
     Object.entries(changes).forEach(([setting, { newValue }]) => settings[setting] = newValue);
 
-    renderDetailsWithSettings({ ...details }, settings);
+    renderDetailsWithSettings(details, settings);
     container.appendChild(marker);
   });
 }
 
 function renderDetailsWithSettings(details, settings = {}) {
+  details = normalizeDetails(details, settings, false);
   console.log('[Extension] Rendering details:', details);
   console.log('[Extension] Rendering settings:', settings);
+
   const container = detailsBox();
   if (!container) return;
   container.innerHTML = ""; // safety clear 
@@ -311,47 +393,8 @@ function renderDetailsWithSettings(details, settings = {}) {
     container.appendChild(metaTop);
   }
 
-  if (details["Publication date"]) {
-    details["Publication date"] = formatDate(details["Publication date"], settings.dateFormat);
-  }
-
-  // Insert country (or language) from ISBN if not present
-  const isbn = details["ISBN-13"] || details["ISBN-10"];
-  if (isbn != undefined) {
-    try {
-      const groupName = searchIsbn(isbn);
-      if (groupName != undefined) {
-        if (groupName.toLowerCase().endsWith("language")) {
-          const language = groupName.split("language")[0].trim();
-          details["Language"] = details["Language"] || language
-        } else {
-          details["Country"] = details["Country"] || groupName
-        }
-      }
-    } catch { }
-  }
-
-  // Correct hyphenation on ISBNs according to settings
-  if (settings.hyphenateIsbn === "no") {
-    if (details["ISBN-10"]) details["ISBN-10"] = details["ISBN-10"].replaceAll("-", "");
-    if (details["ISBN-13"]) details["ISBN-13"] = details["ISBN-13"].replaceAll("-", "");
-  } else if (settings.hyphenateIsbn === "yes") {
-    try {
-      details["ISBN-10"] = hyphenate(details["ISBN-10"]);
-    } catch { }
-    try {
-      details["ISBN-13"] = hyphenate(details["ISBN-13"]);
-    } catch { }
-  }
-
   const hr = document.createElement('hr');
   container.appendChild(hr);
-
-  const orderedKeys = [
-    'ISBN-10', 'ISBN-13', 'ASIN', 'Source ID', 'Contributors', 'Publisher',
-    'Reading Format', 'Listening Length', 'Pages', 'Edition Format',
-    'Publication date', 'Language', 'Country'
-  ];
 
   const rendered = new Set(['Series', 'Series Place']);
   orderedKeys.forEach(key => {
@@ -364,7 +407,6 @@ function renderDetailsWithSettings(details, settings = {}) {
   const filteredKeys = ['img', 'imgScore', 'Title', 'Description'];
   Object.entries(details).forEach(([key, value]) => {
     if (filteredKeys.includes(key) || rendered.has(key)) return;
-    if (settings.filterNonHardcover && !orderedKeys.includes(key)) return; // filter non hardcover
     renderRow(container, key, value);
   });
 }
