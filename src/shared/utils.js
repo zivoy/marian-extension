@@ -30,6 +30,25 @@ export function delay(ms) {
 }
 
 /**
+ * Race a promise against a timeout, resolving with a fallback value if the timeout finishes first.
+ *
+ * @template T
+ * @param {Promise<T>} promise Promise to await.
+ * @param {number} ms Timeout length in milliseconds.
+ * @param {T} fallback Value to resolve with if the timeout elapses first.
+ * @returns {Promise<T>} Promise that settles with either the original result or the fallback.
+ */
+export function withTimeout(promise, ms, fallback) {
+  let timer;
+  return Promise.race([
+    promise.finally(() => clearTimeout(timer)),
+    new Promise(resolve => {
+      timer = setTimeout(() => resolve(fallback), ms);
+    })
+  ]);
+}
+
+/**
  * Extract text from HTML element while preserving paragraph breaks
  *
  * @param {HTMLElement} element HTML element to extract text from
@@ -75,4 +94,72 @@ export function sendMessage(message) {
   return new Promise(async (resolve) => {
     await runtime.sendMessage(message, resolve);
   });
+}
+
+const deepQueryCache = new Map();
+
+/**
+ * Clear cached deep query results, typically once per extraction run.
+ */
+export function clearDeepQueryCache() {
+  deepQueryCache.clear();
+}
+
+/**
+ * Perform a deep DOM query that includes shadow roots under the provided hosts.
+ *
+ * @param {string} selector CSS selector to match.
+ * @param {string[]} [hostSelectors=[]] CSS selectors whose shadow roots should be traversed.
+ * @returns {Element[]} Unique matching elements discovered across light and shadow DOM.
+ */
+export function queryAllDeep(selector, hostSelectors = []) {
+  const cacheKey = `${selector}::${hostSelectors.join(',')}`;
+  if (deepQueryCache.has(cacheKey)) {
+    return deepQueryCache.get(cacheKey);
+  }
+
+  const results = new Set();
+
+  document.querySelectorAll(selector).forEach(el => results.add(el));
+
+  const stack = [];
+
+  if (hostSelectors.length) {
+    document.querySelectorAll(hostSelectors.join(',')).forEach(host => {
+      stack.push(host);
+      if (host.shadowRoot) stack.push(host.shadowRoot);
+    });
+  }
+
+  const visited = new Set();
+
+  while (stack.length) {
+    const root = stack.pop();
+    if (!root || visited.has(root)) continue;
+    visited.add(root);
+
+    if (typeof root.querySelectorAll !== 'function') continue;
+
+    root.querySelectorAll(selector).forEach(el => results.add(el));
+
+    root.querySelectorAll('*').forEach(node => {
+      if (node.shadowRoot) stack.push(node.shadowRoot);
+    });
+  }
+
+  const arr = Array.from(results);
+  deepQueryCache.set(cacheKey, arr);
+  return arr;
+}
+
+/**
+ * Variant of queryAllDeep that returns only the first match.
+ *
+ * @param {string} selector CSS selector to match.
+ * @param {string[]} [hostSelectors=[]] CSS selectors whose shadow roots should be traversed.
+ * @returns {Element | null} First matching element, or null when none found.
+ */
+export function queryDeep(selector, hostSelectors = []) {
+  const matches = queryAllDeep(selector, hostSelectors);
+  return matches[0] || null;
 }

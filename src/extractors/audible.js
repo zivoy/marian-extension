@@ -1,7 +1,14 @@
-import { getImageScore, logMarian, getFormattedText } from '../shared/utils.js';
+import {
+  getImageScore,
+  logMarian,
+  getFormattedText,
+  queryAllDeep,
+  queryDeep,
+  clearDeepQueryCache,
+  withTimeout,
+} from '../shared/utils.js';
 
 const DEBUG = false;
-const __deepQueryCache = new Map();
 
 // Known shadow-hosts / component surfaces to search
 // Audible uses a lot of web components
@@ -17,7 +24,7 @@ const KNOWN_DEEP_HOSTS = [
 ];
 
 async function getAudibleDetails() {
-  __deepQueryCache.clear()
+  clearDeepQueryCache();
   const details = {};
   const asyncJobs = [];
 
@@ -26,7 +33,7 @@ async function getAudibleDetails() {
 
     const cover = getPrimaryImage();
     if (cover?.src) {
-      const src = getHighResImageUrl(cover.src);
+      const src = cover.src;
       details.img = src;
       asyncJobs.push(
         withTimeout(getImageScore(src), 1500, 0)
@@ -99,7 +106,7 @@ function collectMetadata() {
 
 function collectListPairs() {
   // Hero subtitle list renders as free text ("Label: value") inside shadow roots
-  return queryAllDeep('[data-automation-id="hero-metadata"] li.bc-list-item, [data-automation-id="titleSubtitle"] li.bc-list-item')
+  return queryAllDeep('[data-automation-id="hero-metadata"] li.bc-list-item, [data-automation-id="titleSubtitle"] li.bc-list-item', KNOWN_DEEP_HOSTS)
     .map(node => cleanText(node.textContent))
     .filter(Boolean)
     .map(text => {
@@ -112,7 +119,7 @@ function collectListPairs() {
 
 function collectMetadataLines() {
   const pairs = [];
-  queryAllDeep('adbl-product-metadata').forEach(host => {
+  queryAllDeep('adbl-product-metadata', KNOWN_DEEP_HOSTS).forEach(host => {
     const root = host.shadowRoot || host;
     // Each metadata line exposes optional label/value slots per locale variant
     const lines = root?.querySelectorAll?.('.line[role="group"], [data-automation-id="metadata-line"]');
@@ -140,7 +147,6 @@ function collectTablePairs() {
   });
   return pairs;
 }
-
 
 function applyPair(fields, contributors, label, rawValues) {
   const normalized = normalizeLabel(label);
@@ -319,7 +325,7 @@ function getDescription() {
   ];
 
   for (const selector of selectors) {
-    const el = queryDeep(selector);
+    const el = queryDeep(selector, KNOWN_DEEP_HOSTS);
     if (!el) continue;
     const text = getFormattedText(el);
     if (text) return text;
@@ -329,96 +335,11 @@ function getDescription() {
   return cleanText(meta);
 }
 
-function cleanValues(values) {
-  const seen = new Set();
-  const result = [];
-  values
-    .filter(Boolean)
-    .map(cleanText)
-    .forEach(value => {
-      if (!value) return;
-      value.split(/\s*\|\s*/).forEach(part => {
-        const piece = cleanText(part);
-        if (piece && !seen.has(piece)) {
-          seen.add(piece);
-          result.push(piece);
-        }
-      });
-    });
-  return result;
-}
-
-function cleanText(text) {
-  if (!text) return '';
-  return text
-    .replace(/[\u200E\u200F\u202A-\u202E\u00A0\uFEFF]/g, ' ') // remove invisible unicode
-    .replace(/^\s*,+\s*/, '') // remove leading commas and surrounding whitespace
-    .replace(/\s+/g, ' ') // change multple whitespace to one space
-    .trim();
-}
-
-function normalizeLabel(label) {
-  return cleanText(label).toLowerCase();
-}
-
-
-/**
- * Deep query that:
- *  - Searches light DOM globally for matches
- *  - Traverses shadow roots ONLY under known Audible hosts defined by KNOWN_DEEP_HOSTS
- *  - Caches by selector for this run to avoid repeated deep scans
- */
-function queryAllDeep(selector) {
-  if (__deepQueryCache.has(selector)) return __deepQueryCache.get(selector);
-
-  const results = new Set();
-
-  document.querySelectorAll(selector).forEach(el => results.add(el));
-
-  // Start traversal from known component hosts
-  const hosts = Array.from(document.querySelectorAll(KNOWN_DEEP_HOSTS.join(',')));
-
-  // Prepare a stack with hosts and their shadow roots (if they exist)
-  const stack = [];
-  hosts.forEach(h => {
-    stack.push(h);
-    if (h.shadowRoot) stack.push(h.shadowRoot);
-  });
-
-  const visited = new Set();
-
-  // DFS on those subtrees
-  while (stack.length) {
-    const root = stack.pop();
-    if (!root || visited.has(root)) continue;
-    visited.add(root);
-
-    if (!root.querySelectorAll) continue;
-
-    // Find matches within this subtree/shadow root
-    root.querySelectorAll(selector).forEach(el => results.add(el));
-
-    // Discover deeper shadow roots under this subtree
-    root.querySelectorAll('*').forEach(node => {
-      if (node.shadowRoot) stack.push(node.shadowRoot);
-    });
-  }
-
-  const arr = Array.from(results);
-  __deepQueryCache.set(selector, arr);
-  return arr;
-}
-
-function queryDeep(selector) {
-  const matches = queryAllDeep(selector);
-  return matches[0] || null;
-}
-
 function getPrimaryImage() {
   return (
-    queryDeep('.adbl-product-image img') ||
-    queryDeep('[data-automation-id="hero-art"] img') ||
-    queryDeep('img.bc-pub-media') ||
+    queryDeep('.adbl-product-image img', KNOWN_DEEP_HOSTS) ||
+    queryDeep('[data-automation-id="hero-art"] img', KNOWN_DEEP_HOSTS) ||
+    queryDeep('img.bc-pub-media', KNOWN_DEEP_HOSTS) ||
     document.querySelector('img[alt*="cover art" i]') ||
     document.querySelector('img[alt*="portada" i]')
   );
@@ -439,29 +360,75 @@ function getFirstText(selectors) {
       continue;
     }
 
-    const el = queryDeep(selector);
+    const el = queryDeep(selector, KNOWN_DEEP_HOSTS);
     const text = cleanText(el?.textContent);
     if (text) return text;
   }
   return null;
 }
 
+/**
+ * Normalize arbitrary text by stripping invisible characters and squeezing whitespace.
+ *
+ * @param {string | null | undefined} text Raw text content to sanitize.
+ * @returns {string} Sanitized text with normalized spacing.
+ */
+function cleanText(text) {
+  if (!text) return '';
+  return text
+    .replace(/[\u200E\u200F\u202A-\u202E\u00A0\uFEFF]/g, ' ')
+    .replace(/^\s*,+\s*/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Deduplicate, normalize, and explode composite value strings.
+ *
+ * @param {Array<string | null | undefined>} values Raw value candidates (possibly pipe-delimited).
+ * @returns {string[]} Unique sanitized values.
+ */
+function cleanValues(values) {
+  const seen = new Set();
+  const result = [];
+
+  values
+    .filter(Boolean)
+    .map(cleanText)
+    .forEach(value => {
+      if (!value) return;
+      value.split(/\s*\|\s*/).forEach(part => {
+        const piece = cleanText(part);
+        if (piece && !seen.has(piece)) {
+          seen.add(piece);
+          result.push(piece);
+        }
+      });
+    });
+
+  return result;
+}
+
+/**
+ * Produce a lowercase variant of a label after cleaning it.
+ *
+ * @param {string | null | undefined} label Label text to normalize.
+ * @returns {string} Lowercase sanitized label.
+ */
+function normalizeLabel(label) {
+  return cleanText(label).toLowerCase();
+}
+
+/**
+ * Parse an ASIN identifier from Audible URLs.
+ *
+ * @param {string | null | undefined} url URL that may contain an ASIN.
+ * @returns {string | null} Parsed ASIN in uppercase, or null if none found.
+ */
 function extractAsinFromUrl(url) {
   if (!url) return null;
   const match = url.match(/\/(?:pd|p)\/[^/]+\/([A-Z0-9]{10})(?:[/?]|$)/i) || url.match(/asin=([A-Z0-9]{10})/i);
   return match ? match[1].toUpperCase() : null;
-}
-
-function getHighResImageUrl(src) {
-  return src.replace(/(\._[^.]+)+(?=\.)/g, '');
-}
-
-function withTimeout(promise, ms, fallback) {
-  let t;
-  return Promise.race([
-    promise.finally(() => clearTimeout(t)),
-    new Promise(resolve => { t = setTimeout(() => resolve(fallback), ms); })
-  ]);
 }
 
 export { getAudibleDetails };
