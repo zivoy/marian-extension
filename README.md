@@ -12,6 +12,7 @@ Marian the Librarian helps [Hardcover.app](https://hardcover.app/join?referrer_i
 Book pages on these sites are currently supported by Marian. To request support for another site, [create an issue](https://github.com/jacobtender/marian-extension/issues/new?template=site-support-request.md) or submit a pull request.
 
 - Amazon
+- Audible
 - Goodreads
 - Google Books
 - The StoryGraph
