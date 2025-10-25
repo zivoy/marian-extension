@@ -9,6 +9,7 @@ const ALLOWED_PATTERNS = [
   /^https?:\/\/(www\.)?google\.[a-z.]+\/books/,
   /^https?:\/\/(www\.)?kobo\.[a-z]{2,10}\/[a-z]{2,5}\/[a-z]{2,5}\/[a-z]{1,5}book\/[0-9a-z\-]+/,
   /^https?:\/\/(www\.)?libro\.fm\/audiobooks\/\d+(-[a-zA-Z0-9-]+)?/,
+  /^https?:\/\/(www\.)?audible\.[a-z.]+\/pd\/(?:[^/]+\/)*[A-Z0-9]{10}(?:\?.*)?$/,
   /^https?:\/\/isbnsearch\.(?:org|com)\/isbn\/((?:\d{3})?\d{9}(?:X|\d))\b/,
   /https:\/\/(?:www\.)?isbn\.de\/(buch|ebook|hoerbuch)\/((?:\d{3})?\d{9}(?:X|\d))\b/,
   /https:\/\/portal\.dnb\.de\/opac.*(simpleSearch|showFullRecord)/,
