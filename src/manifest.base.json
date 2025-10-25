@@ -110,7 +110,19 @@
 				"https://www.overdrive.com/*",
 				"https://school.teachingbooks.net/*",
 				"https://libbyapp.com/*",
-				"https://share.libbyapp.com/title/*"
+				"https://share.libbyapp.com/title/*",
+
+				"https://www.audible.com/pd/*",
+				"https://www.audible.co.uk/pd/*",
+				"https://www.audible.ca/pd/*",
+				"https://www.audible.com.au/pd/*",
+				"https://www.audible.de/pd/*",
+				"https://www.audible.fr/pd/*",
+				"https://www.audible.it/pd/*",
+				"https://www.audible.es/pd/*",
+				"https://www.audible.co.jp/pd/*",
+				"https://www.audible.in/pd/*",
+				"https://www.audible.com.mx/pd/*"
 			],
 			"js": [
 				"content.js"

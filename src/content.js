@@ -9,6 +9,7 @@ import { getIsbnDeDetails } from './extractors/isbnde.js';
 import { getDnbDeDetails } from './extractors/dnbde.js';
 import { getIsbnDbDetails } from './extractors/isbndb.js';
 import { getOverdriveDetails, getLibbyDetails, getTeachingBooksDetails } from './extractors/overdrive.js';
+import { getAudibleDetails } from './extractors/audible.js';
 import { logMarian } from './shared/utils.js';
 
 
@@ -28,6 +29,7 @@ async function getDetails() {
   if (url.includes('libbyapp')) return await getLibbyDetails();
   if (url.includes('overdrive')) return await getOverdriveDetails();
   if (url.includes('teachingbooks')) return await getTeachingBooksDetails();
+  if (url.includes('audible')) return await getAudibleDetails();
   return {};
 }
 
