@@ -89,7 +89,7 @@
 				"https://www.google.com.tr/books/*",
 				"https://www.google.ae/books/*",
 
-				"https://www.goodreads.com/book/show/*",
+				"https://www.goodreads.com/*/book/show/*",
 				"https://app.thestorygraph.com/books/*",
 				"https://www.kobo.com/*/*/*book/*",
 				"https://libro.fm/audiobooks/*",
