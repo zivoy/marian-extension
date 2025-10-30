@@ -7,6 +7,7 @@ const settingsManager = SetupSettings(document.querySelector("#settings"), {
   hyphenateIsbn: { type: "selection", label: "Hyphenate ISBNs", options: { yes: "Yes", no: "No (Hardcover)", none: "Leave Alone" }, default: "yes" },
   filterNonHardcover: { type: "toggle", label: "Filter out non hardcover fields", default: false },
   dateFormat: { type: "selection", label: "Format date", default: "local", options: { local: `Local format (${getLocalDateFormat()})`, ymd: "yyyy-mm-dd", dmy: "dd/mm/yyyy", mdy: "mm/dd/yyyy" } },
+  keepFields: { type: "selection", label: "Always display non present hardcover fields", options: { yes: "Yes", no: "No", none: "Leave Alone" }, default: "none" },
 });
 
 const orderedKeys = [
@@ -266,6 +267,31 @@ function normalizeDetails(details, settings, inplace = true) {
       if (!hardcoverKeys.includes(key)) {
         delete details[key];
       }
+    });
+  }
+
+  // add or remove fields even if they are not set
+  if (settings.keepFields === "no") {
+    Object.keys(details).forEach((key) => {
+      // ignore non hardcover fields
+      if (!hardcoverKeys.includes(key)) return;
+
+      if (details[key] == undefined) {
+        delete details[key];
+      }
+    });
+  } else if (settings.keepFields === "yes") {
+    // fill in non present fields
+    hardcoverKeys.forEach((key) => {
+      if (details["Reading Format"] != "Audiobook") {
+        // book don't add audiobook fields
+        if (key === "Listening Length") return;
+      } else {
+        // audiobook, don't add book fields 
+        if (key === "Pages") return;
+      }
+
+      details[key] ??= null;
     });
   }
 
