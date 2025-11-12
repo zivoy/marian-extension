@@ -2,6 +2,10 @@ import { tryGetDetails } from "./messaging.js";
 import { isAllowedUrl } from "../shared/allowed-patterns.js";
 import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl } from "./utils.js";
 
+const settings = {
+  hyphenateIsbn: true,
+}
+
 // DOM refs (looked up when functions are called)
 function statusBox() { return document.getElementById('status'); }
 function detailsBox() { return document.getElementById('details'); }
@@ -268,6 +272,19 @@ export function renderDetails(details) {
     if (valid) {
       details["Listening Length Seconds"] = lengthSeconds;
     }
+  }
+
+  // Correct hyphenation on ISBNs according to settings
+  if (!settings.hyphenateIsbn) {
+    details["ISBN-10"] = details["ISBN-10"].replaceAll("-", "");
+    details["ISBN-13"] = details["ISBN-13"].replaceAll("-", "");
+  } else {
+    try {
+      details["ISBN-10"] = hyphenate(details["ISBN-10"]);
+    } catch { }
+    try {
+      details["ISBN-13"] = hyphenate(details["ISBN-13"]);
+    } catch { }
   }
 
   const hr = document.createElement('hr');
