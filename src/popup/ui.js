@@ -1,10 +1,14 @@
 import { tryGetDetails } from "./messaging.js";
 import { isAllowedUrl } from "../shared/allowed-patterns.js";
 import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl, SetupSettings } from "./utils.js";
-import { hyphenate, searchIsbn } from "../shared/getGroup.js";
 
 const settingsManager = SetupSettings(document.querySelector("#settings"), {
-  hyphenateIsbn: { type: "selection", label: "Hyphenate ISBNs", options: { yes: "Yes", no: "No (Hardcover)", none: "Leave Alone" }, default: "yes" },
+  hyphenateIsbn: {
+    type: "selection", label: "Hyphenate ISBNs", options: {
+      // yes: "Yes",
+      no: "No (Hardcover)", none: "Leave Alone"
+    }, default: "none"
+  },
   filterNonHardcover: { type: "toggle", label: "Filter out non hardcover fields", default: false },
   dateFormat: { type: "selection", label: "Format date", default: "local", options: { local: `Local format (${getLocalDateFormat()})`, ymd: "yyyy-mm-dd", dmy: "dd/mm/yyyy", mdy: "mm/dd/yyyy" } },
   keepFields: { type: "selection", label: "Always display non present hardcover fields", options: { yes: "Yes", no: "No", none: "Leave Alone" }, default: "none" },
@@ -192,20 +196,7 @@ function normalizeDetails(details, settings, inplace = true) {
   // normalize
 
   // Insert country (or language) from ISBN if not present
-  const isbn = details["ISBN-13"] || details["ISBN-10"];
-  if (isbn != undefined) {
-    try {
-      const groupName = searchIsbn(isbn);
-      if (groupName != undefined) {
-        if (groupName.toLowerCase().endsWith("language")) {
-          const language = groupName.split("language")[0].trim();
-          details["Language"] = details["Language"] || language
-        } else {
-          details["Country"] = details["Country"] || groupName
-        }
-      }
-    } catch { }
-  }
+  // See pr #70
 
   // Add listening length in seconds
   if (details["Listening Length"] && details["Listening Length"].length >= 1) {
@@ -250,12 +241,7 @@ function normalizeDetails(details, settings, inplace = true) {
     if (details["ISBN-10"]) details["ISBN-10"] = details["ISBN-10"].replaceAll("-", "");
     if (details["ISBN-13"]) details["ISBN-13"] = details["ISBN-13"].replaceAll("-", "");
   } else if (settings.hyphenateIsbn === "yes") {
-    try {
-      details["ISBN-10"] = hyphenate(details["ISBN-10"]);
-    } catch { }
-    try {
-      details["ISBN-13"] = hyphenate(details["ISBN-13"]);
-    } catch { }
+    throw "Not implemented";
   }
 
   // filter out non hardcover
