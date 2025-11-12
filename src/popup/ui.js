@@ -269,6 +269,7 @@ function normalizeDetails(details, settings, inplace = true) {
       if (details["Reading Format"] != "Audiobook") {
         // book don't add audiobook fields
         if (key === "Listening Length") return;
+        if (key === "Listening Length Seconds") return;
       } else {
         // audiobook, don't add book fields 
         if (key === "Pages") return;
