@@ -11,8 +11,8 @@
     "url": "git+https://github.com/jacobtender/marian-extension.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Jacob Tender",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/jacobtender/marian-extension/issues"
   },

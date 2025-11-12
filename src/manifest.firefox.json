@@ -18,7 +18,6 @@
 		"default_panel": "popup.html"
 	},
 	"permissions": [
-		"scripting",
 		"activeTab",
 		"tabs",
 		"notifications"
