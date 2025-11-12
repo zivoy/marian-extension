@@ -40,8 +40,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   if (msg === 'getDetails') {
     const send = async () => {
-      const details = await getDetails();
-      sendResponse(details);
+      try {
+        const details = await getDetails();
+        sendResponse(details);
+      } catch (e) {
+        logMarian("Error getting info", e);
+        sendResponse(null);
+      }
     };
 
     if (document.readyState === 'loading') {
