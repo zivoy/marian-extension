@@ -1,4 +1,4 @@
-import { isAllowedUrl } from "../shared/allowed-patterns.js";
+import { isAllowedUrl } from "../extractors";
 import { tryGetDetails } from "./messaging.js";
 import { showStatus, showDetails, renderDetails, initSidebarLogger, 
   addRefreshButton, updateRefreshButtonForUrl } from "./ui.js";

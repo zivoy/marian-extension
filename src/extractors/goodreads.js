@@ -1,4 +1,16 @@
+import { Extractor } from './AbstractExtractor.js';
 import { logMarian, delay, getCoverData } from '../shared/utils.js';
+
+class goodreadsScraper extends Extractor {
+  _name = "GoodReads Extractor";
+  _sitePatterns = [
+    /https:\/\/www\.goodreads\.[a-z.]+\/book\/show\/\d+(-[a-zA-Z0-9-]+)?/,
+  ];
+
+  async getDetails() {
+    return getGoodreadsDetails();
+  }
+}
 
 async function getGoodreadsDetails() {
     logMarian('Extracting GoodReads details');
@@ -170,4 +182,4 @@ function getGoodreadsBookIdFromUrl(url) {
 
 
 
-export { getGoodreadsDetails };
+export { goodreadsScraper };

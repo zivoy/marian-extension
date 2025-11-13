@@ -1,4 +1,4 @@
-import { isAllowedUrl } from "./shared/allowed-patterns";
+import { isAllowedUrl } from "./extractors";
 import { runtime } from "./shared/utils"
 
 const activeSidebarWindows = new Set();

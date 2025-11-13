@@ -1,3 +1,4 @@
+import { Extractor } from "./AbstractExtractor.js"
 import { logMarian, getFormattedText, getCoverData } from '../shared/utils.js';
 const bookSeriesRegex = /^Book (\d+) of \d+$/i;
 
@@ -15,6 +16,20 @@ const includedLabels = new Set([
   'Series',
   'Series Place'
 ]);
+
+class amazonScraper extends Extractor {
+  _name = "Amazon Extractor";
+  _sitePatterns = [
+    /https:\/\/www\.amazon\..*?\/(?:dp|gp\/product)\/.*?(B[\dA-Z]{9}|\d{9}(?:X|\d))/,
+    /https:\/\/www\.amazon\.[a-z.]+\/(?:gp\/product|dp|[^/]+\/dp)\/[A-Z0-9]{10}/,
+    /https:\/\/www\.amazon\.[a-z.]+\/[^/]+\/dp\/[A-Z0-9]{10}/,
+    /https:\/\/www\.amazon\.[a-z.]+\/-\/[a-z]+\/[^/]+\/dp\/[A-Z0-9]{10}/, // for paths with language segments
+  ];
+
+  async getDetails() {
+    return getAmazonDetails();
+  }
+}
 
 async function getAmazonDetails() {
   logMarian('Extracting Amazon details');
@@ -293,4 +308,4 @@ function extractAmazonContributors() {
   return contributors;
 }
 
-export { getAmazonDetails };
+export { amazonScraper };

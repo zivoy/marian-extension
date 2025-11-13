@@ -1,4 +1,16 @@
+import { Extractor } from './AbstractExtractor.js';
 import { getCoverData, logMarian } from '../shared/utils.js';
+
+class isbndeScraper extends Extractor {
+  _name = "ISBN.de Extractor";
+  _sitePatterns = [
+    /https:\/\/(?:www\.)?isbn\.de\/(buch|ebook|hoerbuch)\/((?:\d{3})?\d{9}(?:X|\d))\b/,
+  ];
+
+  async getDetails() {
+    return getIsbnDeDetails();
+  }
+}
 
 const remapings = {
   'Auflage': 'Edition Information',
@@ -172,4 +184,4 @@ function extractTable() {
   return table;
 }
 
-export { getIsbnDeDetails };
+export { isbndeScraper };

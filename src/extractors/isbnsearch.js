@@ -1,4 +1,16 @@
+import { Extractor } from './AbstractExtractor.js';
 import { getCoverData, logMarian } from '../shared/utils.js';
+
+class isbnSearchScraper extends Extractor {
+  _name = "ISBN Search Extractor";
+  _sitePatterns = [
+    /^https?:\/\/isbnsearch\.(?:org|com)\/isbn\/((?:\d{3})?\d{9}(?:X|\d))\b/,
+  ];
+
+  async getDetails() {
+    return getIsbnSearchDetails();
+  }
+}
 
 const remapings = {
   'Edition': 'Edition Information',
@@ -111,4 +123,4 @@ function extractTable() {
   }
 }
 
-export { getIsbnSearchDetails };
+export { isbnSearchScraper };

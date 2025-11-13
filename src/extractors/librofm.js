@@ -1,4 +1,16 @@
+import { Extractor } from "./AbstractExtractor.js";
 import { getCoverData, logMarian } from "../shared/utils.js";
+
+class librofmScraper extends Extractor {
+	_name = "Libro.fm Extractor";
+	_sitePatterns = [
+		/^https?:\/\/(www\.)?libro\.fm\/audiobooks\/\d+(-[a-zA-Z0-9-]+)?/,
+	];
+
+	async getDetails() {
+		return getLibroDetails();
+	}
+}
 
 async function getLibroDetails() {
 	logMarian("Extracting Libro details");
@@ -171,4 +183,4 @@ function extraLibroInfo(bookDetails) {
 	}
 }
 
-export { getLibroDetails };
+export { librofmScraper };

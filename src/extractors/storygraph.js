@@ -1,4 +1,16 @@
+import { Extractor } from './AbstractExtractor.js';
 import { logMarian, delay, getCoverData } from '../shared/utils.js';
+
+class storygraphScraper extends Extractor {
+    _name = "StoryGraph Extractor";
+    _sitePatterns = [
+        /^https:\/\/app\.thestorygraph\.[a-z.]+\/books\/[0-9a-fA-F-]+$/,
+    ];
+
+    async getDetails() {
+        return getStoryGraphDetails();
+    }
+}
 
 async function getStoryGraphDetails() {
     logMarian('Extracting The StoryGraph details');
@@ -156,4 +168,4 @@ function getStoryGraphBookIdFromUrl(url) {
   return match ? match[1] : null;
 }
 
-export { getStoryGraphDetails };
+export { storygraphScraper };

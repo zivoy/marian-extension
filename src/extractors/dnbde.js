@@ -1,3 +1,4 @@
+import { Extractor } from './AbstractExtractor.js';
 import { logMarian, sendMessage, getFormattedText, getCoverData } from '../shared/utils.js';
 
 const remapings = {
@@ -11,8 +12,19 @@ const remapings = {
 }
 const remappingKeys = Object.keys(remapings);
 
+class dnbdeScraper extends Extractor {
+  _name = "Deutsche Nationalbibliothek Extractor";
+  _sitePatterns = [
+    /https:\/\/portal\.dnb\.de\/opac.*(simpleSearch|showFullRecord)/,
+  ];
+
+  async getDetails() {
+    return getDnbDeDetails();
+  }
+}
+
 async function getDnbDeDetails() {
-  logMarian('Extracting isbn.de details');
+  logMarian('Extracting dnb.de details');
 
   const container = document.querySelector("#fullRecordTable");
   if (!container) return null;
@@ -224,4 +236,4 @@ function parseDate(dateString) {
   }
 }
 
-export { getDnbDeDetails };
+export { dnbdeScraper };

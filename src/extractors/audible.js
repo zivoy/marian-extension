@@ -1,3 +1,4 @@
+import { Extractor } from './AbstractExtractor.js';
 import {
   getImageScore,
   logMarian,
@@ -22,6 +23,17 @@ const KNOWN_DEEP_HOSTS = [
   '[data-automation-id="hero-metadata"]',
   '[data-automation-id="hero-art"]',
 ];
+
+class audibleScraper extends Extractor {
+  _name = "Audible Extractor";
+  _sitePatterns = [
+    /^https?:\/\/(www\.)?audible\.[a-z.]+\/pd\/(?:[^/]+\/)*[A-Z0-9]{10}(?:\?.*)?$/,
+  ];
+
+  async getDetails() {
+    return getAudibleDetails();
+  }
+}
 
 async function getAudibleDetails() {
   clearDeepQueryCache();
@@ -431,4 +443,4 @@ function extractAsinFromUrl(url) {
   return match ? match[1].toUpperCase() : null;
 }
 
-export { getAudibleDetails };
+export { audibleScraper };

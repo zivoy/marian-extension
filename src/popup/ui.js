@@ -1,5 +1,5 @@
 import { tryGetDetails } from "./messaging.js";
-import { isAllowedUrl } from "../shared/allowed-patterns.js";
+import { isAllowedUrl } from "../extractors";
 import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl } from "./utils.js";
 
 // DOM refs (looked up when functions are called)

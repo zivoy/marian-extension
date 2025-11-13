@@ -1,5 +1,17 @@
 // googlebooks.js
+import { Extractor } from './AbstractExtractor.js';
 import { logMarian, getCoverData } from '../shared/utils.js';
+
+class googleBooksScraper extends Extractor {
+    _name = "Google Books Extractor";
+    _sitePatterns = [
+        /^https?:\/\/(www\.)?google\.[a-z.]+\/books/,
+    ];
+
+    async getDetails() {
+        return getGoogleBooksDetails();
+    }
+}
 
 async function getGoogleBooksDetails() {
     logMarian('Extracting Google Books details');
@@ -344,4 +356,4 @@ function getGoogleBooksCoverUrl(volumeId) {
     return `${baseUrl}?${params.toString()}`;
 }
 
-export { getGoogleBooksDetails };
+export { googleBooksScraper };

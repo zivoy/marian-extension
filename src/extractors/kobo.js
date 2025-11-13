@@ -1,4 +1,16 @@
+import { Extractor } from "./AbstractExtractor.js";
 import { getCoverData, logMarian } from "../shared/utils.js";
+
+class koboScraper extends Extractor {
+    _name = "Kobo Extractor";
+    _sitePatterns = [
+        /^https?:\/\/(www\.)?kobo\.[a-z]{2,10}\/[a-z]{2,5}\/[a-z]{2,5}\/[a-z]{1,5}book\/[0-9a-z\-]+/,
+    ];
+
+    async getDetails() {
+        return getKoboDetails();
+    }
+}
 
 async function getKoboDetails() {
     logMarian("Extracting Kobo details");
@@ -189,4 +201,4 @@ function extraKoboInfo(bookDetails) {
     }
 }
 
-export { getKoboDetails };
+export { koboScraper };

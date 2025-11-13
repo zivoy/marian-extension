@@ -1,4 +1,16 @@
+import { Extractor } from './AbstractExtractor.js';
 import { logMarian, getFormattedText, getCoverData } from '../shared/utils.js';
+
+class isbndbScraper extends Extractor {
+  _name = "ISBNdb Extractor";
+  _sitePatterns = [
+    /https:\/\/(?:www\.)?isbndb\.com\/book\/((?:\d{3})?\d{9}(?:X|x|\d))\b/,
+  ];
+
+  async getDetails() {
+    return getIsbnDbDetails();
+  }
+}
 
 const remapings = {
   "ISBN": "ISBN-10",
@@ -108,4 +120,4 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
   return table;
 }
 
-export { getIsbnDbDetails };
+export { isbndbScraper };
