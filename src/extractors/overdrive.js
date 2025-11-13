@@ -7,9 +7,21 @@ class overdriveScraper extends Extractor {
     /https:\/\/(?:www\.)?overdrive\.com\/media\/(\d+)\/.+/,
   ];
 
+  /** list of URLs that don't have IDs */
+  notSupported = new Set();
+
+  isSupported(url) {
+    if (this.notSupported.has(url)) return false;
+    return super.isSupported(url);
+  }
+
   async getDetails() {
     const id = document.querySelector(".cover img")?.dataset?.id;
-    if (id == undefined) throw "Id not found";
+    if (id == undefined) {
+      // add it so next time it won't be tried 
+      this.notSupported.add(window.location.href);
+      throw "Id not found";
+    }
     return getDetailsFromOverdriveId(id);
   }
 }
@@ -49,10 +61,21 @@ class teachingbooksScraper extends Extractor {
     /https:\/\/school\.teachingbooks\.net\/.+?tid=(\d+)/,
   ];
 
-  // TODO: make it say not supported if this fails
+  /** list of URLs that don't have IDs */
+  notSupported = new Set();
+
+  isSupported(url) {
+    if (this.notSupported.has(url)) return false;
+    return super.isSupported(url);
+  }
+
   async getDetails() {
     const idMatch = document.querySelector("a.book")?.href?.match(/overdrive.com\/media\/(\d+)\//);
-    if (idMatch == undefined || idMatch.length < 2) throw "Id not found";
+    if (idMatch == undefined || idMatch.length < 2) {
+      // add it so next time it won't be tried 
+      this.notSupported.add(window.location.href);
+      throw "Id not found";
+    }
     return getDetailsFromOverdriveId(idMatch[1]);
   }
 }
