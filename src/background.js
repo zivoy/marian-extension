@@ -110,6 +110,7 @@ chrome.action.onClicked.addListener((tab) => {
   if (!tab?.url) return;
 
   if (!isAllowedUrl(tab.url)) {
+    updateIcon(tab.id, false);
     showUnsupportedNotification(tab);
     return;
   }
