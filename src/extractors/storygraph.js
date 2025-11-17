@@ -2,7 +2,7 @@ import { Extractor } from './AbstractExtractor.js';
 import { logMarian, delay, getCoverData } from '../shared/utils.js';
 
 class storygraphScraper extends Extractor {
-    _name = "StoryGraph Extractor";
+    get _name() { return "StoryGraph Extractor"; }
     _sitePatterns = [
         /^https:\/\/app\.thestorygraph\.[a-z.]+\/books\/[0-9a-fA-F-]+$/,
     ];
@@ -99,35 +99,35 @@ function extractEditionInfo(bookDetails) {
     if (!editionEl) return;
 
     editionEl.querySelectorAll('p').forEach(p => {
-    const label = p.querySelector('span.font-semibold')?.innerText.trim().replace(':', '');
-    const value = p.childNodes[1]?.textContent.trim();
+        const label = p.querySelector('span.font-semibold')?.innerText.trim().replace(':', '');
+        const value = p.childNodes[1]?.textContent.trim();
 
-    if (!label || !value) return;
+        if (!label || !value) return;
 
-    switch (label) {
-        case 'ISBN/UID':
-            bookDetails['ISBN-13'] = value;
-            break;
-        case 'Format':
-            if (value.toLowerCase() === 'audio') {
-                bookDetails['Reading Format'] = 'Audiobook';
-            } else if (value.toLowerCase() === 'digital') {
-                bookDetails['Reading Format'] = 'Ebook';
-            } else {
-                bookDetails['Reading Format'] = 'Physical Book';
-                bookDetails['Edition Format'] = value;
-            }
-            break;
-        case 'Language':
-            bookDetails['Language'] = value;
-            break;
-        case 'Publisher':
-            bookDetails['Publisher'] = value;
-            break;
-        case 'Edition Pub Date':
-            bookDetails['Publication date'] = value;
-            break;
-    }
+        switch (label) {
+            case 'ISBN/UID':
+                bookDetails['ISBN-13'] = value;
+                break;
+            case 'Format':
+                if (value.toLowerCase() === 'audio') {
+                    bookDetails['Reading Format'] = 'Audiobook';
+                } else if (value.toLowerCase() === 'digital') {
+                    bookDetails['Reading Format'] = 'Ebook';
+                } else {
+                    bookDetails['Reading Format'] = 'Physical Book';
+                    bookDetails['Edition Format'] = value;
+                }
+                break;
+            case 'Language':
+                bookDetails['Language'] = value;
+                break;
+            case 'Publisher':
+                bookDetails['Publisher'] = value;
+                break;
+            case 'Edition Pub Date':
+                bookDetails['Publication date'] = value;
+                break;
+        }
     });
 
     const durationEl = document.querySelector('p.text-sm.font-light');
@@ -163,9 +163,9 @@ async function extractEditionDescription(bookDetails) {
  * Extracts the StoryGraph book ID from a StoryGraph book URL.
  */
 function getStoryGraphBookIdFromUrl(url) {
-  const regex = /thestorygraph\.com\/books\/([^/?]+)/i;
-  const match = url.match(regex);
-  return match ? match[1] : null;
+    const regex = /thestorygraph\.com\/books\/([^/?]+)/i;
+    const match = url.match(regex);
+    return match ? match[1] : null;
 }
 
 export { storygraphScraper };

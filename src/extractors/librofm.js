@@ -2,7 +2,7 @@ import { Extractor } from "./AbstractExtractor.js";
 import { getCoverData, logMarian } from "../shared/utils.js";
 
 class librofmScraper extends Extractor {
-	_name = "Libro.fm Extractor";
+	get _name() { return "Libro.fm Extractor"; }
 	_sitePatterns = [
 		/^https?:\/\/(www\.)?libro\.fm\/audiobooks\/\d+(-[a-zA-Z0-9-]+)?/,
 	];

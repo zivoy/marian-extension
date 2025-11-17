@@ -3,7 +3,7 @@ import { Extractor } from './AbstractExtractor.js';
 import { logMarian, getCoverData } from '../shared/utils.js';
 
 class googleBooksScraper extends Extractor {
-    _name = "Google Books Extractor";
+    get _name() { return "Google Books Extractor"; }
     _sitePatterns = [
         /^https?:\/\/(www\.)?google\.[a-z.]+\/books/,
     ];

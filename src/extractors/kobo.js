@@ -2,7 +2,7 @@ import { Extractor } from "./AbstractExtractor.js";
 import { getCoverData, logMarian } from "../shared/utils.js";
 
 class koboScraper extends Extractor {
-    _name = "Kobo Extractor";
+    get _name() { return "Kobo Extractor"; }
     _sitePatterns = [
         /^https?:\/\/(www\.)?kobo\.[a-z]{2,10}\/[a-z]{2,5}\/[a-z]{2,5}\/[a-z]{1,5}book\/[0-9a-z\-]+/,
     ];

@@ -2,13 +2,16 @@ import { Extractor } from './AbstractExtractor.js';
 import { logMarian, getFormattedText, delay } from '../shared/utils.js';
 
 class overdriveScraper extends Extractor {
-  _name = "Overdrive Extractor";
+  get _name() { return "Overdrive Extractor"; }
   _sitePatterns = [
     /https:\/\/(?:www\.)?overdrive\.com\/media\/(\d+)\/.+/,
   ];
 
   /** list of URLs that don't have IDs */
   notSupported = new Set();
+  _handleStateUpdate(state) {
+    if (state.notSupported) state.notSupported.forEach(this.notSupported.add, this.notSupported);
+  }
 
   isSupported(url) {
     if (this.notSupported.has(url)) return false;
@@ -20,6 +23,7 @@ class overdriveScraper extends Extractor {
     if (id == undefined) {
       // add it so next time it won't be tried 
       this.notSupported.add(window.location.href);
+      await this._saveState({ notSupported: Array.from(this.notSupported) });
       throw "Id not found";
     }
     return getDetailsFromOverdriveId(id);
@@ -27,7 +31,7 @@ class overdriveScraper extends Extractor {
 }
 
 class libbyScraper extends Extractor {
-  _name = "Libby Extractor";
+  get _name() { return "Libby Extractor"; }
   _sitePatterns = [
     /https:\/\/share\.libbyapp\.com\/title\/(\d+)/,
     /https:\/\/libbyapp\.com\/.+\/(\d+)/,
@@ -56,13 +60,16 @@ class libbyScraper extends Extractor {
 }
 
 class teachingbooksScraper extends Extractor {
-  _name = "TeachingBooks Extractor";
+  get _name() { return "TeachingBooks Extractor"; }
   _sitePatterns = [
     /https:\/\/school\.teachingbooks\.net\/.+?tid=(\d+)/,
   ];
 
   /** list of URLs that don't have IDs */
   notSupported = new Set();
+  _handleStateUpdate(state) {
+    if (state.notSupported) state.notSupported.forEach(this.notSupported.add, this.notSupported);
+  }
 
   isSupported(url) {
     if (this.notSupported.has(url)) return false;
@@ -74,6 +81,7 @@ class teachingbooksScraper extends Extractor {
     if (idMatch == undefined || idMatch.length < 2) {
       // add it so next time it won't be tried 
       this.notSupported.add(window.location.href);
+      await this._saveState({ notSupported: Array.from(this.notSupported) });
       throw "Id not found";
     }
     return getDetailsFromOverdriveId(idMatch[1]);

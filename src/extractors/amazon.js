@@ -18,7 +18,7 @@ const includedLabels = new Set([
 ]);
 
 class amazonScraper extends Extractor {
-  _name = "Amazon Extractor";
+  get _name() { return "Amazon Extractor"; }
   _sitePatterns = [
     /https:\/\/www\.amazon\..*?\/(?:dp|gp\/product)\/.*?(B[\dA-Z]{9}|\d{9}(?:X|\d))/,
     /https:\/\/www\.amazon\.[a-z.]+\/(?:gp\/product|dp|[^/]+\/dp)\/[A-Z0-9]{10}/,

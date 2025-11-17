@@ -25,7 +25,7 @@ const KNOWN_DEEP_HOSTS = [
 ];
 
 class audibleScraper extends Extractor {
-  _name = "Audible Extractor";
+  get _name() { return "Audible Extractor"; }
   _sitePatterns = [
     /^https?:\/\/(www\.)?audible\.[a-z.]+\/pd\/(?:[^/]+\/)*[A-Z0-9]{10}(?:\?.*)?$/,
   ];

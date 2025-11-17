@@ -13,7 +13,7 @@ const remapings = {
 const remappingKeys = Object.keys(remapings);
 
 class dnbdeScraper extends Extractor {
-  _name = "Deutsche Nationalbibliothek Extractor";
+  get _name() { return "Deutsche Nationalbibliothek Extractor"; }
   _sitePatterns = [
     /https:\/\/portal\.dnb\.de\/opac.*(simpleSearch|showFullRecord)/,
   ];
