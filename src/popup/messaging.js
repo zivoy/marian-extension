@@ -34,6 +34,9 @@ export function tryGetDetails(retries = 8, delay = 300) {
           reject('No active tab found.');
           return;
         }
+        // TODO: implement optional optional refresh
+        // const extractor = getExtractor(tab?.url || "");
+        // const wantsReload = extractor != undefined && extractor.needsReload;
 
         if (tab.status !== 'complete') {
           console.log('Tab is still loading, delaying content-script ping...');
@@ -48,6 +51,7 @@ export function tryGetDetails(retries = 8, delay = 300) {
               setTimeout(() => attempt(remaining - 1), delay);
             } else {
               if (!didRefresh) {
+                // FIXME: refresh doesnt work from yellow button
                 didRefresh = true;
                 // showStatus("Content script not ready, refreshing tab...");
                 chrome.tabs.reload(tab.id, { bypassCache: true });

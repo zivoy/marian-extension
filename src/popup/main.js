@@ -1,7 +1,9 @@
 import { isAllowedUrl } from "../extractors";
 import { tryGetDetails } from "./messaging.js";
-import { showStatus, showDetails, renderDetails, initSidebarLogger, 
-  addRefreshButton, updateRefreshButtonForUrl } from "./ui.js";
+import {
+  showStatus, showDetails, renderDetails, initSidebarLogger,
+  addRefreshButton, updateRefreshButtonForUrl
+} from "./ui.js";
 import { setLastFetchedUrl } from "./utils.js";
 
 const DEBUG = false;
@@ -119,6 +121,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       });
   }
 
+  // NOTE: there could be an issue here
   if (msg.type === "TAB_URL_CHANGED" && isForThisSidebar(msg.windowId)) {
     updateRefreshButtonForUrl(msg.url);
   }

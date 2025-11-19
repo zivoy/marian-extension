@@ -30,10 +30,12 @@ const extractors = [
   new teachingbooksScraper(),
 ]
 
+/** @param {string} url */
 function getExtractor(url) {
   return extractors.find((ex) => ex.isSupported(url))
 }
 
+/** @param {string} url */
 function isAllowedUrl(url) {
   return getExtractor(url) != undefined;
 }

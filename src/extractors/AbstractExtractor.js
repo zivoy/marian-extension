@@ -10,6 +10,7 @@ class Extractor {
   get _name() { return "<Abstract Extractor>" }
   /**@type{RegExp[]}*/
   _sitePatterns = [];
+  needsReload = true;
   _state = {};
 
   get _storage_name() { return `scraper.${this._name}`; }

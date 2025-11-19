@@ -6,6 +6,7 @@ class overdriveScraper extends Extractor {
   _sitePatterns = [
     /https:\/\/(?:www\.)?overdrive\.com\/media\/(\d+)\/.+/,
   ];
+  needsReload = false;
 
   /** list of URLs that don't have IDs */
   notSupported = new Set();
@@ -36,6 +37,7 @@ class libbyScraper extends Extractor {
     /https:\/\/share\.libbyapp\.com\/title\/(\d+)/,
     /https:\/\/libbyapp\.com\/.+\/(\d+)/,
   ];
+  needsReload = false;
 
   async getDetails() {
     // await for data to load so we can rip it
@@ -64,6 +66,7 @@ class teachingbooksScraper extends Extractor {
   _sitePatterns = [
     /https:\/\/school\.teachingbooks\.net\/.+?tid=(\d+)/,
   ];
+  needsReload = false;
 
   /** list of URLs that don't have IDs */
   notSupported = new Set();
