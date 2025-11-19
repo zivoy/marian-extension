@@ -200,3 +200,23 @@ export async function getCoverData(covers) {
 
   return highestScoreCover;
 }
+
+/**
+ * Returns a new object with keys renamed according to the mapping.
+ * Keys not in the mapping are preserved as-is.
+ *
+ * @param {Record<string, string>} mapping - Map of old keys to new keys
+ * @param {Record<string,any>} object - Source object
+ * @returns {Record<string, any>} New object with mapped keys
+ */
+export function remapKeys(mapping, object) {
+  const newObj = {};
+
+  for (const key of Object.keys(object)) {
+    // If the key exists in mapping, use the new name, otherwise keep original
+    const finalKey = Object.hasOwn(mapping, key) ? mapping[key] : key;
+    newObj[finalKey] = object[key];
+  }
+
+  return newObj;
+}

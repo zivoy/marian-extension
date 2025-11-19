@@ -1,5 +1,7 @@
 import { Extractor } from './AbstractExtractor.js';
-import { logMarian, getFormattedText, getCoverData } from '../shared/utils.js';
+import {
+  logMarian, getFormattedText, getCoverData, remapKeys
+} from '../shared/utils.js';
 
 class isbndbScraper extends Extractor {
   get _name() { return "ISBNdb Extractor"; }
@@ -19,7 +21,7 @@ const remapings = {
   "Edition": "Edition Information",
   "Full Title": "Title",
 }
-const remappingKeys = Object.keys(remapings);
+const nameRemap = remapKeys.bind(undefined, remapings);
 
 async function getIsbnDbDetails() {
   logMarian('Extracting isbndb.com details');
@@ -108,16 +110,7 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
     table[key] = value
   }
 
-
-  for (let [key, value] of Object.entries(table)) {
-    if (remappingKeys.includes(key)) {
-      delete table[key];
-      key = remapings[key];
-    }
-    table[key] = value;
-  }
-
-  return table;
+  return nameRemap(table);
 }
 
 export { isbndbScraper };

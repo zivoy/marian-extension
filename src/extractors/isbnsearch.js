@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { getCoverData, logMarian } from '../shared/utils.js';
+import { getCoverData, logMarian, remapKeys } from '../shared/utils.js';
 
 class isbnSearchScraper extends Extractor {
   get _name() { return "ISBN Search Extractor"; }
@@ -17,24 +17,16 @@ const remapings = {
   'Binding': 'Edition Format',
   'Published': 'Publication date'
 }
-const remappingKeys = Object.keys(remapings);
+const nameRemap = remapKeys.bind(undefined, remapings);
 
 async function getIsbnSearchDetails() {
   logMarian('Extracting ISBNSearch details');
-
-  const bookDetails = {};
 
   const imgEl = document.querySelector('.image img');
   const coverData = getCoverData(imgEl?.src);
 
   const details = extractTable()
-
-  for (let [key, value] of Object.entries(details)) {
-    if (remappingKeys.includes(key)) {
-      key = remapings[key];
-    }
-    bookDetails[key] = value;
-  }
+  const bookDetails = nameRemap(details);
 
   getContributers(bookDetails);
 

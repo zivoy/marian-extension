@@ -1,5 +1,7 @@
 import { Extractor } from './AbstractExtractor.js';
-import { logMarian, sendMessage, getFormattedText, getCoverData } from '../shared/utils.js';
+import {
+  logMarian, sendMessage, getFormattedText, getCoverData, remapKeys
+} from '../shared/utils.js';
 
 const remapings = {
   'Ausgabe': 'Edition Information',
@@ -10,6 +12,7 @@ const remapings = {
   "Verfasser": "Author",
   "Mitwirkender": "Contributor",
 }
+const nameRemap = remapKeys.bind(undefined, remapings);
 const remappingKeys = Object.keys(remapings);
 
 class dnbdeScraper extends Extractor {
@@ -137,16 +140,7 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
     table[key] = value
   }
 
-
-  for (let [key, value] of Object.entries(table)) {
-    if (remappingKeys.includes(key)) {
-      delete table[key];
-      key = remapings[key];
-    }
-    table[key] = value;
-  }
-
-  return table;
+  return nameRemap(table);
 }
 
 /**

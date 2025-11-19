@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { getCoverData, logMarian } from '../shared/utils.js';
+import { getCoverData, logMarian, remapKeys } from '../shared/utils.js';
 
 class isbndeScraper extends Extractor {
   get _name() { return "ISBN.de Extractor"; }
@@ -18,7 +18,7 @@ const remapings = {
   'Verlag': "Publisher",
   "Rubrik": "Category",
 }
-const remappingKeys = Object.keys(remapings);
+const nameRemap = remapKeys.bind(undefined, remapings);
 
 async function getIsbnDeDetails() {
   logMarian('Extracting isbn.de details');
@@ -172,16 +172,7 @@ function extractTable() {
     table[key] = value
   });
 
-
-  for (let [key, value] of Object.entries(table)) {
-    if (remappingKeys.includes(key)) {
-      delete table[key];
-      key = remapings[key];
-    }
-    table[key] = value;
-  }
-
-  return table;
+  return nameRemap(table);
 }
 
 export { isbndeScraper };
