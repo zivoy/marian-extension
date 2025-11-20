@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { getCoverData, logMarian, remapKeys } from '../shared/utils.js';
+import { addContributor, getCoverData, logMarian, remapKeys } from '../shared/utils.js';
 
 class isbndeScraper extends Extractor {
   get _name() { return "ISBN.de Extractor"; }
@@ -136,14 +136,14 @@ function extractTable() {
       return;
     }
     if (title === "Autor") {
-      table["Contributors"] = [{ name: children[1].textContent.trim(), roles: ["Author"] }];
+      table["Contributors"] = addContributor([], children[1].textContent.trim(), "Author");
       return;
     }
     if (title === "Autoren") {
       const contributors = []
       children.forEach((node) => {
         if (node.nodeName !== "A") return;
-        contributors.push({ name: node.textContent.trim(), roles: ["Author"] });
+        addContributor(contributors, node.textContent.trim(), "Author");
       })
       table["Contributors"] = contributors
       return;

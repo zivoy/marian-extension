@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { logMarian, delay, getCoverData } from '../shared/utils.js';
+import { logMarian, delay, getCoverData, addContributor } from '../shared/utils.js';
 
 class goodreadsScraper extends Extractor {
   get _name() { return "GoodReads Extractor"; }
@@ -89,19 +89,7 @@ function getContributors(bookDetails) {
     const rolesArr = roles.split(',').map(roleRaw => roleRaw.trim() || "Author");
 
     if (!name) return;
-
-    // Check if this name already exists in contributors
-    let contributor = contributors.find(c => c.name === name);
-    if (contributor) {
-      // Add any new roles not already present
-      rolesArr.forEach(role => {
-        if (!contributor.roles.includes(role)) {
-          contributor.roles.push(role);
-        }
-      });
-    } else {
-      contributors.push({ name, roles: rolesArr });
-    }
+    addContributor(contributors, name, rolesArr);
   });
 
   if (contributors.length) {

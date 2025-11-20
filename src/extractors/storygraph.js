@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { logMarian, delay, getCoverData } from '../shared/utils.js';
+import { logMarian, delay, getCoverData, addContributor } from '../shared/utils.js';
 
 class storygraphScraper extends Extractor {
     get _name() { return "StoryGraph Extractor"; }
@@ -70,16 +70,7 @@ function extractContributors(bookDetails) {
             const roleMatch = nextText?.match(/\(([^)]+)\)/);
             const role = roleMatch ? roleMatch[1] : "Author";
 
-            // See if this contributor already exists
-            let contributor = contributors.find(c => c.name === name);
-            if (contributor) {
-                // Add role if not already present
-                if (!contributor.roles.includes(role)) {
-                    contributor.roles.push(role);
-                }
-            } else {
-                contributors.push({ name, roles: [role] });
-            }
+            addContributor(contributors, name, role);
         });
     }
 

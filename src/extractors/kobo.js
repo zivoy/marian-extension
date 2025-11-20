@@ -1,5 +1,5 @@
 import { Extractor } from "./AbstractExtractor.js";
-import { getCoverData, logMarian } from "../shared/utils.js";
+import { addContributor, getCoverData, logMarian } from "../shared/utils.js";
 
 class koboScraper extends Extractor {
     get _name() { return "Kobo Extractor"; }
@@ -63,39 +63,24 @@ function getKoboIdFromUrl(url) {
 }
 
 function extractKoboContributors(bookDetails) {
-    // TODO this is so ugly. save me ferris beuller, you're my only hope
-    const contributor = [];
-    const authorole = [];
-    const narrole = [];
-    const finallist = [];
+    const contributors = [];
+
     const authorray = document.querySelectorAll('.about .authors .visible-contributors a');
     if (authorray) {
         for (let c = 0; c < authorray.length; c++) {
-            let authorline = authorray[c].textContent;
-            authorole[authorline] = true;
-            contributor[authorline] = true;
+            let authorName = authorray[c].textContent;
+            addContributor(contributors, authorName, "Author");
         }
     }
     const narratoray = document.querySelectorAll('.about .narrators .visible-contributors a');
     if (narratoray) {
         for (let c = 0; c < narratoray.length; c++) {
-            let narline = narratoray[c].textContent;
-            contributor[narline] = true;
-            narrole[narline] = true;
+            let narName = narratoray[c].textContent;
+            addContributor(contributors, narName, "Narrator");
         }
     }
-    for (let name in contributor) {
-        let roles = [];
-        if (narrole[name]) {
-            roles.push('Narrator');
-        }
-        if (authorole[name]) {
-            roles.push('Author');
-        }
-        finallist.push({ name, roles: [roles] });
-    }
-    if (finallist.length) {
-        bookDetails["Contributors"] = finallist;
+    if (contributors.length) {
+        bookDetails["Contributors"] = contributors;
     }
 }
 

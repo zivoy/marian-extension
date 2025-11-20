@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { getCoverData, logMarian, remapKeys } from '../shared/utils.js';
+import { addContributor, getCoverData, logMarian, remapKeys } from '../shared/utils.js';
 
 class isbnSearchScraper extends Extractor {
   get _name() { return "ISBN Search Extractor"; }
@@ -60,13 +60,13 @@ function getContributers(bookDetails) {
   const contributors = [];
 
   if ('Author' in bookDetails) {
-    contributors.push({ name: bookDetails['Author'], roles: ['Author'] })
+    addContributor(contributors, bookDetails['Author'], "Author");
     delete bookDetails['Author']
   }
   if ("Authors" in bookDetails) {
     bookDetails['Authors']
       .split(';')
-      .forEach(author => contributors.push({ name: author.trim(), roles: ['Author'] }));
+      .forEach(author => addContributor(contributors, author.trim(), "Author"));
     delete bookDetails['Authors']
   }
 

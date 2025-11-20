@@ -1,6 +1,7 @@
 import { Extractor } from './AbstractExtractor.js';
 import {
-  logMarian, sendMessage, getFormattedText, getCoverData, remapKeys
+  logMarian, sendMessage, getFormattedText, getCoverData, remapKeys,
+  addContributor
 } from '../shared/utils.js';
 
 const remapings = {
@@ -105,7 +106,10 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
       children[1].childNodes.forEach(el => {
         if (el.nodeName === "BR") return;
         const authorTextRaw = el.textContent?.trim();
-        if (authorTextRaw) contributors.push(extactAuthor(authorTextRaw))
+        if (authorTextRaw) {
+          const contributor = extactAuthor(authorTextRaw);
+          addContributor(contributors, contributor.name, contributor.roles)
+        }
       })
       table["Contributors"] = contributors;
       continue;

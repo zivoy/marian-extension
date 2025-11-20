@@ -1,5 +1,5 @@
 import { Extractor } from "./AbstractExtractor.js"
-import { logMarian, getFormattedText, getCoverData } from '../shared/utils.js';
+import { logMarian, getFormattedText, getCoverData, addContributor } from '../shared/utils.js';
 const bookSeriesRegex = /^Book (\d+) of \d+$/i;
 
 const includedLabels = new Set([
@@ -293,17 +293,7 @@ function extractAmazonContributors() {
     // Ignore if any role is Publisher
     if (roles.includes("Publisher")) return;
 
-    if (name) {
-      // Check for duplicates and merge roles
-      const existing = contributors.find(c => c.name === name);
-      if (existing) {
-        roles.forEach(role => {
-          if (!existing.roles.includes(role)) existing.roles.push(role);
-        });
-      } else {
-        contributors.push({ name, roles });
-      }
-    }
+    if (name) addContributor(contributors, name, roles);
   });
 
   return contributors;

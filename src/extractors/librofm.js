@@ -1,5 +1,5 @@
 import { Extractor } from "./AbstractExtractor.js";
-import { getCoverData, logMarian } from "../shared/utils.js";
+import { addContributor, getCoverData, logMarian } from "../shared/utils.js";
 
 class librofmScraper extends Extractor {
 	get _name() { return "Libro.fm Extractor"; }
@@ -46,31 +46,21 @@ async function getLibroDetails() {
 }
 
 function extractLibroContributors(bookDetails) {
-	const contributions = {}
+	let contributors = []
 
 	const section = extractSection('audiobook details')
 	const authors = section.querySelectorAll('span[itemprop="author"] a')
 	authors.forEach(author => {
 		const name = author.textContent.trim()
-		if (!(name in contributions)) {
-			contributions[name] = []
-		}
-		contributions[name].push("Author")
+		addContributor(contributors, name, "Author");
 	})
 
 	const narrators = section.querySelectorAll('a[href$="searchby=narrators"]')
 	narrators.forEach(narrator => {
 		const name = narrator.textContent.trim()
-		if (!(name in contributions)) {
-			contributions[name] = []
-		}
-		contributions[name].push("Narrator")
+		addContributor(contributors, name, "Narrator");
 	})
 
-	let contributors = []
-	for (let [name, roles] of Object.entries(contributions)) {
-		contributors.push({ name, roles })
-	}
 	if (contributors.length) {
 		bookDetails["Contributors"] = contributors;
 	}

@@ -220,3 +220,33 @@ export function remapKeys(mapping, object) {
 
   return newObj;
 }
+
+/**
+ * @typedef {{name: string, roles: string[]}} contributor
+ */
+
+/**
+ * adds a contributor with one or more roles to the contributor list
+ *
+ * @param {contributor[]} contributors - list of contributors
+ * @param {string} name - name of the contributor 
+ * @param {string | string[]} roles - a role or list of roles to add to a contributor
+ */
+export function addContributor(contributors, name, roles) {
+  if (!Array.isArray(roles)) {
+    roles = [roles];
+  }
+
+  const contributor = contributors.findIndex((contributor) => contributor.name === name);
+  if (contributor == -1) {
+    contributors.push({ name, roles: roles });
+    return contributors;
+  }
+
+  for (const role of roles) {
+    if (contributors[contributor].roles.includes(role)) continue;
+    contributors[contributor].roles.push(role);
+  }
+
+  return contributors;
+}

@@ -1,6 +1,7 @@
 import { Extractor } from './AbstractExtractor.js';
 import {
-  logMarian, getFormattedText, getCoverData, remapKeys
+  logMarian, getFormattedText, getCoverData, remapKeys,
+  addContributor
 } from '../shared/utils.js';
 
 class isbndbScraper extends Extractor {
@@ -84,7 +85,7 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
         if (node.nodeName === "BR") return;
         const author = node.textContent?.trim();
         if (!author) return;
-        contributors.push({ name: node.textContent, roles: ["Author"] })
+        addContributor(contributors, node.textContent, "Author");
       })
       table["Contributors"] = contributors;
       continue;
