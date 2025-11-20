@@ -116,10 +116,10 @@ async function generateExtractorsIndex() {
   instances.sort();
 
   const content = `// Auto-generated file. Do not edit manually.
-import { Extractor } from "./AbstractExtractor";
 ${imports.join("\n")}
 
-/** @type{Extractor[]} */
+/** @import { Extractor } from "./AbstractExtractor";
+ * @type{Extractor[]} */
 const extractors = [
 ${instances.join("\n")}
 ];

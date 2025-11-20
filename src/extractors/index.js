@@ -1,5 +1,4 @@
 // Auto-generated file. Do not edit manually.
-import { Extractor } from "./AbstractExtractor";
 import { amazonScraper } from "./amazon";
 import { audibleScraper } from "./audible";
 import { dnbdeScraper } from "./dnbde";
@@ -13,7 +12,8 @@ import { libbyScraper, overdriveScraper, teachingbooksScraper } from "./overdriv
 import { librofmScraper } from "./librofm";
 import { storygraphScraper } from "./storygraph";
 
-/** @type{Extractor[]} */
+/** @import { Extractor } from "./AbstractExtractor";
+ * @type{Extractor[]} */
 const extractors = [
   new amazonScraper(),
   new audibleScraper(),
