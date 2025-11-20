@@ -1,15 +1,16 @@
+// Auto-generated file. Do not edit manually.
 import { Extractor } from "./AbstractExtractor";
 import { amazonScraper } from "./amazon";
 import { audibleScraper } from "./audible";
 import { dnbdeScraper } from "./dnbde";
 import { goodreadsScraper } from "./goodreads";
 import { googleBooksScraper } from "./googlebooks";
+import { isbnSearchScraper } from "./isbnsearch";
 import { isbndbScraper } from "./isbndb";
 import { isbndeScraper } from "./isbnde";
-import { isbnSearchScraper } from "./isbnsearch";
 import { koboScraper } from "./kobo";
-import { librofmScraper } from "./librofm";
 import { libbyScraper, overdriveScraper, teachingbooksScraper } from "./overdrive";
+import { librofmScraper } from "./librofm";
 import { storygraphScraper } from "./storygraph";
 
 /** @type{Extractor[]} */
@@ -28,11 +29,11 @@ const extractors = [
   new overdriveScraper(),
   new storygraphScraper(),
   new teachingbooksScraper(),
-]
+];
 
 /** @param {string} url */
 function getExtractor(url) {
-  return extractors.find((ex) => ex.isSupported(url))
+  return extractors.find((ex) => ex.isSupported(url));
 }
 
 /** @param {string} url */
@@ -40,4 +41,4 @@ function isAllowedUrl(url) {
   return getExtractor(url) != undefined;
 }
 
-export { extractors, getExtractor, isAllowedUrl }
+export { extractors, getExtractor, isAllowedUrl };
