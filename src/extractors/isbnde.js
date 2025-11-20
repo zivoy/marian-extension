@@ -21,8 +21,6 @@ const remapings = {
 const nameRemap = remapKeys.bind(undefined, remapings);
 
 async function getIsbnDeDetails() {
-  logMarian('Extracting isbn.de details');
-
   const bookDetails = {};
 
   const coverData = getCover();

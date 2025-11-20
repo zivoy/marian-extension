@@ -25,8 +25,6 @@ const remapings = {
 const nameRemap = remapKeys.bind(undefined, remapings);
 
 async function getIsbnDbDetails() {
-  logMarian('Extracting isbndb.com details');
-
   const container = document.querySelector(".book-table table");
   if (!container) return null;
 

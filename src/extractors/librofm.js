@@ -13,7 +13,6 @@ class librofmScraper extends Extractor {
 }
 
 async function getLibroDetails() {
-	logMarian("Extracting Libro details");
 	const bookDetails = {};
 
 	const imggrab = document.querySelector('.audiobook-cover .book-cover-wrap img.book-cover');

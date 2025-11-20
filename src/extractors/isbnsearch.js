@@ -20,8 +20,6 @@ const remapings = {
 const nameRemap = remapKeys.bind(undefined, remapings);
 
 async function getIsbnSearchDetails() {
-  logMarian('Extracting ISBNSearch details');
-
   const imgEl = document.querySelector('.image img');
   const coverData = getCoverData(imgEl?.src);
 

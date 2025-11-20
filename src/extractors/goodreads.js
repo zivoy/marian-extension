@@ -13,7 +13,6 @@ class goodreadsScraper extends Extractor {
 }
 
 async function getGoodreadsDetails() {
-    logMarian('Extracting GoodReads details');
     const bookDetails = {};
 
     const sourceId = getGoodreadsBookIdFromUrl(window.location.href);

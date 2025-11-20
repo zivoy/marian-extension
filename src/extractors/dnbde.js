@@ -28,8 +28,6 @@ class dnbdeScraper extends Extractor {
 }
 
 async function getDnbDeDetails() {
-  logMarian('Extracting dnb.de details');
-
   const container = document.querySelector("#fullRecordTable");
   if (!container) return null;
 

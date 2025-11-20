@@ -13,7 +13,6 @@ class koboScraper extends Extractor {
 }
 
 async function getKoboDetails() {
-    logMarian("Extracting Kobo details");
     const bookDetails = {};
 
     // image and imageScore
@@ -42,7 +41,7 @@ async function getKoboDetails() {
     // Description
     extractKoboDescription(bookDetails);
 
-    logMarian("Kobo extraction complete:", bookDetails);
+    // logMarian("Kobo extraction complete:", bookDetails);
     return {
         ...(await coverData),
         ...bookDetails,

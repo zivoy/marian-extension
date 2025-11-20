@@ -14,7 +14,6 @@ class googleBooksScraper extends Extractor {
 }
 
 async function getGoogleBooksDetails() {
-    logMarian('Extracting Google Books details');
     const bookDetails = {};
 
 

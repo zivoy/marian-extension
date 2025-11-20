@@ -13,7 +13,6 @@ class storygraphScraper extends Extractor {
 }
 
 async function getStoryGraphDetails() {
-    logMarian('Extracting The StoryGraph details');
     const bookDetails = {};
 
     // Book cover image

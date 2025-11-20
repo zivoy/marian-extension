@@ -41,8 +41,6 @@ async function getAudibleDetails() {
   const asyncJobs = [];
 
   try {
-    logMarian('Extracting Audible details');
-
     const cover = getPrimaryImage();
     if (cover?.src) {
       const src = cover.src;

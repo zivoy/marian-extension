@@ -33,8 +33,6 @@ class amazonScraper extends Extractor {
 }
 
 async function getAmazonDetails() {
-  logMarian('Extracting Amazon details');
-
   const coverData = getCover();
   const bookDetails = getDetailBullets();
   const audibleDetails = getAudibleDetails();
