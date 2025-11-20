@@ -17,7 +17,7 @@ export function getLastFetchedUrl() {
 
 export function buildIssueUrl(tabUrl) {
   let domain = '(unknown domain)';
-  try { domain = new URL(tabUrl).hostname.replace(/^www\./, ''); } catch {}
+  try { domain = new URL(tabUrl).hostname.replace(/^www\./, ''); } catch { }
   const title = `Unsupported URL detected on ${domain}`;
   const body = [
     'This page is not currently supported by the Marian extension:',
@@ -109,8 +109,11 @@ export function SetupSettings(settingsContainer, settingOptions) {
             settingsObj.set(setting, e.target.checked);
           });
 
+          const textSpan = document.createElement('span');
+          textSpan.textContent = info.label;
+
+          label.appendChild(textSpan);
           label.appendChild(checkbox);
-          label.appendChild(document.createTextNode(' ' + info.label));
           break;
 
         case "selection":
