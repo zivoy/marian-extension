@@ -44,73 +44,86 @@ function downloadImage(url, bookId) {
     .catch(err => console.error('Image download failed:', err));
 }
 
+
+function createSpan(parent, text, className, copyValue) {
+  const span = document.createElement('span');
+  span.className = className;
+  span.textContent = text;
+  span.title = 'Click to copy';
+  span.style.cursor = 'pointer';
+
+  span.addEventListener('click', () => copyToClipboard(copyValue || text, parent));
+
+  parent.appendChild(span);
+}
+
 function renderRow(container, key, value) {
   const div = document.createElement('div');
   div.className = 'row';
 
+  const addText = (text) => div.appendChild(document.createTextNode(text));
+  const addSpan = (text, className, copyValue) => createSpan(div, text, className, copyValue);
+
+  // Label
   const label = document.createElement('span');
   label.className = 'label';
   label.textContent = (key === 'title') ? 'Title:' : `${key}:`;
-
   div.appendChild(label);
-  div.appendChild(document.createTextNode(' '));
+  addText(' ');
 
-  if (Array.isArray(value)) {
-    if (key === 'Contributors' && value.length && typeof value[0] === 'object' && Array.isArray(value[0].roles)) {
-      value.forEach((contributor, idx) => {
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'value contributor-name';
-        nameSpan.textContent = contributor.name;
-        nameSpan.title = 'Click to copy name';
-        nameSpan.style.cursor = 'pointer';
-        nameSpan.addEventListener('click', () => copyToClipboard(contributor.name, div));
-        div.appendChild(nameSpan);
+  // Data
+  const isContributors = key === 'Contributors' && Array.isArray(value) && value[0]?.roles;
+  const isMappings = key === "Mappings" && value && typeof value === 'object';
 
-        div.appendChild(document.createTextNode(' ('));
+  if (isContributors) {
+    value.forEach((contributor, i) => {
+      addSpan(contributor.name, 'value contributor-name');
 
-        contributor.roles.forEach((role, roleIdx) => {
-          const roleSpan = document.createElement('span');
-          roleSpan.className = 'value contributor-role';
-          roleSpan.textContent = role;
-          roleSpan.title = 'Click to copy role';
-          roleSpan.style.cursor = 'pointer';
-          roleSpan.addEventListener('click', () => copyToClipboard(role, div));
-          div.appendChild(roleSpan);
-          if (roleIdx !== contributor.roles.length - 1) div.appendChild(document.createTextNode(', '));
+      if (contributor.roles?.length) {
+        addText(' (');
+        contributor.roles.forEach((role, rI) => {
+          addSpan(role, 'value contributor-role');
+          if (rI !== contributor.roles.length - 1) addText(', ');
         });
+        addText(')');
+      }
 
-        div.appendChild(document.createTextNode(')'));
-        if (idx !== value.length - 1) div.appendChild(document.createTextNode(', '));
-      });
-    } else {
-      value.forEach(item => {
-        const itemSpan = document.createElement('span');
-        itemSpan.className = 'value';
-        itemSpan.textContent = item;
-        itemSpan.title = 'Click to copy';
-        itemSpan.style.cursor = 'pointer';
-        if (key === 'Listening Length') {
-          const numberMatch = item.match(/\d+/);
-          const numberOnly = numberMatch ? numberMatch[0] : item;
-          itemSpan.addEventListener('click', () => copyToClipboard(numberOnly, div));
-        } else {
-          itemSpan.addEventListener('click', () => copyToClipboard(item, div));
-        }
-        div.appendChild(itemSpan);
-        if (item !== value[value.length - 1]) {
-          if (key === 'Author' || key === 'Narrator') div.appendChild(document.createTextNode(', '));
-          else div.appendChild(document.createTextNode(' '));
-        }
-      });
-    }
+      if (i !== value.length - 1) addText(', ');
+    });
+  } else if (isMappings) {
+    const flatList = [];
+    Object.entries(value).forEach(([source, ids]) => {
+      if (Array.isArray(ids)) {
+        ids.forEach(id => flatList.push({ id, source }));
+      }
+    });
+
+    flatList.forEach((item, i) => {
+      addSpan(item.id, 'value mapping-id');
+      addText(` (${item.source})`); // maybe make this copyable too?
+      if (i !== flatList.length - 1) addText(', ');
+    });
+  } else if (Array.isArray(value)) {
+    // Check for Standard Arrays
+    value.forEach((item, i) => {
+      let copyVal = item;
+
+      // Special handling for Listening Length (copy digits only)
+      if (key === 'Listening Length') {
+        const match = item.match(/\d+/);
+        if (match) copyVal = match[0];
+      }
+
+      addSpan(item, 'value', copyVal);
+
+      if (i !== value.length - 1) {
+        const separator = (key === 'Author' || key === 'Narrator') ? ', ' : ' ';
+        addText(separator);
+      }
+    });
   } else {
-    const val = document.createElement('span');
-    val.className = 'value';
-    val.textContent = value;
-    val.title = 'Click to copy';
-    if (key === 'Description') val.classList.add('description');
-    val.addEventListener('click', () => copyToClipboard(value, div));
-    div.appendChild(val);
+    const className = (key === 'Description') ? 'value description' : 'value';
+    addSpan(value, className);
   }
 
   container.appendChild(div);
@@ -141,7 +154,7 @@ export function renderDetails(details) {
         details['ISBN-13'] ||
         details['ISBN-10'] ||
         details['ASIN'] ||
-        details['Source ID'] ||
+        details['Mappings'] ||
         details['Title'] ||
         Date.now();
       downloadImage(details.img, fallbackId);
@@ -246,7 +259,7 @@ export function renderDetails(details) {
     'ISBN-10',
     'ISBN-13',
     'ASIN',
-    'Source ID',
+    'Mappings',
     'Contributors',
     'Publisher',
     'Reading Format',

@@ -22,7 +22,7 @@ async function getKoboDetails() {
 
     // Source ID
     // const sourceId = getKoboIdFromUrl(window.location.href);
-    // if (sourceId) bookDetails["Source ID"] = sourceId;
+    // if (sourceId) bookDetails["Mappings"] = { "Kobo": [sourceId] };
 
     // Title
     getKoboBookTitle(bookDetails);

@@ -45,6 +45,8 @@ async function getAmazonDetails() {
   bookDetails["Description"] = getBookDescription() || '';
   bookDetails["Contributors"] = contributors;
 
+  // TODO: get the goodreads id for the novel
+
   if (bookDetails["Edition Format"]?.includes("Kindle")) {
     bookDetails['Reading Format'] = 'Ebook';
     // Normalize `Kindle Edition` to to `Kindle` like it is on amazon.com 

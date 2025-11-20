@@ -23,7 +23,7 @@ async function getStoryGraphDetails() {
 
     // Source ID
     const sourceId = getStoryGraphBookIdFromUrl(window.location.href);
-    if (sourceId) bookDetails["Source ID"] = sourceId;
+    if (sourceId) bookDetails["Mappings"] = { "Storygraph": [sourceId] };
 
     // Book title
     const h3 = document.querySelector('.book-title-author-and-series h3');

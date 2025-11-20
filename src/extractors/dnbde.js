@@ -74,7 +74,11 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
     // exceptions
     if (key.includes("Datensatz")) { // db link
       // https://d-nb.info/XXXXXXXXXXX
-      table["Source ID"] = value.split("https://d-nb.info/")[1] || value;
+      table["Mappings"] = {
+        "Deutschen Nationalbibliothek": [
+          value.split("https://d-nb.info/")[1] || value
+        ]
+      };
       continue
     }
     if (key === "EAN" && !table["ISBN-13"]) {

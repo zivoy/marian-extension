@@ -20,7 +20,7 @@ async function getGoogleBooksDetails() {
 
     // Store the source ID
     const sourceId = getGoogleBooksIdFromUrl(window.location.href);
-    if (sourceId) bookDetails["Source ID"] = sourceId;
+    if (sourceId) bookDetails["Mappings"] = { "Google Books": [sourceId] };
 
     // Extract cover image using volume ID
     const coverData = getCoverData(getGoogleBooksCoverUrl(sourceId));

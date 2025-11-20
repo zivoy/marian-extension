@@ -117,7 +117,7 @@ async function getDetailsFromOverdriveId(id) {
 
   // Get relevant details
   // source id
-  details["Source ID"] = data.id;
+  bookDetails["Mappings"] = { "Overdrive": [data.id] };
 
   // cover
   const cover = Object.values(data.covers)

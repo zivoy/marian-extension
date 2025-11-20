@@ -17,7 +17,7 @@ async function getGoodreadsDetails() {
     const bookDetails = {};
 
     const sourceId = getGoodreadsBookIdFromUrl(window.location.href);
-    if (sourceId) bookDetails["Source ID"] = sourceId;
+    if (sourceId) bookDetails["Mappings"] = { "Goodreads": [sourceId] };
 
     const imgEl = document.querySelector('.BookCover__image img');
     const coverData = getCoverData(imgEl?.src);
