@@ -95,12 +95,16 @@ function renderRow(container, key, value) {
     Object.entries(value).forEach(([source, ids]) => {
       if (Array.isArray(ids)) {
         ids.forEach(id => flatList.push({ id, source }));
+      } else {
+        flatList.push({ id, source });
       }
     });
 
     flatList.forEach((item, i) => {
       addSpan(item.id, 'value mapping-id');
-      addText(` (${item.source})`); // maybe make this copyable too?
+      addText(" (");
+      addSpan(item.source, 'value mapping-name');
+      addText(")");
       if (i !== flatList.length - 1) addText(', ');
     });
   } else if (Array.isArray(value)) {
