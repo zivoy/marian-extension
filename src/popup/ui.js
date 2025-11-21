@@ -139,20 +139,23 @@ export function renderDetails(details) {
   if (!container) return;
   container.innerHTML = ""; // safety clear 
 
-  if (details.img) {
-    const sideBySideWrapper = document.createElement('div');
-    sideBySideWrapper.style.display = 'flex';
-    sideBySideWrapper.style.alignItems = 'flex-start';
-    sideBySideWrapper.style.gap = '1rem';
+  const sideBySideWrapper = document.createElement('div');
+  sideBySideWrapper.style.display = 'flex';
+  sideBySideWrapper.style.alignItems = 'flex-start';
+  sideBySideWrapper.style.gap = '1rem';
 
-    const img = document.createElement('img');
+  const img = document.createElement('img');
+  img.alt = 'Cover Image';
+  img.style.maxWidth = '100px';
+  img.style.minHeight = '100px';
+  img.loading = 'lazy'; // lazy load for performance
+  img.style.userSelect = "none";
+  img.draggable = false;
+
+  if (details.img) {
     img.src = details.img;
-    img.alt = 'Cover Image';
     img.title = 'Click to download';
-    img.style.maxWidth = '100px';
-    img.style.minHeight = '100px';
     img.style.cursor = 'pointer';
-    img.loading = 'lazy'; // lazy load for performance
     img.addEventListener('click', () => {
       const fallbackId =
         details['ISBN-13'] ||
@@ -163,74 +166,77 @@ export function renderDetails(details) {
         Date.now();
       downloadImage(details.img, fallbackId);
     });
-
-    const imgWrapper = document.createElement('div');
-    imgWrapper.style.display = 'flex';
-    imgWrapper.style.flexDirection = 'column';
-    imgWrapper.style.alignItems = 'center';
-    imgWrapper.style.position = 'relative';
-    imgWrapper.style.maxWidth = '100px';
-
-    imgWrapper.appendChild(img);
-
-    if (details.imgScore && typeof details.imgScore === 'number') {
-      const label = document.createElement('span');
-      label.className = 'img-score-label';
-      label.textContent = details.imgScore.toLocaleString();
-
-      if (details.imgScore < 33000) {
-        label.style.background = '#c0392b';
-        label.title = 'Low resolution (ex: 133 x 200)';
-        label.textContent = 'Poor';
-      } else if (details.imgScore < 100000) {
-        label.style.background = '#f39c12';
-        label.title = 'Medium resolution (ex: 200 x 300)';
-        label.textContent = 'Medium';
-      } else {
-        label.style.background = '#27ae60';
-        label.title = 'High resolution (ex: 300 x 450)';
-        label.textContent = 'High';
-      }
-
-      imgWrapper.appendChild(label);
-    }
-
-    sideBySideWrapper.appendChild(imgWrapper);
-
-    const textWrapper = document.createElement('div');
-    textWrapper.style.flex = '1';
-
-    if (details.Title) {
-      const titleDiv = document.createElement('div');
-      titleDiv.className = 'row';
-
-      const titleLabel = document.createElement('span');
-      titleLabel.className = 'label';
-      titleLabel.textContent = 'Title:';
-
-      titleDiv.appendChild(document.createTextNode(' '));
-      createSpan(titleDiv, details.Title, "value title");
-
-      textWrapper.appendChild(titleDiv);
-    }
-
-    if (details.Description) {
-      const descDiv = document.createElement('div');
-      descDiv.className = 'row';
-
-      const descLabel = document.createElement('span');
-      descLabel.className = 'label';
-      descLabel.textContent = 'Description:';
-
-      descDiv.appendChild(document.createTextNode(' '));
-      createSpan(descDiv, details.Description, "value description");
-
-      textWrapper.appendChild(descDiv);
-    }
-
-    sideBySideWrapper.appendChild(textWrapper);
-    container.appendChild(sideBySideWrapper);
+  } else {
+    img.src = "icons/third-party/hardcover.svg";
+    img.style.cursor = "auto";
   }
+
+  const imgWrapper = document.createElement('div');
+  imgWrapper.style.display = 'flex';
+  imgWrapper.style.flexDirection = 'column';
+  imgWrapper.style.alignItems = 'center';
+  imgWrapper.style.position = 'relative';
+  imgWrapper.style.maxWidth = '100px';
+
+  imgWrapper.appendChild(img);
+
+  if (details.imgScore && typeof details.imgScore === 'number') {
+    const label = document.createElement('span');
+    label.className = 'img-score-label';
+    label.textContent = details.imgScore.toLocaleString();
+
+    if (details.imgScore < 33000) {
+      label.style.background = '#c0392b';
+      label.title = 'Low resolution (ex: 133 x 200)';
+      label.textContent = 'Poor';
+    } else if (details.imgScore < 100000) {
+      label.style.background = '#f39c12';
+      label.title = 'Medium resolution (ex: 200 x 300)';
+      label.textContent = 'Medium';
+    } else {
+      label.style.background = '#27ae60';
+      label.title = 'High resolution (ex: 300 x 450)';
+      label.textContent = 'High';
+    }
+
+    imgWrapper.appendChild(label);
+  }
+
+  sideBySideWrapper.appendChild(imgWrapper);
+
+  const textWrapper = document.createElement('div');
+  textWrapper.style.flex = '1';
+
+  if (details.Title) {
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'row';
+
+    const titleLabel = document.createElement('span');
+    titleLabel.className = 'label';
+    titleLabel.textContent = 'Title:';
+
+    titleDiv.appendChild(document.createTextNode(' '));
+    createSpan(titleDiv, details.Title, "value title");
+
+    textWrapper.appendChild(titleDiv);
+  }
+
+  if (details.Description) {
+    const descDiv = document.createElement('div');
+    descDiv.className = 'row';
+
+    const descLabel = document.createElement('span');
+    descLabel.className = 'label';
+    descLabel.textContent = 'Description:';
+
+    descDiv.appendChild(document.createTextNode(' '));
+    createSpan(descDiv, details.Description, "value description");
+
+    textWrapper.appendChild(descDiv);
+  }
+
+  sideBySideWrapper.appendChild(textWrapper);
+  container.appendChild(sideBySideWrapper);
 
   if (details.Series || details['Series Place']) {
     const metaTop = document.createElement('div');
