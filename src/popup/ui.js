@@ -208,15 +208,9 @@ export function renderDetails(details) {
       titleLabel.className = 'label';
       titleLabel.textContent = 'Title:';
 
-      const titleVal = document.createElement('span');
-      titleVal.className = 'value title';
-      titleVal.textContent = details.Title;
-      titleVal.title = 'Click to copy';
-      titleVal.style.cursor = 'pointer';
-      titleVal.addEventListener('click', () => copyToClipboard(details.Title, titleDiv));
-
       titleDiv.appendChild(document.createTextNode(' '));
-      titleDiv.appendChild(titleVal);
+      createSpan(titleDiv, details.Title, "value title");
+
       textWrapper.appendChild(titleDiv);
     }
 
@@ -228,15 +222,9 @@ export function renderDetails(details) {
       descLabel.className = 'label';
       descLabel.textContent = 'Description:';
 
-      const descVal = document.createElement('span');
-      descVal.className = 'value description';
-      descVal.textContent = details.Description;
-      descVal.title = 'Click to copy';
-      descVal.style.cursor = 'pointer';
-      descVal.addEventListener('click', () => copyToClipboard(details.Description, descDiv));
-
       descDiv.appendChild(document.createTextNode(' '));
-      descDiv.appendChild(descVal);
+      createSpan(descDiv, details.Description, "value description");
+
       textWrapper.appendChild(descDiv);
     }
 
