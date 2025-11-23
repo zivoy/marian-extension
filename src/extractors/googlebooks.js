@@ -1,6 +1,6 @@
 // googlebooks.js
 import { Extractor } from './AbstractExtractor.js';
-import { logMarian, getCoverData } from '../shared/utils.js';
+import { logMarian, getCoverData, cleanText, normalizeReadingFormat } from '../shared/utils.js';
 
 class googleBooksScraper extends Extractor {
     get _name() { return "Google Books Extractor"; }
@@ -90,10 +90,7 @@ async function getGoogleBooksDetails() {
 function getGoogleBookTitle() {
     try {
         const titleEl = document.querySelector('div.zNLTKd[aria-level="1"][role="heading"]');
-        if (titleEl) {
-            return titleEl.textContent.trim();
-        }
-        return "";
+        return cleanText(titleEl?.textContent);
     } catch (error) {
         console.error("Error extracting Google Book title:", error);
         return "";
@@ -250,26 +247,6 @@ function getGoogleBookDescription() {
         console.error("Error while extracting book description", err);
         return "";
     }
-}
-
-/**
- * Normalizes raw format string to one of: Audiobook, E-Book, or Physical Book.
- * @param {string} rawFormat
- * @returns {string}
- */
-function normalizeReadingFormat(rawFormat) {
-    const format = rawFormat.toLowerCase();
-
-    if (format.includes("audio")) return "Audiobook";
-    if (format.includes("ebook") || format.includes("e-book") || format.includes("digital")) {
-        return "Ebook";  // Match your extension's format
-    }
-    if (format.includes("physical") || format.includes("hardcover") ||
-        format.includes("paperback") || format.includes("book")) {
-        return "Physical Book";
-    }
-
-    return "Physical Book"; // Fallback
 }
 
 /**

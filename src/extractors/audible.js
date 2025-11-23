@@ -7,6 +7,7 @@ import {
   queryDeep,
   clearDeepQueryCache,
   withTimeout,
+  cleanText,
 } from '../shared/utils.js';
 
 const DEBUG = false;
@@ -375,21 +376,6 @@ function getFirstText(selectors) {
     if (text) return text;
   }
   return null;
-}
-
-/**
- * Normalize arbitrary text by stripping invisible characters and squeezing whitespace.
- *
- * @param {string | null | undefined} text Raw text content to sanitize.
- * @returns {string} Sanitized text with normalized spacing.
- */
-function cleanText(text) {
-  if (!text) return '';
-  return text
-    .replace(/[\u200E\u200F\u202A-\u202E\u00A0\uFEFF]/g, ' ')
-    .replace(/^\s*,+\s*/, '')
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 /**

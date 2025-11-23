@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { addContributor, getCoverData, logMarian, remapKeys } from '../shared/utils.js';
+import { addContributor, getCoverData, logMarian, remapKeys, cleanText, normalizeReadingFormat } from '../shared/utils.js';
 
 class isbnSearchScraper extends Extractor {
   get _name() { return "ISBN Search Extractor"; }
@@ -31,18 +31,7 @@ async function getIsbnSearchDetails() {
   // Treat as local time when parsing
   bookDetails['Publication date'] = bookDetails['Publication date'] + "T00:00:00";
 
-  if (bookDetails["Edition Format"]?.includes("Kindle")) {
-    bookDetails['Reading Format'] = 'Ebook';
-  } else if (
-    bookDetails["Edition Format"]?.toLowerCase().includes("audio") ||
-    bookDetails["Edition Format"]?.toLowerCase().includes("audible") ||
-    bookDetails["Edition Format"]?.toLowerCase().includes("mp3") ||
-    bookDetails["Edition Format"]?.toLowerCase().includes("cd")
-  ) {
-    bookDetails['Reading Format'] = 'Audiobook';
-  } else {
-    bookDetails['Reading Format'] = 'Physical Book';
-  }
+  bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails["Edition Format"]);
 
   // TODO: get language from ISBN
 
@@ -75,7 +64,7 @@ function getContributers(bookDetails) {
 
 function extractTable() {
   const container = document.querySelector('.bookinfo');
-  const Title = container.querySelector('h1').textContent.trim();
+  const Title = cleanText(container.querySelector('h1').textContent);
 
   const table = {};
   container.querySelectorAll('p').forEach((el) => {
@@ -91,8 +80,8 @@ function extractTable() {
       return;
     }
 
-    let key = children[0].textContent?.trim();
-    const value = children[1].textContent?.trim();
+    let key = cleanText(children[0].textContent);
+    const value = cleanText(children[1].textContent);
 
 
     if (!key) {

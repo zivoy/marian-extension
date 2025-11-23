@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { logMarian, delay, getCoverData, addContributor } from '../shared/utils.js';
+import { logMarian, delay, getCoverData, addContributor, cleanText, normalizeReadingFormat } from '../shared/utils.js';
 
 class goodreadsScraper extends Extractor {
   get _name() { return "GoodReads Extractor"; }
@@ -20,7 +20,7 @@ async function getGoodreadsDetails() {
 
   const imgEl = document.querySelector('.BookCover__image img');
   const coverData = getCoverData(imgEl?.src);
-  bookDetails["Title"] = document.querySelector('[data-testid="bookTitle"]')?.innerText.trim();
+  bookDetails["Title"] = cleanText(document.querySelector('[data-testid="bookTitle"]')?.innerText);
 
   const contributorsButton = document.querySelector('.ContributorLinksList button[aria-label="Show all contributors"]');
   if (contributorsButton) {
@@ -39,7 +39,7 @@ async function getGoodreadsDetails() {
   extractSeriesInfo(bookDetails);
 
   // Extract edition format and pages
-  const editionFormatEl = document.querySelector('[data-testid="pagesFormat"]')?.innerText.trim();
+  const editionFormatEl = cleanText(document.querySelector('[data-testid="pagesFormat"]')?.innerText);
   if (editionFormatEl) {
     const pagesMatch = editionFormatEl.match(/^(\d+)\s+pages,\s*(.+)$/);
     if (pagesMatch) {
@@ -50,15 +50,9 @@ async function getGoodreadsDetails() {
     }
   }
   const descriptionEl = document.querySelector('[data-testid="contentContainer"] .Formatted');
-  bookDetails["Description"] = descriptionEl ? descriptionEl.innerText.trim() : null;
+  bookDetails["Description"] = descriptionEl ? cleanText(descriptionEl.innerText) : null;
 
-  if (bookDetails["Edition Format"]?.includes("Kindle")) {
-    bookDetails['Reading Format'] = 'Ebook';
-  } else if (bookDetails["Edition Format"].includes("Audible") || bookDetails["Edition Format"].includes("Audiobook")) {
-    bookDetails['Reading Format'] = 'Audiobook';
-  } else {
-    bookDetails['Reading Format'] = 'Physical Book';
-  }
+  bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails["Edition Format"]);
 
   // logMarian("bookDetails", bookDetails);
 

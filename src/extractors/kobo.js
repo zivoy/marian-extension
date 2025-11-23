@@ -1,5 +1,5 @@
 import { Extractor } from "./AbstractExtractor.js";
-import { addContributor, getCoverData, logMarian } from "../shared/utils.js";
+import { addContributor, getCoverData, logMarian, cleanText, normalizeReadingFormat } from "../shared/utils.js";
 
 class koboScraper extends Extractor {
     get _name() { return "Kobo Extractor"; }
@@ -99,7 +99,7 @@ function getKoboSeries(bookDetails) {
 
 function getKoboBookTitle(bookDetails) {
     const h1 = document.querySelector('.title-widget h1');
-    const rawTitle = h1?.childNodes[0]?.textContent.trim();
+    const rawTitle = cleanText(h1?.childNodes[0]?.textContent);
     rawTitle ? bookDetails["Title"] = rawTitle : null;
 }
 
@@ -124,10 +124,12 @@ function getKoboFormatInfo(bookDetails, url) {
         }
     }
 
+    // Normalize reading format just in case
+    bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails['Reading Format']);
 }
 
 function joinContent(elements) {
-    return Array.from(elements).map(item => item.textContent.trim()).join("\n");
+    return Array.from(elements).map(item => cleanText(item.textContent)).join("\n");
 }
 
 function extractKoboDescription(bookDetails) {

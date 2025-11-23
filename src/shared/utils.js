@@ -82,12 +82,15 @@ export function getFormattedText(element) {
 
   processNode(element);
 
-  return result
+  result = result
     .replace(/[ \t]+/g, ' ')    // Multiple spaces/tabs to single space
     .replace(/\n /g, '\n')      // Remove spaces after newlines
     .replace(/ \n/g, '\n')      // Remove spaces before newlines
     .replace(/\n{3,}/g, '\n\n') // Max 2 consecutive newlines
     .trim();
+
+  return result;
+  // return cleanText(result);
 }
 
 export function sendMessage(message) {
@@ -249,4 +252,57 @@ export function addContributor(contributors, name, roles) {
   }
 
   return contributors;
+}
+
+/**
+ * Normalize arbitrary text by stripping invisible characters and squeezing whitespace.
+ *
+ * @param {string | null | undefined} text Raw text content to sanitize.
+ * @returns {string} Sanitized text with normalized spacing.
+ */
+export function cleanText(text) {
+  if (!text) return '';
+  return text
+    .replace(/[\u200E\u200F\u202A-\u202E\u00A0\uFEFF]/g, ' ') // Normalize invisible formatting chars (NBSP, BOM, Bidi marks) to spaces
+    .replace(/^\s*,+\s*/, '')                                 // Remove artifact leading commas/spaces (e.g. ", value")
+    .replace(/\s+/g, ' ')                                     // Collapse all recurring whitespace (tabs, newlines) into a single space
+    .trim();
+}
+
+/**
+ * Normalizes raw format string to one of: Audiobook, Ebook, or Physical Book.
+ * @param {string} rawFormat
+ * @returns {string} 'Audiobook' | 'Ebook' | 'Physical Book'
+ */
+export function normalizeReadingFormat(rawFormat) {
+  if (!rawFormat) return 'Physical Book';
+  const format = rawFormat.toLowerCase();
+
+  if (
+    format.includes("audio") ||
+    format.includes("audible") ||
+    format.includes("narrat") ||
+    format.includes("mp3") ||
+    format.includes("cd")
+  ) return "Audiobook";
+
+  if (
+    format.includes("ebook") ||
+    format.includes("e-book") ||
+    format.includes("digital") ||
+    format.includes("kindle")
+  ) {
+    return "Ebook";
+  }
+
+  if (
+    format.includes("physical") ||
+    format.includes("hardcover") ||
+    format.includes("paperback") ||
+    format.includes("book")
+  ) {
+    return "Physical Book";
+  }
+
+  return "Physical Book"; // Fallback
 }

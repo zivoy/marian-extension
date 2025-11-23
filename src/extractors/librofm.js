@@ -1,5 +1,5 @@
 import { Extractor } from "./AbstractExtractor.js";
-import { addContributor, getCoverData, logMarian } from "../shared/utils.js";
+import { addContributor, getCoverData, logMarian, cleanText } from "../shared/utils.js";
 
 class librofmScraper extends Extractor {
 	get _name() { return "Libro.fm Extractor"; }
@@ -80,7 +80,7 @@ function getLibroSeries(bookDetails) {
 
 function getLibroBookTitle(bookDetails) {
 	const h1 = document.querySelector('h1.audiobook-title');
-	const rawTitle = h1?.childNodes[0]?.textContent.trim();
+	const rawTitle = cleanText(h1?.childNodes[0]?.textContent);
 	rawTitle ? bookDetails["Title"] = rawTitle : null;
 }
 

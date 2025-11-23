@@ -1,5 +1,5 @@
 import { Extractor } from "./AbstractExtractor.js"
-import { logMarian, getFormattedText, getCoverData, addContributor } from '../shared/utils.js';
+import { logMarian, getFormattedText, getCoverData, addContributor, cleanText, normalizeReadingFormat } from '../shared/utils.js';
 const bookSeriesRegex = /^Book (\d+) of \d+$/i;
 
 const includedLabels = new Set([
@@ -45,19 +45,10 @@ async function getAmazonDetails() {
 
   // TODO: get the goodreads id for the novel
 
-  if (bookDetails["Edition Format"]?.includes("Kindle")) {
-    bookDetails['Reading Format'] = 'Ebook';
+  bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails["Edition Format"]);
+  if (bookDetails['Reading Format'] === 'Ebook') {
     // Normalize `Kindle Edition` to to `Kindle` like it is on amazon.com 
     bookDetails["Edition Format"] = "Kindle";
-  } else if (
-    bookDetails["Edition Format"]?.toLowerCase().includes("audio") ||
-    bookDetails["Edition Format"]?.toLowerCase().includes("audible") ||
-    bookDetails["Edition Format"]?.toLowerCase().includes("mp3") ||
-    bookDetails["Edition Format"]?.toLowerCase().includes("cd")
-  ) {
-    bookDetails['Reading Format'] = 'Audiobook';
-  } else {
-    bookDetails['Reading Format'] = 'Physical Book';
   }
 
   // combined publisher date
@@ -143,14 +134,11 @@ function getDetailBullets() {
     if (!labelSpan) return;
 
     // Clean up label text
-    let label = labelSpan.textContent
-      .replace(/[\u200E\u200F\u202A-\u202E:\u00A0\uFEFF‎‏]/g, '')
-      .replace(':', '')
-      .trim();
+    let label = cleanText(labelSpan.textContent).replace(':', '');
 
     // Fetch and clean the value of the detail
     const valueSpan = labelSpan.nextElementSibling;
-    let value = valueSpan?.textContent?.replace(/\s+/g, ' ').trim();
+    let value = cleanText(valueSpan?.textContent);
 
     // Handle book series special case
     const match = bookSeriesRegex.exec(label) || bookSeriesRegex.exec(value);

@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { addContributor, getCoverData, logMarian, remapKeys } from '../shared/utils.js';
+import { addContributor, getCoverData, logMarian, remapKeys, cleanText, normalizeReadingFormat } from '../shared/utils.js';
 
 class isbndeScraper extends Extractor {
   get _name() { return "ISBN.de Extractor"; }
@@ -42,8 +42,8 @@ async function getIsbnDeDetails() {
 
 function getTitle() {
   const container = document.querySelector(".isbnhead");
-  let title = container.querySelector("h1")?.textContent?.trim();
-  const subtitle = container.querySelector("h2")?.textContent?.trim();
+  let title = cleanText(container.querySelector("h1")?.textContent);
+  const subtitle = cleanText(container.querySelector("h2")?.textContent);
   if (subtitle && !subtitle.toLowerCase().includes("kein Untertitel".toLowerCase())) {
     title = `${title}: ${subtitle}`;
   }
@@ -87,7 +87,7 @@ function extractTable() {
     let children = el.childNodes;
 
     // exceptions
-    const title = children[0].textContent.trim();
+    const title = cleanText(children[0].textContent);
     if (title.includes("Einband")) return; // part of paperback -- skip
     if (title.includes("Digitalprodukt")) return; // part of ebook -- skip
     if (title === "Audio CD") return; // part of audiobook -- skip
@@ -104,10 +104,10 @@ function extractTable() {
         format = "Ebook";
         cover = title.split(",")[1]?.trim();
       }
-      table["Reading Format"] = format;
+      table["Reading Format"] = normalizeReadingFormat(format);
       table["Edition Format"] = cover;
 
-      const pages = children[1].textContent.trim();
+      const pages = cleanText(children[1].textContent);
       if (!pages.includes("Seiten")) {
         logMarian("Invalid pages", pages)
       } else {

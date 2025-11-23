@@ -1,7 +1,7 @@
 import { Extractor } from './AbstractExtractor.js';
 import {
   logMarian, sendMessage, getFormattedText, getCoverData, remapKeys,
-  addContributor
+  addContributor, cleanText
 } from '../shared/utils.js';
 
 const remapings = {
@@ -67,8 +67,8 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
       continue;
     }
 
-    const key = children[0].textContent?.trim();
-    let value = children[1].textContent?.trim();
+    const key = cleanText(children[0].textContent);
+    let value = cleanText(children[1].textContent);
     // exceptions
     if (key.includes("Datensatz")) { // db link
       // https://d-nb.info/XXXXXXXXXXX
@@ -107,7 +107,7 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
       const contributors = [];
       children[1].childNodes.forEach(el => {
         if (el.nodeName === "BR") return;
-        const authorTextRaw = el.textContent?.trim();
+        const authorTextRaw = cleanText(el.textContent);
         if (authorTextRaw) {
           const contributor = extactAuthor(authorTextRaw);
           addContributor(contributors, contributor.name, contributor.roles)

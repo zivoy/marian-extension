@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { logMarian, delay, getCoverData, addContributor } from '../shared/utils.js';
+import { logMarian, delay, getCoverData, addContributor, cleanText, normalizeReadingFormat } from '../shared/utils.js';
 
 class storygraphScraper extends Extractor {
     get _name() { return "StoryGraph Extractor"; }
@@ -26,7 +26,7 @@ async function getStoryGraphDetails() {
 
     // Book title
     const h3 = document.querySelector('.book-title-author-and-series h3');
-    const rawTitle = h3?.childNodes[0]?.textContent.trim();
+    const rawTitle = cleanText(h3?.childNodes[0]?.textContent);
     bookDetails["Title"] = rawTitle || null;
 
     // Series and series place
@@ -99,12 +99,8 @@ function extractEditionInfo(bookDetails) {
                 bookDetails['ISBN-13'] = value;
                 break;
             case 'Format':
-                if (value.toLowerCase() === 'audio') {
-                    bookDetails['Reading Format'] = 'Audiobook';
-                } else if (value.toLowerCase() === 'digital') {
-                    bookDetails['Reading Format'] = 'Ebook';
-                } else {
-                    bookDetails['Reading Format'] = 'Physical Book';
+                bookDetails['Reading Format'] = normalizeReadingFormat(value);
+                if (bookDetails['Reading Format'] === 'Physical Book') {
                     bookDetails['Edition Format'] = value;
                 }
                 break;
@@ -146,7 +142,7 @@ async function extractEditionDescription(bookDetails) {
     }
 
     const descriptionEl = document.querySelector('.blurb-pane .trix-content');
-    bookDetails["Description"] = descriptionEl ? descriptionEl.innerText.trim() : null;
+    bookDetails["Description"] = descriptionEl ? cleanText(descriptionEl.innerText) : null;
 }
 
 /**

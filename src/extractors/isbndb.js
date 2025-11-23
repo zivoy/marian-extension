@@ -1,7 +1,7 @@
 import { Extractor } from './AbstractExtractor.js';
 import {
   logMarian, getFormattedText, getCoverData, remapKeys,
-  addContributor
+  addContributor, cleanText
 } from '../shared/utils.js';
 
 class isbndbScraper extends Extractor {
@@ -67,8 +67,8 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
       continue;
     }
 
-    const key = th.textContent?.replace(":", "")?.trim()
-    let value = td.textContent?.trim();
+    const key = cleanText(th.textContent?.replace(":", ""));
+    let value = cleanText(td.textContent);
 
     // rest of table
     if (!key) {
@@ -81,9 +81,9 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
       const contributors = [];
       td.childNodes.forEach((node) => {
         if (node.nodeName === "BR") return;
-        const author = node.textContent?.trim();
+        const author = cleanText(node.textContent);
         if (!author) return;
-        addContributor(contributors, node.textContent, "Author");
+        addContributor(contributors, author, "Author");
       })
       table["Contributors"] = contributors;
       continue;
