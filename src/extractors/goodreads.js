@@ -13,64 +13,64 @@ class goodreadsScraper extends Extractor {
 }
 
 async function getGoodreadsDetails() {
-    const bookDetails = {};
+  const bookDetails = {};
 
-    const sourceId = getGoodreadsBookIdFromUrl(window.location.href);
-    if (sourceId) bookDetails["Mappings"] = { "Goodreads": [sourceId] };
+  const sourceId = getGoodreadsBookIdFromUrl(window.location.href);
+  if (sourceId) bookDetails["Mappings"] = { "Goodreads": [sourceId] };
 
-    const imgEl = document.querySelector('.BookCover__image img');
-    const coverData = getCoverData(imgEl?.src);
-    bookDetails["Title"] = document.querySelector('[data-testid="bookTitle"]')?.innerText.trim();
+  const imgEl = document.querySelector('.BookCover__image img');
+  const coverData = getCoverData(imgEl?.src);
+  bookDetails["Title"] = document.querySelector('[data-testid="bookTitle"]')?.innerText.trim();
 
-    const contributorsButton = document.querySelector('.ContributorLinksList button[aria-label="Show all contributors"]');
-    if (contributorsButton) {
-        contributorsButton.click();
-        await delay(1500); // wait for contributors to load
-    }
+  const contributorsButton = document.querySelector('.ContributorLinksList button[aria-label="Show all contributors"]');
+  if (contributorsButton) {
+    contributorsButton.click();
+    await delay(1500); // wait for contributors to load
+  }
 
-    const detailsButton = document.querySelector('.BookDetails button[aria-label="Book details and editions"]');
-    if (detailsButton) {
-        detailsButton.click();
-        await delay(1500); // wait for contributors to load
-    }
+  const detailsButton = document.querySelector('.BookDetails button[aria-label="Book details and editions"]');
+  if (detailsButton) {
+    detailsButton.click();
+    await delay(1500); // wait for contributors to load
+  }
 
   getContributors(bookDetails);
   extractEditionDetails(bookDetails);
   extractSeriesInfo(bookDetails);
 
-    // Extract edition format and pages
-    const editionFormatEl = document.querySelector('[data-testid="pagesFormat"]')?.innerText.trim();
-    if (editionFormatEl) {
-        const pagesMatch = editionFormatEl.match(/^(\d+)\s+pages,\s*(.+)$/);
-        if (pagesMatch) {
-            bookDetails["Pages"] = parseInt(pagesMatch[1], 10);
-            bookDetails["Edition Format"] = pagesMatch[2];
-        } else {
-            bookDetails["Edition Format"] = editionFormatEl;
-        }
-    }
-    const descriptionEl = document.querySelector('[data-testid="contentContainer"] .Formatted');
-    bookDetails["Description"] = descriptionEl ? descriptionEl.innerText.trim() : null;
-
-    if (bookDetails["Edition Format"]?.includes("Kindle")) {
-        bookDetails['Reading Format'] = 'Ebook'; 
-    } else if (bookDetails["Edition Format"].includes("Audible") || bookDetails["Edition Format"].includes("Audiobook")) {
-        bookDetails['Reading Format'] = 'Audiobook';
+  // Extract edition format and pages
+  const editionFormatEl = document.querySelector('[data-testid="pagesFormat"]')?.innerText.trim();
+  if (editionFormatEl) {
+    const pagesMatch = editionFormatEl.match(/^(\d+)\s+pages,\s*(.+)$/);
+    if (pagesMatch) {
+      bookDetails["Pages"] = parseInt(pagesMatch[1], 10);
+      bookDetails["Edition Format"] = pagesMatch[2];
     } else {
-        bookDetails['Reading Format'] = 'Physical Book';
+      bookDetails["Edition Format"] = editionFormatEl;
     }
+  }
+  const descriptionEl = document.querySelector('[data-testid="contentContainer"] .Formatted');
+  bookDetails["Description"] = descriptionEl ? descriptionEl.innerText.trim() : null;
 
-    // logMarian("bookDetails", bookDetails);
+  if (bookDetails["Edition Format"]?.includes("Kindle")) {
+    bookDetails['Reading Format'] = 'Ebook';
+  } else if (bookDetails["Edition Format"].includes("Audible") || bookDetails["Edition Format"].includes("Audiobook")) {
+    bookDetails['Reading Format'] = 'Audiobook';
+  } else {
+    bookDetails['Reading Format'] = 'Physical Book';
+  }
 
-    return {
+  // logMarian("bookDetails", bookDetails);
+
+  return {
     ...(await coverData),
     ...bookDetails,
   };
 }
 
 function getHighResImageUrl(src) {
-//   return src.replace(/\/compressed\.photo\./, '/');
-    return src
+  //   return src.replace(/\/compressed\.photo\./, '/');
+  return src
 }
 
 function getContributors(bookDetails) {
@@ -114,11 +114,11 @@ function extractEditionDetails(bookDetails) {
     }
 
     if (label === 'ISBN') {
-        const isbn13Match = content.match(/\b\d{13}\b/);
-        const isbn10Match = content.match(/ISBN10:\s*([\dX]{10})/i);
+      const isbn13Match = content.match(/\b\d{13}\b/);
+      const isbn10Match = content.match(/ISBN10:\s*([\dX]{10})/i);
 
-        if (isbn13Match) bookDetails['ISBN-13'] = isbn13Match[0];
-        if (isbn10Match) bookDetails['ISBN-10'] = isbn10Match[1];
+      if (isbn13Match) bookDetails['ISBN-13'] = isbn13Match[0];
+      if (isbn10Match) bookDetails['ISBN-10'] = isbn10Match[1];
     }
 
     if (label === 'ASIN') {
