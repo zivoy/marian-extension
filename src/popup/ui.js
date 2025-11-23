@@ -195,6 +195,30 @@ function normalizeDetails(details, settings, inplace = true) {
 
   // normalize
 
+  // Regenerate missing ISBN using other one
+  if (!details["ISBN-13"] && !!details["ISBN-10"]) {
+    // make isbn13 from isbn10
+    let isbn = details["ISBN-10"].replace("-", "");
+    if (isbn.length == 10) {
+      isbn = "978" + isbn; // add prefix
+      isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
+      const checksum = 10 - Array.from(isbn).reduce((acc, digit, i) => (i % 2 == 0 ? 1 : 3) * parseInt(digit) + acc, 0) % 10;
+      isbn = isbn + checksum.toString(); // add new check digit
+      details["ISBN-13"] = isbn;
+    }
+  }
+  if (!!details["ISBN-13"] && !details["ISBN-10"] && details["ISBN-13"].startsWith("978")) {
+    // make isbn10 from isbn13
+    let isbn = details["ISBN-13"].replace("-", "");
+    if (isbn.length == 13) {
+      isbn = isbn.slice(3); // remove prefix
+      isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
+      const checksum = Array.from(isbn).reduce((acc, digit, i) => (i + 1) * parseInt(digit) + acc, 0) % 11
+      isbn = isbn + checksum.toString(); // add new check digit
+      details["ISBN-10"] = isbn;
+    }
+  }
+
   // Insert country (or language) from ISBN if not present
   // See pr #70
 
