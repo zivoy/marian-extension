@@ -263,7 +263,9 @@ export function addContributor(contributors, name, roles) {
 export function cleanText(text) {
   if (!text) return '';
   return text
-    .replace(/[\u200E\u200F\u202A-\u202E\u00A0\uFEFF]/g, ' ') // Normalize invisible formatting chars (NBSP, BOM, Bidi marks) to spaces
+    .normalize('NFKC')                                        // Normalize Unicode to one style
+    .replace(/\p{Cf}/gu, '')                                  // Remove Unicode control chars
+    .replace(/[\u200E\u200F\u202A-\u202E\u00A0\uFEFF‎‏]/g, ' ') // Normalize invisible formatting chars (NBSP, BOM, Bidi marks) to spaces (should not be needed but keeping for consistency)
     .replace(/^\s*,+\s*/, '')                                 // Remove artifact leading commas/spaces (e.g. ", value")
     .replace(/\s+/g, ' ')                                     // Collapse all recurring whitespace (tabs, newlines) into a single space
     .trim();

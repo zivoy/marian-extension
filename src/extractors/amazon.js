@@ -70,9 +70,6 @@ async function getAmazonDetails() {
     bookDetails["Edition Information"] = edition || version;
   }
 
-  // logMarian("bookDetails", bookDetails);
-  // logMarian("audibleDetails", audibleDetails);
-
   const mergedDetails = {
     ...bookDetails,
     ...audibleDetails,
@@ -81,6 +78,8 @@ async function getAmazonDetails() {
 
   delete mergedDetails.Edition;
   delete mergedDetails.Version;
+
+  // logMarian("details", mergedDetails);
 
   return mergedDetails;
 }
@@ -134,7 +133,7 @@ function getDetailBullets() {
     if (!labelSpan) return;
 
     // Clean up label text
-    let label = cleanText(labelSpan.textContent).replace(':', '');
+    let label = cleanText(labelSpan.textContent.replace(':', ''));
 
     // Fetch and clean the value of the detail
     const valueSpan = labelSpan.nextElementSibling;
