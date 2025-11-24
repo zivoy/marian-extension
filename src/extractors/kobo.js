@@ -126,6 +126,7 @@ function getKoboFormatInfo(bookDetails, url) {
 
     // Normalize reading format just in case
     bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails['Reading Format']);
+    // TODO: see if edition format can be extracted (see download options)
 }
 
 function joinContent(elements) {
