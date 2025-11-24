@@ -1,3 +1,5 @@
+// TODO: try to not have this be imported to reduce output side
+import { getExtractor } from "../extractors/index.js";
 import { showStatus } from "./ui.js";
 
 function buildIssueUrl(tabUrl) {
@@ -29,14 +31,12 @@ export function tryGetDetails(retries = 8, delay = 300) {
 
   return new Promise((resolve, reject) => {
     function attempt(remaining) {
+      // NOTE: can this be taken out one layer so that you can start the scrape and switch tab?
       chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
         if (!tab?.id) {
           reject('No active tab found.');
           return;
         }
-        // TODO: implement optional optional refresh
-        // const extractor = getExtractor(tab?.url || "");
-        // const wantsReload = extractor != undefined && extractor.needsReload;
 
         if (tab.status !== 'complete') {
           console.log('Tab is still loading, delaying content-script ping...');
@@ -44,8 +44,10 @@ export function tryGetDetails(retries = 8, delay = 300) {
           return;
         }
 
-        // refresh has to happen
-        if (!didRefresh) {
+        const extractor = getExtractor(tab?.url || "");
+        const wantsReload = extractor != undefined && extractor.needsReload;
+
+        if (wantsReload && !didRefresh) {
           didRefresh = true;
           // showStatus("Content script not ready, refreshing tab...");
           chrome.tabs.reload(tab.id, { bypassCache: true }); // issue might be here
