@@ -44,37 +44,38 @@ export function tryGetDetails(retries = 8, delay = 300) {
           return;
         }
 
+        // refresh has to happen
+        if (!didRefresh) {
+          didRefresh = true;
+          // showStatus("Content script not ready, refreshing tab...");
+          chrome.tabs.reload(tab.id, { bypassCache: true }); // issue might be here
+          showStatus("Tab reloaded, fetching details...");
+
+          const onUpdated = (updatedTabId, info) => {
+            if (updatedTabId === tab.id && info.status === 'complete') {
+              chrome.tabs.onUpdated.removeListener(onUpdated);
+              console.log(retries, 'Tab reloaded, fetching details again...');
+              setTimeout(() => attempt(retries), 350);
+            }
+          };
+          chrome.tabs.onUpdated.addListener(onUpdated);
+          return;
+        }
+
         chrome.tabs.sendMessage(tab.id, 'ping', (response) => {
           console.log('Ping response:', response, 'Remaining attempts:', remaining);
           if (chrome.runtime.lastError || response !== 'pong') {
             if (remaining > 0) {
               setTimeout(() => attempt(remaining - 1), delay);
-            } else {
-              if (!didRefresh) {
-                // FIXME: refresh doesnt work from yellow button
-                didRefresh = true;
-                // showStatus("Content script not ready, refreshing tab...");
-                chrome.tabs.reload(tab.id, { bypassCache: true });
-                showStatus("Tab reloaded, fetching details...");
-
-                const onUpdated = (updatedTabId, info) => {
-                  if (updatedTabId === tab.id && info.status === 'complete') {
-                    chrome.tabs.onUpdated.removeListener(onUpdated);
-                    console.log(retries, 'Tab reloaded, fetching details again...');
-                    setTimeout(() => attempt(retries), 350);
-                  }
-                };
-                chrome.tabs.onUpdated.addListener(onUpdated);
-              } else {
-                console.log('All attempts exhausted. Content script not responding.');
-                const issueUrl = buildIssueUrl(tab?.url || '(unknown URL)');
-                showStatus(`
-                  This site is supported, but either this page isn't yet or you've encountered an error.<br/><br/>
-                  Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a> the full URL of this page so we can add support!
-                `);
-                // reject('Unsupported URL or no content script after refresh.');
-              }
+              return;
             }
+
+            console.log('All attempts exhausted. Content script not responding.');
+            const issueUrl = buildIssueUrl(tab?.url || '(unknown URL)');
+            reject(`
+This site is supported, but either this page isn't yet or you've encountered an error.<br/><br/>
+Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a> the full URL of this page so we can add support!
+`);
             return;
           }
 
