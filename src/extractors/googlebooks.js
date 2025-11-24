@@ -2,6 +2,8 @@
 import { Extractor } from './AbstractExtractor.js';
 import { logMarian, getCoverData, cleanText, normalizeReadingFormat } from '../shared/utils.js';
 
+// TODO: add support for https://books.google.ca/books
+
 class googleBooksScraper extends Extractor {
     get _name() { return "Google Books Extractor"; }
     _sitePatterns = [
@@ -53,17 +55,11 @@ async function getGoogleBooksDetails() {
     if (description) bookDetails['Description'] = description;
 
     // Extract reading format
-    const readingFormat = getGoogleBookReadingFormat();
-    if (readingFormat) {
+    const formats = getGoogleBookReadingFormat();
+    if (formats) {
+        const [readingFormat, editionFormat] = formats;
         bookDetails['Reading Format'] = readingFormat;
-        // Set edition format based on reading format
-        if (readingFormat === 'E-Book') {
-            bookDetails['Edition Format'] = 'Digital';
-        } else if (readingFormat === 'Audiobook') {
-            bookDetails['Edition Format'] = 'Audiobook';
-        } else {
-            bookDetails['Edition Format'] = 'Print';
-        }
+        bookDetails['Edition Format'] = editionFormat;
     }
 
     // Extract authors and convert to contributors format
@@ -251,7 +247,7 @@ function getGoogleBookDescription() {
 
 /**
  * Extracts and normalizes reading format from the details section.
- * @returns {string}
+ * @returns {[string, string]?}
  */
 function getGoogleBookReadingFormat() {
     try {
@@ -259,19 +255,33 @@ function getGoogleBookReadingFormat() {
             .find((div) => div.querySelector("span.w8qArf")?.textContent.includes("Format"));
 
         if (!formatContainer) {
-            return "";
+            return undefined;
         }
 
         const formatValueEl = formatContainer.querySelector("span.LrzXr.kno-fv.wHYlTd.z8gr9e");
         if (!formatValueEl) {
-            return "";
+            return undefined;
         }
 
         const rawFormat = formatValueEl.textContent.trim();
-        return normalizeReadingFormat(rawFormat);
+        const rawLower = rawFormat.toLocaleLowerCase();
+
+        // Set edition format based on reading format
+        let edition = "";
+        if (rawLower.includes('e-book') || rawLower.includes("ebook")) {
+            edition = 'Digital';
+        } else if (rawLower.includes('audiobook')) {
+            edition = 'Audiobook';
+        } else {
+            edition = rawFormat || "Print";
+            // edition = 'Print';
+        }
+
+        return [normalizeReadingFormat(rawFormat), edition];
+
     } catch (error) {
         console.error("Error extracting reading format:", error);
-        return "";
+        return undefined;
     }
 }
 
