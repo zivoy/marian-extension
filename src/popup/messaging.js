@@ -27,7 +27,7 @@ function buildIssueUrl(tabUrl) {
 
 // Polling function to try multiple times before giving up
 export function tryGetDetails(retries = 8, delay = 300) {
-  let didRefresh = false;
+  let injectRefresh = false;
 
   return new Promise((resolve, reject) => {
     function attempt(remaining) {
@@ -47,26 +47,55 @@ export function tryGetDetails(retries = 8, delay = 300) {
         const extractor = getExtractor(tab?.url || "");
         const wantsReload = extractor != undefined && extractor.needsReload;
 
-        if (wantsReload && !didRefresh) {
-          didRefresh = true;
-          // showStatus("Content script not ready, refreshing tab...");
-          chrome.tabs.reload(tab.id, { bypassCache: true }); // issue might be here
-          showStatus("Tab reloaded, fetching details...");
+        if (!injectRefresh) {
+          injectRefresh = true;
+          if (wantsReload) {
+            // showStatus("Content script not ready, refreshing tab...");
+            chrome.tabs.reload(tab.id, { bypassCache: true }); // issue might be here
+            showStatus("Tab reloaded, fetching details...");
 
-          const onUpdated = (updatedTabId, info) => {
-            if (updatedTabId === tab.id && info.status === 'complete') {
-              chrome.tabs.onUpdated.removeListener(onUpdated);
-              console.log(retries, 'Tab reloaded, fetching details again...');
-              setTimeout(() => attempt(retries), 350);
-            }
-          };
-          chrome.tabs.onUpdated.addListener(onUpdated);
-          return;
+            const onUpdated = (updatedTabId, info) => {
+              if (updatedTabId === tab.id && info.status === 'complete') {
+                chrome.tabs.onUpdated.removeListener(onUpdated);
+                console.log(retries, 'Tab reloaded, fetching details again...');
+                setTimeout(() => attempt(retries), 350);
+              }
+            };
+            chrome.tabs.onUpdated.addListener(onUpdated);
+            return;
+          } else {
+            // FIXME: this is causing the scraping to happen more then once
+            chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              files: ['content.js']
+            }, () => {
+              const error = chrome.runtime.lastError;
+
+              if (error) {
+                console.error("Script injection failed: ", error.message);
+                showStatus("Cannot access this page.");
+                return;
+              }
+
+              showStatus("Script injected, retrying...");
+
+              // Wait a tiny bit for the script to initialize listeners, then retry
+              setTimeout(() => {
+                console.log(retries, 'Script injected manually, retrying...');
+                attempt(retries);
+              }, 100);
+            });
+            return;
+          }
         }
 
         chrome.tabs.sendMessage(tab.id, 'ping', (response) => {
           console.log('Ping response:', response, 'Remaining attempts:', remaining);
           if (chrome.runtime.lastError || response !== 'pong') {
+            if (chrome.runtime.lastError) {
+              console.error('Content script not ready:', chrome.runtime.lastError.message);
+            }
+
             if (remaining > 0) {
               setTimeout(() => attempt(remaining - 1), delay);
               return;
