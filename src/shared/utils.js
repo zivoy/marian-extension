@@ -343,29 +343,61 @@ export function validate(schema, subject, path = "root") {
       : { isValid: false, error: `Expected Boolean at ${path}, got ${typeof subject}` };
   }
 
-  // Handle Arrays [Type]
+  // Handle Arrays [Type] (Union or Array of Types)
   if (Array.isArray(schema)) {
-    if (!Array.isArray(subject)) {
-      return { isValid: false, error: `Expected Array at ${path}` };
+    // 1. Union Check: Try to match subject against ANY type in the schema array
+    // This supports { type: [String, Number] } -> String | Number
+    for (const type of schema) {
+      if (validate(type, subject, path).isValid) return { isValid: true };
     }
-    // We assume homogeneous arrays: [ItemSchema]
-    const itemSchema = schema[0];
-    if (!itemSchema) return { isValid: true }; // Allow empty schema [] to match any array
 
-    for (let i = 0; i < subject.length; i++) {
-      const result = validate(itemSchema, subject[i], `${path}[${i}]`);
-      if (!result.isValid) return result;
+    // 2. Array Check: If subject is Array, check if items match the schema
+    // This supports { type: [ItemType] } -> Array<ItemType>
+    // And { type: [TypeA, TypeB] } -> Array<TypeA | TypeB>
+    if (Array.isArray(subject)) {
+      for (let i = 0; i < subject.length; i++) {
+        let itemMatch = false;
+        // Each item must match AT LEAST ONE of the types in schema
+        for (const type of schema) {
+          if (validate(type, subject[i], `${path}[${i}]`).isValid) {
+            itemMatch = true;
+            break;
+          }
+        }
+        if (!itemMatch) return { isValid: false, error: `Item at ${path}[${i}] does not match any allowed type` };
+      }
+      return { isValid: true };
     }
-    return { isValid: true };
+
+    return { isValid: false, error: `Expected match for union types or array at ${path}` };
   }
 
   // Handle Objects (Recursive)
   if (typeof schema === 'object') {
     // Check for "Special Configuration" wrapper: { type: String, optional: true }
-    if (schema.hasOwnProperty('type') && (schema.type === String || schema.type === Number || schema.type === Boolean || typeof schema.type === 'object')) {
+    // We ensure it only contains 'type', 'optional', and 'valueType'
+    const isWrapper = schema.hasOwnProperty('type') &&
+      Object.keys(schema).every(k => k === 'type' || k === 'optional' || k === 'valueType');
+
+    if (isWrapper) {
+      // Check optionality for top-level wrapper
+      if (schema.optional === true && (subject === null || subject === undefined)) {
+        return { isValid: true };
+      }
+
+      // Handle valueType (Record validation: all values must match valueType)
+      if (schema.valueType) {
+        if (typeof subject !== 'object' || subject === null) {
+          return { isValid: false, error: `Expected Object for Record at ${path}` };
+        }
+        for (const [key, val] of Object.entries(subject)) {
+          const res = validate(schema.valueType, val, `${path}.${key}`);
+          if (!res.isValid) return res;
+        }
+        return { isValid: true };
+      }
+
       // This is a config object, not a nested data object. 
-      // We shouldn't be here normally because the parent loop unwraps this, 
-      // but if passed directly:
       return validate(schema.type, subject, path);
     }
 
