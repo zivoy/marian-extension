@@ -32,7 +32,7 @@ export function tryGetDetails(retries = 8, delay = 300) {
   return new Promise((resolve, reject) => {
     function attempt(remaining) {
       // NOTE: can this be taken out one layer so that you can start the scrape and switch tab?
-      chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, async ([tab]) => {
         if (!tab?.id) {
           reject('No active tab found.');
           return;
@@ -44,9 +44,33 @@ export function tryGetDetails(retries = 8, delay = 300) {
           return;
         }
 
+        const pingResp = await chrome.tabs.sendMessage(tab.id, 'ping').catch(() => undefined);
+        console.log('Ping response:', pingResp, 'Remaining attempts:', remaining);
+        const pingFail = chrome.runtime.lastError || pingResp !== 'pong';
+
+        if (pingFail && injectRefresh) {
+          if (chrome.runtime.lastError) {
+            console.error('Content script not ready:', chrome.runtime.lastError.message);
+          }
+
+          if (remaining > 0) {
+            setTimeout(() => attempt(remaining - 1), delay);
+            return;
+          }
+
+          console.log('All attempts exhausted. Content script not responding.');
+          const issueUrl = buildIssueUrl(tab?.url || '(unknown URL)');
+          reject(`
+This site is supported, but either this page isn't yet or you've encountered an error.<br/><br/>
+Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a> the full URL of this page so we can add support!
+`);
+          return;
+        }
+
         const extractor = getExtractor(tab?.url || "");
         const wantsReload = extractor != undefined && extractor.needsReload;
 
+        console.log("stats", injectRefresh, pingFail, wantsReload)
         if (!injectRefresh) {
           injectRefresh = true;
           if (wantsReload) {
@@ -63,60 +87,37 @@ export function tryGetDetails(retries = 8, delay = 300) {
             };
             chrome.tabs.onUpdated.addListener(onUpdated);
             return;
-          } else {
-            // FIXME: this is causing the scraping to happen more then once
-            chrome.scripting.executeScript({
+          } else if (pingFail) { // only inject if pinging failed
+            console.log("injecting new script");
+            await chrome.scripting.executeScript({
               target: { tabId: tab.id },
               files: ['content.js']
-            }, () => {
-              const error = chrome.runtime.lastError;
+            }).catch();
+            const error = chrome.runtime.lastError;
 
-              if (error) {
-                console.error("Script injection failed: ", error.message);
-                showStatus("Cannot access this page.");
-                return;
-              }
+            if (error) {
+              console.error("Script injection failed: ", error.message);
+              showStatus("Cannot access this page.");
+              return;
+            }
 
-              showStatus("Script injected, retrying...");
+            showStatus("Script injected, retrying...");
 
-              // Wait a tiny bit for the script to initialize listeners, then retry
-              setTimeout(() => {
-                console.log(retries, 'Script injected manually, retrying...');
-                attempt(retries);
-              }, 100);
-            });
+            // Wait a tiny bit for the script to initialize listeners, then retry
+            setTimeout(() => {
+              console.log(retries, 'Script injected manually, retrying...');
+              attempt(retries);
+            }, 100);
             return;
           }
         }
 
-        chrome.tabs.sendMessage(tab.id, 'ping', (response) => {
-          console.log('Ping response:', response, 'Remaining attempts:', remaining);
-          if (chrome.runtime.lastError || response !== 'pong') {
-            if (chrome.runtime.lastError) {
-              console.error('Content script not ready:', chrome.runtime.lastError.message);
-            }
-
-            if (remaining > 0) {
-              setTimeout(() => attempt(remaining - 1), delay);
-              return;
-            }
-
-            console.log('All attempts exhausted. Content script not responding.');
-            const issueUrl = buildIssueUrl(tab?.url || '(unknown URL)');
-            reject(`
-This site is supported, but either this page isn't yet or you've encountered an error.<br/><br/>
-Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a> the full URL of this page so we can add support!
-`);
+        chrome.tabs.sendMessage(tab.id, 'getDetails', (details) => {
+          if (chrome.runtime.lastError || !details) {
+            reject('Failed to retrieve book details.');
             return;
           }
-
-          chrome.tabs.sendMessage(tab.id, 'getDetails', (details) => {
-            if (chrome.runtime.lastError || !details) {
-              reject('Failed to retrieve book details.');
-              return;
-            }
-            resolve(details);
-          });
+          resolve(details);
         });
       });
     }
