@@ -15,11 +15,12 @@ export async function getImageScore(url) {
   });
 }
 
+const marianLogHead = "[👩🏻‍🏫 Marian]";
 export function logMarian(message, object = null) {
   if (!object) {
-    console.log(`[👩🏻‍🏫 Marian] ${message}`);
+    console.log(`${marianLogHead} ${message}`);
   } else {
-    console.group(`[👩🏻‍🏫 Marian] ${message}`);
+    console.group(`${marianLogHead} ${message}`);
     console.log(object);
     console.groupEnd();
   }
@@ -307,4 +308,97 @@ export function normalizeReadingFormat(rawFormat) {
   }
 
   return "Physical Book"; // Fallback
+}
+
+/**
+ * Validates an object against a structural schema.
+ * The schema can contain:
+ * - Constructors (String, Number, Boolean) to validate types.
+ * - Literal values (strings, numbers) to ensure exact matches.
+ * - Nested objects for recursive validation.
+ * - Arrays for list validation:
+ * - \[Type\] (length 1): Validates an array where all elements match Type.
+ * - \[Type1, Type2\] (length > 1): Validates a fixed-length tuple where elements match by index.
+ * @param {Object} schema - The template object defining structure and types.
+ * @param {Object} subject - The object to validate.
+ * @param {boolean} [allowExtraFields=false] - If true, the subject can contain keys not present in the schema.
+ * @returns {boolean} True if the subject conforms to the schema, false otherwise.
+ */
+export function validateObject(schema, subject, allowExtraFields = false) {
+  if (typeof subject !== 'object' || subject === null) {
+    return false;
+  }
+
+  const schemaKeys = Object.keys(schema);
+  const subjectKeys = Object.keys(subject);
+
+  if (!allowExtraFields) {
+    for (const key of subjectKeys) {
+      if (!schemaKeys.includes(key)) {
+        console.warn(`${marianLogHead} Validation failed: Unexpected field '${key}'`);
+        return false;
+      }
+    }
+  }
+
+  for (const key of schemaKeys) {
+    const expected = schema[key];
+    const actual = subject[key];
+
+    if (!(key in subject)) {
+      console.warn(`${marianLogHead} Validation failed: Missing key '${key}'`);
+      return false;
+    }
+
+    if (!validateValue(expected, actual, allowExtraFields)) {
+      console.warn(`${marianLogHead} Validation failed: Key '${key}' value mismatch`);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Validate a single value against a schema rule.
+ * Handles Constructors, Arrays, Objects, and Literals.
+ *
+ * @param {any} expected
+ * @param {any} actual
+ * @param {boolean?} allowExtraFields
+ * @returns {boolean}
+ */
+export function validateValue(expected, actual, allowExtraFields = undefined) {
+  allowExtraFields = allowExtraFields === true;
+
+  if (expected === String) return typeof actual === 'string';
+  if (expected === Number) return typeof actual === 'number';
+  if (expected === Boolean) return typeof actual === 'boolean';
+
+  // arrays
+  if (Array.isArray(expected)) {
+    if (!Array.isArray(actual)) return false;
+
+    if (expected.length === 0) {
+      return actual.length === 0;
+    }
+
+    // checks if every item in the actual array is of the single type
+    if (expected.length === 1) {
+      const type = expected[0];
+      return actual.every(item => validateValue(type, item, allowExtraFields));
+    }
+
+    // else - fixed structure
+    if (actual.length !== expected.length) return false;
+    return actual.every((item, i) => validateValue(expected[i], item, allowExtraFields));
+  }
+
+  // nested objects
+  if (typeof expected === 'object' && expected !== null) {
+    return validateObject(expected, actual, allowExtraFields);
+  }
+
+  // exact literals
+  return actual === expected;
 }
