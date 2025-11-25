@@ -120,7 +120,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       });
   }
 
-  // NOTE: there could be an issue here
   if (msg.type === "TAB_URL_CHANGED" && isForThisSidebar(msg.windowId)) {
     updateRefreshButtonForUrl(msg.url);
   }

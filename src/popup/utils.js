@@ -15,7 +15,7 @@ export function getLastFetchedUrl() {
 
 export function buildIssueUrl(tabUrl) {
   let domain = '(unknown domain)';
-  try { domain = new URL(tabUrl).hostname.replace(/^www\./, ''); } catch {}
+  try { domain = new URL(tabUrl).hostname.replace(/^www\./, ''); } catch { }
   const title = `Unsupported URL detected on ${domain}`;
   const body = [
     'This page is not currently supported by the Marian extension:',

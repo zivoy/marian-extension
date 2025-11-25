@@ -25,7 +25,13 @@ function buildIssueUrl(tabUrl) {
     + `&labels=${encodeURIComponent('bug')}`;
 }
 
-// Polling function to try multiple times before giving up
+/**
+  * Polling function to try multiple times before giving up
+  *
+  * @param {number} [retries=8] number of time to retry
+  * @param {number} [delay=300] delay in ms
+  * @returns {{tab: any details: Record<string,any>}}
+  */
 export async function tryGetDetails(retries = 8, delay = 300) {
   let injectRefresh = false;
 
