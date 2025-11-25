@@ -348,15 +348,14 @@ export function addRefreshButton(onClick) {
     showStatus("Refreshing...");
 
     tryGetDetails()
-      .then(details => {
+      .then(({ tab, details }) => {
         showDetails();
         renderDetails(details);
 
         // 👇 After refreshing, set last fetched & disable if same tab
-        chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-          const currentUrl = tab?.url || '';
-          setLastFetchedUrl(currentUrl);
-          updateRefreshButtonForUrl(currentUrl);
+        setLastFetchedUrl(tab?.url || "");
+        chrome.tabs.query({ active: true, currentWindow: true }, ([activeTab]) => {
+          updateRefreshButtonForUrl(activeTab?.url || "");
         });
       })
       .catch(err => showStatus(err));

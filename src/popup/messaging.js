@@ -26,18 +26,20 @@ function buildIssueUrl(tabUrl) {
 }
 
 // Polling function to try multiple times before giving up
-export function tryGetDetails(retries = 8, delay = 300) {
+export async function tryGetDetails(retries = 8, delay = 300) {
   let injectRefresh = false;
 
-  return new Promise((resolve, reject) => {
-    function attempt(remaining) {
-      // NOTE: can this be taken out one layer so that you can start the scrape and switch tab?
-      chrome.tabs.query({ active: true, currentWindow: true }, async ([tab]) => {
-        if (!tab?.id) {
-          reject('No active tab found.');
-          return;
-        }
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
+  return {
+    tab,
+    details: await new Promise((resolve, reject) => {
+      if (!tab?.id) {
+        reject('No active tab found.');
+        return;
+      }
+
+      async function attempt(remaining) {
         if (tab.status !== 'complete') {
           console.log('Tab is still loading, delaying content-script ping...');
           setTimeout(() => attempt(remaining), delay);
@@ -70,7 +72,6 @@ Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a
         const extractor = getExtractor(tab?.url || "");
         const wantsReload = extractor != undefined && extractor.needsReload;
 
-        console.log("stats", injectRefresh, pingFail, wantsReload)
         if (!injectRefresh) {
           injectRefresh = true;
           if (wantsReload) {
@@ -119,8 +120,8 @@ Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a
           }
           resolve(details);
         });
-      });
-    }
-    attempt(retries);
-  });
+      }
+      attempt(retries);
+    })
+  }
 }
