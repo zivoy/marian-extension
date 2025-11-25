@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { logMarian, getFormattedText, delay } from '../shared/utils.js';
+import { logMarian, getFormattedText, delay, validate } from '../shared/utils.js';
 
 class overdriveScraper extends Extractor {
   get _name() { return "Overdrive Extractor"; }
@@ -107,6 +107,13 @@ async function getDetailsFromOverdriveId(id) {
   if (data.length < 1) {
     throw "Data not found"
   }
+
+  const valid = validate(bulkMediaResponseSchema, data, false);
+  if (!valid.isValid) {
+    logMarian(`Recived bad data from api: ${valid.error}`);
+    throw "Bad data";
+  }
+
   data = data[0];
 
   // logMarian("book data", data);
@@ -338,3 +345,251 @@ function collapseAudiobookFormats(formats) {
 }
 
 export { overdriveScraper, libbyScraper, teachingbooksScraper };
+
+/**
+ * Overdrive "Thunder" API Schema (v2/media/bulk)
+ * Based on official Swagger definition: Thunder.Frontend_Api.V2.Responses.GlobalMediaResponse
+ *
+ * https://thunder.api.overdrive.com/swagger/index.html
+ */
+
+// --- Core Models ---
+
+const idNamePair = {
+  id: { type: String, optional: true },
+  name: { type: String, optional: true }
+};
+
+const idNameValueTriplet = {
+  id: { type: String, optional: true },
+  name: { type: String, optional: true },
+  value: { type: String, optional: true }
+};
+
+const linkResponse = {
+  href: { type: String, optional: true }
+};
+
+// --- Colors & Images ---
+
+const rgbColorResponse = {
+  red: Number,
+  green: Number,
+  blue: Number
+};
+
+const colorResponse = {
+  hex: { type: String, optional: true },
+  rgb: { type: rgbColorResponse, optional: true }
+};
+
+const coverArtResponse = {
+  href: { type: String, optional: true },
+  height: { type: Number, optional: true },
+  width: { type: Number, optional: true },
+  primaryColor: { type: colorResponse, optional: true },
+  isPlaceholderImage: { type: Boolean, optional: true }
+};
+
+const coversResponse = {
+  cover150Wide: { type: coverArtResponse, optional: true },
+  cover300Wide: { type: coverArtResponse, optional: true },
+  cover510Wide: { type: coverArtResponse, optional: true }
+};
+
+// --- Components ---
+
+const creatorResponse = {
+  id: Number,
+  name: { type: String, optional: true },
+  role: { type: String, optional: true },
+  sortName: { type: String, optional: true }
+};
+
+const contentRatingsResponse = {
+  maturityLevel: { type: idNamePair, optional: true },
+  mpaa: { type: idNamePair, optional: true },
+  naughtyScore: { type: idNamePair, optional: true },
+  norbit: { type: idNamePair, optional: true },
+  tv: { type: idNamePair, optional: true }
+};
+
+const constraintResponse = {
+  isDisneyEulaRequired: Boolean,
+  watchExpirationHours: { type: Number, optional: true }
+};
+
+const reviewCountsResponse = {
+  premium: Number,
+  publisherSupplier: Number
+};
+
+const awardsResponse = {
+  id: Number,
+  description: { type: String, optional: true },
+  source: { type: String, optional: true }
+};
+
+const detailedSeriesResponse = {
+  seriesId: Number,
+  seriesName: { type: String, optional: true },
+  readingOrder: { type: String, optional: true },
+  rank: Number
+};
+
+const bisacModel = {
+  code: { type: String, optional: true },
+  description: { type: String, optional: true }
+};
+
+const recentIssueResponse = {
+  covers: { type: coversResponse, optional: true },
+  id: { type: String, optional: true },
+  edition: { type: String, optional: true }
+};
+
+const titleClassificationResponse = {
+  id: Number,
+  label: { type: String, optional: true },
+  imagePath: { type: String, optional: true },
+  sourceURL: { type: String, optional: true }
+};
+
+// --- Formats ---
+
+const identifierResponse = {
+  type: { type: String, optional: true },
+  value: { type: String, optional: true }
+};
+
+const rightResponse = {
+  type: { type: String, optional: true },
+  typeText: { type: String, optional: true },
+  value: { type: String, optional: true },
+  valueText: { type: String, optional: true },
+  drmType: { type: String, optional: true } // Enum: Light, Heavy
+};
+
+const bundledContentResponse = {
+  titleId: Number
+};
+
+const formatResponse = {
+  id: { type: String, optional: true },
+  name: { type: String, optional: true },
+  fulfillmentType: { type: String, optional: true },
+  fileSize: { type: Number, optional: true },
+  duration: { type: String, optional: true },
+  partCount: { type: Number, optional: true },
+  isbn: { type: String, optional: true },
+
+  onSaleDateUtc: { type: String, optional: true },
+
+  hasAudioSynchronizedText: Boolean,
+  isBundleParent: Boolean,
+  isLockedIn: { type: Boolean, optional: true },
+
+  identifiers: { type: [identifierResponse], optional: true },
+  rights: { type: [rightResponse], optional: true },
+  bundledContent: { type: [bundledContentResponse], optional: true },
+  sample: { type: linkResponse, optional: true },
+  accessibilityStatements: { type: Object, optional: true } // Complex object, leaving as generic Object
+};
+
+// --- Main Media Item Schema ---
+
+const mediaItemSchema = {
+  // IDs & Titles
+  id: { type: String, optional: true },
+  reserveId: { type: String, optional: true },
+  title: { type: String, optional: true },
+  sortTitle: { type: String, optional: true },
+  subtitle: { type: String, optional: true },
+
+  // Type & Format
+  type: { type: idNamePair, optional: true },
+  contentType: { type: String, optional: true }, // e.g. "Audiobook"
+  formats: { type: [formatResponse], optional: true },
+
+  // Series & Edition
+  series: { type: String, optional: true },
+  detailedSeries: { type: detailedSeriesResponse, optional: true },
+  edition: { type: String, optional: true },
+
+  // Creators & Contributors
+  creators: { type: [creatorResponse], optional: true },
+  firstCreatorName: { type: String, optional: true },
+  firstCreatorId: Number,
+  firstCreatorSortName: { type: String, optional: true },
+
+  // Publishing Info
+  publisher: { type: idNamePair, optional: true },
+  publisherAccount: { type: idNamePair, optional: true },
+  imprint: { type: idNamePair, optional: true },
+  publishDate: { type: String, optional: true }, // date-time
+  publishDateText: { type: String, optional: true },
+  publisherRank: { type: Number, optional: true },
+
+  // Descriptions
+  description: { type: String, optional: true },
+  shortDescription: { type: String, optional: true },
+  fullDescription: { type: String, optional: true },
+  synopsis: { type: String, optional: true },
+  tableOfContents: { type: String, optional: true },
+
+  // Metadata / Classification
+  subjects: { type: [idNamePair], optional: true },
+  bisac: { type: [bisacModel], optional: true },
+  bisacCodes: { type: [String], optional: true },
+  keywords: { type: [String], optional: true },
+  languages: { type: [idNamePair], optional: true },
+  levels: { type: [idNameValueTriplet], optional: true },
+  classifications: { type: Object, optional: true }, // Map of TitleClassificationResponse
+
+  // Images
+  covers: { type: coversResponse, optional: true },
+
+  // Ratings & Reviews
+  ratings: { type: contentRatingsResponse, optional: true },
+  starRating: { type: Number, optional: true }, // Double
+  starRatingCount: { type: Number, optional: true },
+  reviewCounts: { type: reviewCountsResponse, optional: true },
+  awards: { type: [awardsResponse], optional: true },
+
+  // Rights & Constraints
+  constraints: { type: constraintResponse, optional: true },
+  isPublicDomain: Boolean,
+  isPublicPerformanceAllowed: Boolean,
+
+  // Availability / Metrics
+  popularity: Number,
+  unitsSold: Number,
+  isPreReleaseTitle: Boolean,
+  estimatedReleaseDate: { type: String, optional: true },
+
+  // Bundling
+  isBundledChild: Boolean,
+  isBundleChild: { type: Boolean, optional: true },
+  bundledContentParentTitleId: { type: Number, optional: true },
+  bundledContentChildrenTitleIds: { type: [Number], optional: true }, // Array of Int32
+
+  // Magazine Specifics
+  frequency: { type: idNamePair, optional: true },
+  recentIssues: { type: [recentIssueResponse], optional: true },
+  parentMagazineTitleId: { type: String, optional: true },
+  pages: { type: Number, optional: true },
+
+  // Eligibility Flags
+  visitorEligible: Boolean,
+  juvenileEligible: Boolean,
+  youngAdultEligible: Boolean,
+
+  // Sample
+  sample: { type: linkResponse, optional: true },
+
+  // Misc
+  coverage: { type: String, optional: true }
+};
+
+// --- Bulk Response Schema ---
+const bulkMediaResponseSchema = [mediaItemSchema];

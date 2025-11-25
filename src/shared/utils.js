@@ -311,94 +311,94 @@ export function normalizeReadingFormat(rawFormat) {
 }
 
 /**
- * Validates an object against a structural schema.
- * The schema can contain:
- * - Constructors (String, Number, Boolean) to validate types.
- * - Literal values (strings, numbers) to ensure exact matches.
- * - Nested objects for recursive validation.
- * - Arrays for list validation:
- * - \[Type\] (length 1): Validates an array where all elements match Type.
- * - \[Type1, Type2\] (length > 1): Validates a fixed-length tuple where elements match by index.
- * @param {Object} schema - The template object defining structure and types.
- * @param {Object} subject - The object to validate.
- * @param {boolean} [allowExtraFields=false] - If true, the subject can contain keys not present in the schema.
- * @returns {boolean} True if the subject conforms to the schema, false otherwise.
+ * Validates an object against a schema with support for Optional fields.
+ * The Schema Syntax:
+ * - Simple: { name: String }
+ * - Optional: { name: { type: String, optional: true } }
+ * - Arrays: { tags: [String] }
+ * @param {Object} schema - The structure definition.
+ * @param {Object} subject - The data to validate.
+ * @return {{ isValid: boolean, error: string|null }}
  */
-export function validateObject(schema, subject, allowExtraFields = false) {
-  if (typeof subject !== 'object' || subject === null) {
-    return false;
+export function validate(schema, subject, path = "root") {
+  if (subject === null || subject === undefined) {
+    // If we are validating a primitive type (String, Number) against null/undefined, it's a fail
+    // (Unless the parent caller handled 'optional', but here we deal with the raw value)
+    return { isValid: false, error: `${path} is null or undefined` };
   }
 
-  const schemaKeys = Object.keys(schema);
-  const subjectKeys = Object.keys(subject);
+  if (schema === String) {
+    return typeof subject === 'string'
+      ? { isValid: true }
+      : { isValid: false, error: `Expected String at ${path}, got ${typeof subject}` };
+  }
+  if (schema === Number) {
+    return typeof subject === 'number'
+      ? { isValid: true }
+      : { isValid: false, error: `Expected Number at ${path}, got ${typeof subject}` };
+  }
+  if (schema === Boolean) {
+    return typeof subject === 'boolean'
+      ? { isValid: true }
+      : { isValid: false, error: `Expected Boolean at ${path}, got ${typeof subject}` };
+  }
 
-  if (!allowExtraFields) {
-    for (const key of subjectKeys) {
-      if (!schemaKeys.includes(key)) {
-        console.warn(`${marianLogHead} Validation failed: Unexpected field '${key}'`);
-        return false;
+  // Handle Arrays [Type]
+  if (Array.isArray(schema)) {
+    if (!Array.isArray(subject)) {
+      return { isValid: false, error: `Expected Array at ${path}` };
+    }
+    // We assume homogeneous arrays: [ItemSchema]
+    const itemSchema = schema[0];
+    if (!itemSchema) return { isValid: true }; // Allow empty schema [] to match any array
+
+    for (let i = 0; i < subject.length; i++) {
+      const result = validate(itemSchema, subject[i], `${path}[${i}]`);
+      if (!result.isValid) return result;
+    }
+    return { isValid: true };
+  }
+
+  // Handle Objects (Recursive)
+  if (typeof schema === 'object') {
+    // Check for "Special Configuration" wrapper: { type: String, optional: true }
+    if (schema.hasOwnProperty('type') && (schema.type === String || schema.type === Number || schema.type === Boolean || typeof schema.type === 'object')) {
+      // This is a config object, not a nested data object. 
+      // We shouldn't be here normally because the parent loop unwraps this, 
+      // but if passed directly:
+      return validate(schema.type, subject, path);
+    }
+
+    const schemaKeys = Object.keys(schema);
+
+    for (const key of schemaKeys) {
+      const fieldRule = schema[key];
+      const fieldValue = subject[key];
+      const fieldPath = `${path}.${key}`;
+
+      // Check for Optional/Config object wrapper
+      let rule = fieldRule;
+      let isOptional = false;
+
+      // Detect if the rule is like { type: ..., optional: true }
+      // We check if it has a 'type' property that is a Constructor or Object/Array
+      if (fieldRule && typeof fieldRule === 'object' && fieldRule.type && fieldRule.optional === true) {
+        rule = fieldRule.type;
+        isOptional = true;
       }
+
+      // Missing Key Check
+      if (fieldValue === undefined || fieldValue === null) {
+        if (isOptional) continue; // Skip validation for missing optional fields
+        return { isValid: false, error: `Missing required field: ${fieldPath}` };
+      }
+
+      const result = validate(rule, fieldValue, fieldPath);
+      if (!result.isValid) return result;
     }
+
+    return { isValid: true };
   }
 
-  for (const key of schemaKeys) {
-    const expected = schema[key];
-    const actual = subject[key];
-
-    if (!(key in subject)) {
-      console.warn(`${marianLogHead} Validation failed: Missing key '${key}'`);
-      return false;
-    }
-
-    if (!validateValue(expected, actual, allowExtraFields)) {
-      console.warn(`${marianLogHead} Validation failed: Key '${key}' value mismatch`);
-      return false;
-    }
-  }
-
-  return true;
-}
-
-/**
- * Validate a single value against a schema rule.
- * Handles Constructors, Arrays, Objects, and Literals.
- *
- * @param {any} expected
- * @param {any} actual
- * @param {boolean?} allowExtraFields
- * @returns {boolean}
- */
-export function validateValue(expected, actual, allowExtraFields = undefined) {
-  allowExtraFields = allowExtraFields === true;
-
-  if (expected === String) return typeof actual === 'string';
-  if (expected === Number) return typeof actual === 'number';
-  if (expected === Boolean) return typeof actual === 'boolean';
-
-  // arrays
-  if (Array.isArray(expected)) {
-    if (!Array.isArray(actual)) return false;
-
-    if (expected.length === 0) {
-      return actual.length === 0;
-    }
-
-    // checks if every item in the actual array is of the single type
-    if (expected.length === 1) {
-      const type = expected[0];
-      return actual.every(item => validateValue(type, item, allowExtraFields));
-    }
-
-    // else - fixed structure
-    if (actual.length !== expected.length) return false;
-    return actual.every((item, i) => validateValue(expected[i], item, allowExtraFields));
-  }
-
-  // nested objects
-  if (typeof expected === 'object' && expected !== null) {
-    return validateObject(expected, actual, allowExtraFields);
-  }
-
-  // exact literals
-  return actual === expected;
+  return { isValid: true };
 }
