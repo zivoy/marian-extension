@@ -106,6 +106,8 @@ function showUnsupportedNotification(tab) {
   }
 }
 
+const windowReady = {};
+
 chrome.action.onClicked.addListener((tab) => {
   if (!tab?.url) return;
 
@@ -116,9 +118,7 @@ chrome.action.onClicked.addListener((tab) => {
   }
 
   openSidebar(tab);
-  setTimeout(() => {
-    sendWhenReady({ type: "REFRESH_SIDEBAR", url: tab.url, windowId: tab.windowId });
-  }, 300); // give the sidebar a moment to load
+  windowReady[tab.windowId] = tab.url;
 });
 
 // when tab URL changes in the current active tab
@@ -139,6 +139,11 @@ chrome.tabs.onActivated.addListener(() => {
 // Listen for messages from the content script.
 runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request?.type === "SIDEBAR_READY") {
+    if (request.windowId in windowReady) {
+      sendWhenReady({ type: "REFRESH_SIDEBAR", url: windowReady[request.windowId], windowId: request.windowId });
+      delete windowReady[request.windowId];
+    }
+
     if (typeof request.windowId === "number") {
       activeSidebarWindows.add(request.windowId);
     }
