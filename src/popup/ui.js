@@ -139,6 +139,9 @@ export function renderDetails(details) {
   if (!container) return;
   container.innerHTML = ""; // safety clear 
 
+  const isEmpty = Object.keys(details).length === 0;
+  if (isEmpty) return;
+
   const sideBySideWrapper = document.createElement('div');
   sideBySideWrapper.style.display = 'flex';
   sideBySideWrapper.style.alignItems = 'flex-start';
