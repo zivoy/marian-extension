@@ -149,7 +149,7 @@ runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else {
       sendResponse({ success: false, error: "Invalid tab ID" });
     }
-    return true; // Keep the message channel open for async response
+    return true;
   }
   if (request?.type === "SIDEBAR_READY") {
     if (request.windowId in windowReady) {
