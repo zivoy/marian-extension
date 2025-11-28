@@ -1,5 +1,5 @@
 import { isAllowedUrl } from "../extractors";
-import { tryGetDetails } from "./messaging.js";
+import { tryGetDetails, getCurrentTab } from "./messaging.js";
 import {
   showStatus, showDetails, renderDetails, initSidebarLogger,
   addRefreshButton, updateRefreshButtonForUrl
@@ -15,7 +15,7 @@ function rememberWindowId(windowInfo) {
   }
 }
 
-function notifyBackground(type) {
+function notifyBackground(type, params = {}) {
   if (type === "SIDEBAR_UNLOADED" && typeof sidebarWindowId === "number") {
     chrome.runtime.sendMessage({ type, windowId: sidebarWindowId }, () => {
       void chrome.runtime.lastError;
@@ -26,7 +26,7 @@ function notifyBackground(type) {
   chrome.windows.getCurrent((windowInfo) => {
     rememberWindowId(windowInfo);
     const windowId = typeof sidebarWindowId === "number" ? sidebarWindowId : windowInfo?.id;
-    chrome.runtime.sendMessage({ type, windowId }, () => {
+    chrome.runtime.sendMessage({ type, windowId, ...params }, () => {
       // ignore missing listeners; background may be sleeping in some contexts
       void chrome.runtime.lastError;
     });
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
   if (msg === "ping" || msg?.type === "ping") {
     sendResponse("pong");
     return;
@@ -76,21 +76,25 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   if (msg.type === "REFRESH_SIDEBAR" && isForThisSidebar(msg.windowId) && msg.url && isAllowedUrl(msg.url)) {
     showStatus("Loading details...");
-    tryGetDetails()
-      .then(({ tab, details }) => {
+    let tab = await getCurrentTab();
+    tryGetDetails(tab)
+      .then((details) => {
         showDetails();
         const detailsEl = document.getElementById('details');
         if (detailsEl) detailsEl.innerHTML = "";
         renderDetails(details);
 
-        addRefreshButton(() => {
+        addRefreshButton(async () => {
           showStatus("Refreshing...");
-          tryGetDetails()
-            .then(({ details }) => {
-              showDetails();
-              renderDetails(details);
-            })
-            .catch(err => showStatus(err));
+          tab = await getCurrentTab();
+          try {
+            const details = tryGetDetails(tab)
+            showDetails();
+            renderDetails(details);
+          } catch (err) {
+            notifyBackground("REFRESH_ICON", { tab });
+            showStatus(err);
+          };
         });
 
         setLastFetchedUrl(tab?.url || "");
@@ -100,6 +104,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       })
       .catch(err => {
         showStatus(err);
+        notifyBackground("REFRESH_ICON", { tab });
       });
   }
 

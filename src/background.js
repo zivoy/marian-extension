@@ -138,6 +138,19 @@ chrome.tabs.onActivated.addListener(() => {
 
 // Listen for messages from the content script.
 runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request == undefined) return false;
+
+  if (request.type === "REFRESH_ICON" && request.tab != undefined) {
+    const tabId = request.tab.id;
+    const url = request.tab.url;
+    if (typeof tabId === "number") {
+      updateIcon(tabId, isAllowedUrl(url));
+      sendResponse({ success: true });
+    } else {
+      sendResponse({ success: false, error: "Invalid tab ID" });
+    }
+    return true; // Keep the message channel open for async response
+  }
   if (request?.type === "SIDEBAR_READY") {
     if (request.windowId in windowReady) {
       sendWhenReady({ type: "REFRESH_SIDEBAR", url: windowReady[request.windowId], windowId: request.windowId });

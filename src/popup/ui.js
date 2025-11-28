@@ -1,4 +1,4 @@
-import { tryGetDetails } from "./messaging.js";
+import { tryGetDetails, getCurrentTab } from "./messaging.js";
 import { isAllowedUrl } from "../extractors";
 import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl } from "./utils.js";
 
@@ -346,22 +346,25 @@ export function addRefreshButton(onClick) {
   btn.textContent = 'Refresh details from current tab';
   btn.style.display = 'none';
 
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', async () => {
     if (btn.disabled) return; // bail if not allowed
     showStatus("Refreshing...");
 
-    tryGetDetails()
-      .then(({ tab, details }) => {
-        showDetails();
-        renderDetails(details);
+    const tab = await getCurrentTab();
+    try {
+      const details = await tryGetDetails(tab)
+      showDetails();
+      renderDetails(details);
 
-        // 👇 After refreshing, set last fetched & disable if same tab
-        setLastFetchedUrl(tab?.url || "");
-        chrome.tabs.query({ active: true, currentWindow: true }, ([activeTab]) => {
-          updateRefreshButtonForUrl(activeTab?.url || "");
-        });
-      })
-      .catch(err => showStatus(err));
+      // 👇 After refreshing, set last fetched & disable if same tab
+      setLastFetchedUrl(tab?.url || "");
+      chrome.tabs.query({ active: true, currentWindow: true }, ([activeTab]) => {
+        updateRefreshButtonForUrl(activeTab?.url || "");
+      });
+    } catch (err) {
+      showStatus(err);
+      notifyBackground("REFRESH_ICON", { tab });
+    }
   });
 
   container.prepend(btn);
