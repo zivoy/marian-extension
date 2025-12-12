@@ -308,3 +308,25 @@ export function normalizeReadingFormat(rawFormat) {
 
   return "Physical Book"; // Fallback
 }
+
+/**
+ * collect a list of objects or promises of objects into a single new object
+ * overrides keys based on order of objects in list
+ *
+ * @typedef {Record<string,any>} obj a object
+ * @param {Array<Promise<obj>|obj>|obj|Promise<obj>} items item or items
+ *
+ * @returns {Promise<obj>}
+ */
+export async function collectObject(items) {
+  if (!Array.isArray(items)) return await items;
+
+  const objList = await Promise.all(items);
+
+  let obj = {};
+  objList.forEach((o) => Object.entries(o)
+    .forEach(([k, v]) => obj[k] = v)
+  );
+
+  return obj;
+}

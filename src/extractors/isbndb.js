@@ -1,7 +1,8 @@
 import { Extractor } from './AbstractExtractor.js';
 import {
   logMarian, getFormattedText, getCoverData, remapKeys,
-  addContributor, cleanText
+  addContributor, cleanText,
+  collectObject
 } from '../shared/utils.js';
 
 class isbndbScraper extends Extractor {
@@ -34,9 +35,9 @@ async function getIsbnDbDetails() {
 
   // logMarian("bookDetails", bookDetails);
 
-  return (await Promise.all([
+  return collectObject([
     coverData,
-  ])).reduce((acc, currentVal) => ({ ...acc, ...currentVal }), bookDetails);
+  ]);
 }
 
 async function getCover() {

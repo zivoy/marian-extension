@@ -1,6 +1,6 @@
 // googlebooks.js
 import { Extractor } from './AbstractExtractor.js';
-import { logMarian, getCoverData, cleanText, normalizeReadingFormat } from '../shared/utils.js';
+import { logMarian, getCoverData, cleanText, normalizeReadingFormat, collectObject } from '../shared/utils.js';
 
 // TODO: add support for https://books.google.ca/books
 
@@ -73,10 +73,10 @@ async function getGoogleBooksDetails() {
 
     logMarian("Google Books extraction complete:", bookDetails);
 
-    return {
-        ...(await coverData),
-        ...bookDetails,
-    };
+    return collectObject([
+        coverData,
+        bookDetails,
+    ]);
 }
 
 /**

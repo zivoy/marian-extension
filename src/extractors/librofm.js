@@ -1,5 +1,5 @@
 import { Extractor } from "./AbstractExtractor.js";
-import { addContributor, getCoverData, logMarian, cleanText } from "../shared/utils.js";
+import { addContributor, getCoverData, logMarian, cleanText, collectObject } from "../shared/utils.js";
 
 class librofmScraper extends Extractor {
 	get _name() { return "Libro.fm Extractor"; }
@@ -37,10 +37,10 @@ async function getLibroDetails() {
 	extractLibroDescription(bookDetails);
 
 	logMarian("Libro extraction complete:", bookDetails);
-	return {
-		...(await coverData),
-		...bookDetails,
-	};
+	return collectObject([
+		coverData,
+		bookDetails,
+	]);
 
 }
 

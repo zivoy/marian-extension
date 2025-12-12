@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { addContributor, getCoverData, logMarian, remapKeys, cleanText, normalizeReadingFormat } from '../shared/utils.js';
+import { addContributor, getCoverData, logMarian, remapKeys, cleanText, normalizeReadingFormat, collectObject } from '../shared/utils.js';
 
 class isbndeScraper extends Extractor {
   get _name() { return "ISBN.de Extractor"; }
@@ -33,11 +33,11 @@ async function getIsbnDeDetails() {
 
   // logMarian("bookDetails", { ...bookDetails, ...details });
 
-  return {
-    ...bookDetails,
-    ...details,
-    ...(await coverData)
-  };
+  return collectObject([
+    bookDetails,
+    details,
+    coverData,
+  ]);
 }
 
 function getTitle() {

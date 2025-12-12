@@ -1,7 +1,8 @@
 import { Extractor } from './AbstractExtractor.js';
 import {
   logMarian, sendMessage, getFormattedText, getCoverData, remapKeys,
-  addContributor, cleanText
+  addContributor, cleanText,
+  collectObject
 } from '../shared/utils.js';
 
 const remapings = {
@@ -38,10 +39,10 @@ async function getDnbDeDetails() {
 
   // logMarian("bookDetails", bookDetails);
 
-  return (await Promise.all([
+  return collectObject([
     coverData,
     bookDescription,
-  ])).reduce((acc, currentVal) => ({ ...acc, ...currentVal }), bookDetails);
+  ]);
 }
 
 async function getCover(container) {

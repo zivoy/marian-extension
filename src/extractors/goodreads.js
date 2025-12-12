@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { logMarian, delay, getCoverData, addContributor, cleanText, normalizeReadingFormat } from '../shared/utils.js';
+import { logMarian, delay, getCoverData, addContributor, cleanText, normalizeReadingFormat, collectObject } from '../shared/utils.js';
 
 class goodreadsScraper extends Extractor {
   get _name() { return "GoodReads Extractor"; }
@@ -56,10 +56,10 @@ async function getGoodreadsDetails() {
 
   // logMarian("bookDetails", bookDetails);
 
-  return {
-    ...(await coverData),
-    ...bookDetails,
-  };
+  return collectObject([
+    coverData,
+    bookDetails,
+  ]);
 }
 
 function getHighResImageUrl(src) {

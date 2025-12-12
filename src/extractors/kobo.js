@@ -1,5 +1,5 @@
 import { Extractor } from "./AbstractExtractor.js";
-import { addContributor, getCoverData, logMarian, cleanText, normalizeReadingFormat } from "../shared/utils.js";
+import { addContributor, getCoverData, logMarian, cleanText, normalizeReadingFormat, collectObject } from "../shared/utils.js";
 
 class koboScraper extends Extractor {
     get _name() { return "Kobo Extractor"; }
@@ -42,10 +42,10 @@ async function getKoboDetails() {
     extractKoboDescription(bookDetails);
 
     // logMarian("Kobo extraction complete:", bookDetails);
-    return {
-        ...(await coverData),
-        ...bookDetails,
-    };
+    return collectObject([
+        coverData,
+        bookDetails
+    ]);
 
 }
 

@@ -1,5 +1,5 @@
 import { Extractor } from "./AbstractExtractor.js"
-import { logMarian, getFormattedText, getCoverData, addContributor, cleanText, normalizeReadingFormat } from '../shared/utils.js';
+import { logMarian, getFormattedText, getCoverData, addContributor, cleanText, normalizeReadingFormat, collectObject } from '../shared/utils.js';
 const bookSeriesRegex = /^Book (\d+) of \d+$/i;
 
 const includedLabels = new Set([
@@ -70,11 +70,11 @@ async function getAmazonDetails() {
     bookDetails["Edition Information"] = edition || version;
   }
 
-  const mergedDetails = {
-    ...bookDetails,
-    ...audibleDetails,
-    ...(await coverData),
-  };
+  const mergedDetails = await collectObject([
+    bookDetails,
+    audibleDetails,
+    coverData,
+  ]);
 
   delete mergedDetails.Edition;
   delete mergedDetails.Version;

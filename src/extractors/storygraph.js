@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { logMarian, delay, getCoverData, addContributor, cleanText, normalizeReadingFormat } from '../shared/utils.js';
+import { logMarian, delay, getCoverData, addContributor, cleanText, normalizeReadingFormat, collectObject } from '../shared/utils.js';
 
 class storygraphScraper extends Extractor {
     get _name() { return "StoryGraph Extractor"; }
@@ -13,12 +13,21 @@ class storygraphScraper extends Extractor {
 }
 
 async function getStoryGraphDetails() {
-    const bookDetails = {};
+    const bookDetails = gatherBookDetails();
 
     // Book cover image
     const imgEl = document.querySelector('.book-cover img');
     const metaCover = document.querySelector('head meta[property="og:image"]');
     const coverData = getCoverData([imgEl?.src, metaCover?.content]);
+
+    return collectObject([
+        coverData,
+        bookDetails
+    ]);
+}
+
+async function gatherBookDetails() {
+    const bookDetails = {};
 
     // Source ID
     const sourceId = getStoryGraphBookIdFromUrl(window.location.href);
@@ -44,12 +53,7 @@ async function getStoryGraphDetails() {
     extractEditionInfo(bookDetails);
     await extractEditionDescription(bookDetails);
 
-    // logMarian("bookDetails", bookDetails);
-
-    return {
-        ...(await coverData),
-        ...bookDetails
-    };
+    return bookDetails;
 }
 
 function extractContributors(bookDetails) {
