@@ -29,7 +29,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     };
 
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', send);
+      document.addEventListener('DOMContentLoaded', send, { once: true });
     } else {
       send();
     }
