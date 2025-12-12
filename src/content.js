@@ -4,14 +4,18 @@ import { getStoryGraphDetails } from './extractors/storygraph.js';
 import { getGoogleBooksDetails } from './extractors/googlebooks.js';
 import { getKoboDetails } from './extractors/kobo.js';
 import { getLibroDetails } from './extractors/librofm.js';
-import { getIsbnSearchDetails } from './extractors/isbnsearch.js'
+import { getIsbnSearchDetails } from './extractors/isbnsearch.js';
 import { getIsbnDeDetails } from './extractors/isbnde.js';
 import { getDnbDeDetails } from './extractors/dnbde.js';
 import { getIsbnDbDetails } from './extractors/isbndb.js';
-import { getOverdriveDetails, getLibbyDetails, getTeachingBooksDetails } from './extractors/overdrive.js';
+import {
+  getOverdriveDetails,
+  getLibbyDetails,
+  getTeachingBooksDetails,
+} from './extractors/overdrive.js';
 import { getAudibleDetails } from './extractors/audible.js';
+import { getBarnesAndNobleDetails } from './extractors/barnesnoble.js';
 import { logMarian } from './shared/utils.js';
-
 
 async function getDetails() {
   const url = window.location.href;
@@ -30,6 +34,7 @@ async function getDetails() {
   if (url.includes('overdrive')) return await getOverdriveDetails();
   if (url.includes('teachingbooks')) return await getTeachingBooksDetails();
   if (url.includes('audible')) return await getAudibleDetails();
+  if (url.includes('barnesandnoble')) return await getBarnesAndNobleDetails();
   return {};
 }
 

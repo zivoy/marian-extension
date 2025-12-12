@@ -18,6 +18,7 @@ const ALLOWED_PATTERNS = [
   /https:\/\/share\.libbyapp\.com\/title\/(\d+)/,
   /https:\/\/libbyapp\.com\/.+\/(\d+)/,
   /https:\/\/school\.teachingbooks\.net\/.+?tid=(\d+)/,
+  /https:\/\/(?:www\.)?barnesandnoble\.com\/.+\/(\d+)/,
 ];
 
 export function isAllowedUrl(url) {
