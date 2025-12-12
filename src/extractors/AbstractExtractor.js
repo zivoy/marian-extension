@@ -57,9 +57,10 @@ class Extractor {
 
   /**
    * @returns {Promise<Record<string, any>>}
+   * @abstract
    */
   async getDetails() {
-    throw "Not Implemented"
+    throw new Error("Method 'getDetails()' must be implemented.");
   }
 
   toString() {
