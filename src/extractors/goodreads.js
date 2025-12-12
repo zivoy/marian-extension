@@ -8,18 +8,25 @@ class goodreadsScraper extends Extractor {
   ];
 
   async getDetails() {
-    return getGoodreadsDetails();
+    const sourceId = getGoodreadsBookIdFromUrl(window.location.href);
+    const mappingsPromise = new Promise(r => r(sourceId ? { "Mappings": { "Goodreads": [sourceId] } } : {}));
+
+    const imgEl = document.querySelector('.BookCover__image img');
+    const coverData = getCoverData(imgEl?.src);
+
+    const bookDetails = getGoodreadsDetails();
+
+    return collectObject([
+      coverData,
+      bookDetails,
+      mappingsPromise,
+    ]);
   }
 }
 
 async function getGoodreadsDetails() {
   const bookDetails = {};
 
-  const sourceId = getGoodreadsBookIdFromUrl(window.location.href);
-  if (sourceId) bookDetails["Mappings"] = { "Goodreads": [sourceId] };
-
-  const imgEl = document.querySelector('.BookCover__image img');
-  const coverData = getCoverData(imgEl?.src);
   bookDetails["Title"] = cleanText(document.querySelector('[data-testid="bookTitle"]')?.innerText);
 
   const contributorsButton = document.querySelector('.ContributorLinksList button[aria-label="Show all contributors"]');
@@ -56,10 +63,7 @@ async function getGoodreadsDetails() {
 
   // logMarian("bookDetails", bookDetails);
 
-  return collectObject([
-    coverData,
-    bookDetails,
-  ]);
+  return bookDetails;
 }
 
 function getHighResImageUrl(src) {

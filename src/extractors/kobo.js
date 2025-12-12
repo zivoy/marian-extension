@@ -8,45 +8,40 @@ class koboScraper extends Extractor {
     ];
 
     async getDetails() {
-        return getKoboDetails();
+        const bookDetails = {};
+
+        // image and imageScore
+        const imggrab = document.querySelector('.item-image .image-actions img.cover-image');
+        const coverData = getCoverData(imggrab?.src); //, getHighResImageUrl(imggrab?.src)]) -- this function is not doing anything -- skipping
+
+        // Source ID
+        // const sourceId = getKoboIdFromUrl(window.location.href);
+        // if (sourceId) bookDetails["Mappings"] = { "Kobo": [sourceId] };
+
+        // Title
+        getKoboBookTitle(bookDetails);
+
+        // Series name and number
+        getKoboSeries(bookDetails);
+
+        // Contributors
+        extractKoboContributors(bookDetails);
+
+        //get format and length
+        getKoboFormatInfo(bookDetails, window.location.href)
+
+        // get extra block of info - isbn, language, etc.
+        extraKoboInfo(bookDetails);
+
+        // Description
+        extractKoboDescription(bookDetails);
+
+        // logMarian("Kobo extraction complete:", bookDetails);
+        return collectObject([
+            coverData,
+            bookDetails
+        ]);
     }
-}
-
-async function getKoboDetails() {
-    const bookDetails = {};
-
-    // image and imageScore
-    const imggrab = document.querySelector('.item-image .image-actions img.cover-image');
-    const coverData = getCoverData(imggrab?.src); //, getHighResImageUrl(imggrab?.src)]) -- this function is not doing anything -- skipping
-
-    // Source ID
-    // const sourceId = getKoboIdFromUrl(window.location.href);
-    // if (sourceId) bookDetails["Mappings"] = { "Kobo": [sourceId] };
-
-    // Title
-    getKoboBookTitle(bookDetails);
-
-    // Series name and number
-    getKoboSeries(bookDetails);
-
-    // Contributors
-    extractKoboContributors(bookDetails);
-
-    //get format and length
-    getKoboFormatInfo(bookDetails, window.location.href)
-
-    // get extra block of info - isbn, language, etc.
-    extraKoboInfo(bookDetails);
-
-    // Description
-    extractKoboDescription(bookDetails);
-
-    // logMarian("Kobo extraction complete:", bookDetails);
-    return collectObject([
-        coverData,
-        bookDetails
-    ]);
-
 }
 
 // seems like a thing we do

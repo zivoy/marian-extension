@@ -8,40 +8,35 @@ class librofmScraper extends Extractor {
 	];
 
 	async getDetails() {
-		return getLibroDetails();
+		const bookDetails = {};
+
+		const imggrab = document.querySelector('.audiobook-cover .book-cover-wrap img.book-cover');
+		const coverData = getCoverData(imggrab?.src);
+
+		// Title
+		getLibroBookTitle(bookDetails);
+
+		// Series name and number
+		getLibroSeries(bookDetails);
+
+		// Contributors
+		extractLibroContributors(bookDetails);
+
+		//get format and length
+		getLibroFormatInfo(bookDetails, window.location.href)
+
+		// get extra block of info - isbn, language, etc.
+		extraLibroInfo(bookDetails);
+
+		// Description
+		extractLibroDescription(bookDetails);
+
+		logMarian("Libro extraction complete:", bookDetails);
+		return collectObject([
+			coverData,
+			bookDetails,
+		]);
 	}
-}
-
-async function getLibroDetails() {
-	const bookDetails = {};
-
-	const imggrab = document.querySelector('.audiobook-cover .book-cover-wrap img.book-cover');
-	const coverData = getCoverData(imggrab?.src);
-
-	// Title
-	getLibroBookTitle(bookDetails);
-
-	// Series name and number
-	getLibroSeries(bookDetails);
-
-	// Contributors
-	extractLibroContributors(bookDetails);
-
-	//get format and length
-	getLibroFormatInfo(bookDetails, window.location.href)
-
-	// get extra block of info - isbn, language, etc.
-	extraLibroInfo(bookDetails);
-
-	// Description
-	extractLibroDescription(bookDetails);
-
-	logMarian("Libro extraction complete:", bookDetails);
-	return collectObject([
-		coverData,
-		bookDetails,
-	]);
-
 }
 
 function extractLibroContributors(bookDetails) {

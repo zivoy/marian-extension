@@ -24,25 +24,21 @@ class dnbdeScraper extends Extractor {
   ];
 
   async getDetails() {
-    return getDnbDeDetails();
+    const container = document.querySelector("#fullRecordTable");
+    if (!container) return null;
+
+    const coverData = getCover(container);
+
+    const bookDetails = extractTable(container)
+    const bookDescription = getDescription(bookDetails);
+
+    // logMarian("bookDetails", bookDetails);
+
+    return collectObject([
+      coverData,
+      bookDescription,
+    ]);
   }
-}
-
-async function getDnbDeDetails() {
-  const container = document.querySelector("#fullRecordTable");
-  if (!container) return null;
-
-  const coverData = getCover(container);
-
-  const bookDetails = extractTable(container)
-  const bookDescription = getDescription(bookDetails);
-
-  // logMarian("bookDetails", bookDetails);
-
-  return collectObject([
-    coverData,
-    bookDescription,
-  ]);
 }
 
 async function getCover(container) {

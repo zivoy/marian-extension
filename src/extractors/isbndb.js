@@ -12,7 +12,18 @@ class isbndbScraper extends Extractor {
   ];
 
   async getDetails() {
-    return getIsbnDbDetails();
+    const container = document.querySelector(".book-table table");
+    if (!container) return null;
+
+    const coverData = getCover(container);
+
+    const bookDetails = extractTable(container)
+
+    // logMarian("bookDetails", bookDetails);
+
+    return collectObject([
+      coverData,
+    ]);
   }
 }
 
@@ -24,21 +35,6 @@ const remapings = {
   "Full Title": "Title",
 }
 const nameRemap = remapKeys.bind(undefined, remapings);
-
-async function getIsbnDbDetails() {
-  const container = document.querySelector(".book-table table");
-  if (!container) return null;
-
-  const coverData = getCover(container);
-
-  const bookDetails = extractTable(container)
-
-  // logMarian("bookDetails", bookDetails);
-
-  return collectObject([
-    coverData,
-  ]);
-}
 
 async function getCover() {
   /**@type{string|null}*/

@@ -8,7 +8,27 @@ class isbnSearchScraper extends Extractor {
   ];
 
   async getDetails() {
-    return getIsbnSearchDetails();
+    const imgEl = document.querySelector('.image img');
+    const coverData = getCoverData(imgEl?.src);
+
+    const details = extractTable()
+    const bookDetails = nameRemap(details);
+
+    getContributers(bookDetails);
+
+    // Treat as local time when parsing
+    bookDetails['Publication date'] = bookDetails['Publication date'] + "T00:00:00";
+
+    bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails["Edition Format"]);
+
+    // TODO: get language from ISBN
+
+    // logMarian("bookDetails", bookDetails);
+
+    return collectObject([
+      coverData,
+      bookDetails,
+    ]);
   }
 }
 
@@ -18,30 +38,6 @@ const remapings = {
   'Published': 'Publication date'
 }
 const nameRemap = remapKeys.bind(undefined, remapings);
-
-async function getIsbnSearchDetails() {
-  const imgEl = document.querySelector('.image img');
-  const coverData = getCoverData(imgEl?.src);
-
-  const details = extractTable()
-  const bookDetails = nameRemap(details);
-
-  getContributers(bookDetails);
-
-  // Treat as local time when parsing
-  bookDetails['Publication date'] = bookDetails['Publication date'] + "T00:00:00";
-
-  bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails["Edition Format"]);
-
-  // TODO: get language from ISBN
-
-  // logMarian("bookDetails", bookDetails);
-
-  return collectObject([
-    coverData,
-    bookDetails,
-  ]);
-}
 
 function getContributers(bookDetails) {
   const contributors = [];

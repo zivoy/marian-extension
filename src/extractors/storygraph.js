@@ -8,22 +8,18 @@ class storygraphScraper extends Extractor {
     ];
 
     async getDetails() {
-        return getStoryGraphDetails();
+        const bookDetails = gatherBookDetails();
+
+        // Book cover image
+        const imgEl = document.querySelector('.book-cover img');
+        const metaCover = document.querySelector('head meta[property="og:image"]');
+        const coverData = getCoverData([imgEl?.src, metaCover?.content]);
+
+        return collectObject([
+            coverData,
+            bookDetails
+        ]);
     }
-}
-
-async function getStoryGraphDetails() {
-    const bookDetails = gatherBookDetails();
-
-    // Book cover image
-    const imgEl = document.querySelector('.book-cover img');
-    const metaCover = document.querySelector('head meta[property="og:image"]');
-    const coverData = getCoverData([imgEl?.src, metaCover?.content]);
-
-    return collectObject([
-        coverData,
-        bookDetails
-    ]);
 }
 
 async function gatherBookDetails() {

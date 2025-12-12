@@ -11,20 +11,25 @@ class googleBooksScraper extends Extractor {
     ];
 
     async getDetails() {
-        return getGoogleBooksDetails();
+        // Store the source ID
+        const sourceId = getGoogleBooksIdFromUrl(window.location.href);
+        const mappingsPromise = new Promise(r => r(sourceId ? { "Mappings": { "Google Books": [sourceId] } } : {}));
+
+        // Extract cover image using volume ID
+        const coverData = getCoverData(getGoogleBooksCoverUrl(sourceId));
+
+        const bookDetails = getGoogleBooksDetails();
+
+        return collectObject([
+            coverData,
+            bookDetails,
+            mappingsPromise,
+        ]);
     }
 }
 
-async function getGoogleBooksDetails() {
+function getGoogleBooksDetails() {
     const bookDetails = {};
-
-
-    // Store the source ID
-    const sourceId = getGoogleBooksIdFromUrl(window.location.href);
-    if (sourceId) bookDetails["Mappings"] = { "Google Books": [sourceId] };
-
-    // Extract cover image using volume ID
-    const coverData = getCoverData(getGoogleBooksCoverUrl(sourceId));
 
     // Extract title
     bookDetails["Title"] = getGoogleBookTitle();
@@ -73,10 +78,7 @@ async function getGoogleBooksDetails() {
 
     logMarian("Google Books extraction complete:", bookDetails);
 
-    return collectObject([
-        coverData,
-        bookDetails,
-    ]);
+    return bookDetails;
 }
 
 /**

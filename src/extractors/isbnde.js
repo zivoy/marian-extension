@@ -8,7 +8,23 @@ class isbndeScraper extends Extractor {
   ];
 
   async getDetails() {
-    return getIsbnDeDetails();
+    const bookDetails = {};
+
+    const coverData = getCover();
+    bookDetails["Title"] = getTitle();
+    bookDetails["Description"] = getDescription() || "";
+
+    const details = extractTable()
+
+    // TODO: get language from ISBN
+
+    // logMarian("bookDetails", { ...bookDetails, ...details });
+
+    return collectObject([
+      bookDetails,
+      details,
+      coverData,
+    ]);
   }
 }
 
@@ -19,26 +35,6 @@ const remapings = {
   "Rubrik": "Category",
 }
 const nameRemap = remapKeys.bind(undefined, remapings);
-
-async function getIsbnDeDetails() {
-  const bookDetails = {};
-
-  const coverData = getCover();
-  bookDetails["Title"] = getTitle();
-  bookDetails["Description"] = getDescription() || "";
-
-  const details = extractTable()
-
-  // TODO: get language from ISBN
-
-  // logMarian("bookDetails", { ...bookDetails, ...details });
-
-  return collectObject([
-    bookDetails,
-    details,
-    coverData,
-  ]);
-}
 
 function getTitle() {
   const container = document.querySelector(".isbnhead");
