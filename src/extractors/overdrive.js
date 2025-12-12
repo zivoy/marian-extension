@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { logMarian, getFormattedText, delay } from '../shared/utils.js';
+import { logMarian, getFormattedText, delay, normalizeReadingFormat } from '../shared/utils.js';
 
 class overdriveScraper extends Extractor {
   get _name() { return "Overdrive Extractor"; }
@@ -152,6 +152,8 @@ async function getDetailsFromOverdriveId(id) {
   // format
   details["Edition Format"] = data.type?.name; // eBook most of the time
   details["Edition Information"] = data.edition;
+
+  details["Reading Format"] = normalizeReadingFormat(details["Edition Format"]);
 
   // publisher
   details["Publisher"] = data.publisher?.name;
