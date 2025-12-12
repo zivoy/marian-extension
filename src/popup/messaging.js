@@ -84,6 +84,7 @@ Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a
 
       const extractor = getExtractor(tab?.url || "");
       const wantsReload = extractor != undefined && extractor.needsReload;
+      // FIXME: when this is false sometimes you have to click the button twice
 
       if (!injectRefresh) {
         injectRefresh = true;
