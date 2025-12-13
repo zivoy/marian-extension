@@ -41,7 +41,7 @@ export async function getCurrentTab() {
   * @param {chrome.tabs.Tab} tab 
   * @param {number} [retries=8] number of time to retry
   * @param {number} [delay=300] delay in ms
-  * @returns {{tab: any details: Record<string,any>}}
+  * @returns {Promise<{tab: any, details: Record<string,any>}>}
   */
 export async function tryGetDetails(tab, retries = 8, delay = 300) {
   let injectRefresh = false;
@@ -53,11 +53,7 @@ export async function tryGetDetails(tab, retries = 8, delay = 300) {
     }
 
     async function attempt(remaining) {
-      if (tab.status !== 'complete') {
-        console.log('Tab is still loading, delaying content-script ping...');
-        setTimeout(() => attempt(remaining), delay);
-        return;
-      }
+      tab = await waitForTabToComplete(tab.id)
 
       const pingResp = await chrome.tabs.sendMessage(tab.id, 'ping').catch(() => undefined);
       console.log('Ping response:', pingResp, 'Remaining attempts:', remaining);
@@ -136,5 +132,36 @@ Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a
       });
     }
     attempt(retries);
+  });
+}
+
+/**
+ * Waits for a specific tab to reach the 'complete' status.
+ *
+ * This function first checks the current status of the tab. If it is already
+ * complete, it resolves immediately. Otherwise, it sets up a one-time listener
+ * on `chrome.tabs.onUpdated` to resolve when the status changes to 'complete'.
+ *
+ * @param {number} tabId - The unique ID of the tab to wait for.
+ * @returns {Promise<chrome.tabs.Tab>} A promise that resolves with the fully loaded Tab object.
+ */
+function waitForTabToComplete(tabId) {
+  return new Promise((resolve) => {
+    // get the current status just in case it finished loading
+    chrome.tabs.get(tabId, (tab) => {
+      if (tab.status === 'complete') {
+        resolve(tab);
+      } else {
+        // not complete, wait for the "complete" update
+        function listener(updatedTabId, changeInfo, updatedTab) {
+          if (updatedTabId === tabId && changeInfo.status === 'complete') {
+            // clean up
+            chrome.tabs.onUpdated.removeListener(listener);
+            resolve(updatedTab);
+          }
+        };
+        chrome.tabs.onUpdated.addListener(listener);
+      }
+    });
   });
 }
