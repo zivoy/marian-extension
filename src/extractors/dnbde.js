@@ -1,6 +1,6 @@
 import { Extractor } from './AbstractExtractor.js';
 import {
-  logMarian, sendMessage, getFormattedText, getCoverData, remapKeys,
+  logMarian, runtime, getFormattedText, getCoverData, remapKeys,
   addContributor, cleanText,
   collectObject
 } from '../shared/utils.js';
@@ -179,7 +179,7 @@ async function getDescription(bookDetails) {
 
   const url = new URL(link);
   url.protocol = "https:"; // have to be done
-  const res = await sendMessage({
+  const res = await runtime.sendMessage({
     action: 'fetchDepositData',
     url: url.toString()
   });

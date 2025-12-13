@@ -93,12 +93,6 @@ export function getFormattedText(element) {
   // return cleanText(result);
 }
 
-export function sendMessage(message) {
-  return new Promise(async (resolve) => {
-    await runtime.sendMessage(message, resolve);
-  });
-}
-
 const deepQueryCache = new Map();
 
 /**
