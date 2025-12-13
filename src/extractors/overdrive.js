@@ -25,7 +25,7 @@ class overdriveScraper extends Extractor {
       // add it so next time it won't be tried 
       this.notSupported.add(window.location.href);
       await this._saveState({ notSupported: Array.from(this.notSupported) });
-      throw "Id not found";
+      throw new Error(`Overdrive ID not found for URL: ${window.location.href}`);
     }
     return getDetailsFromOverdriveId(id);
   }
@@ -56,7 +56,7 @@ class libbyScraper extends Extractor {
       }
     }
 
-    if (id == undefined) throw "Id not found";
+    if (id == undefined) throw new Error(`Overdrive ID not found for URL: ${window.location.href}`);
     return getDetailsFromOverdriveId(id);
   }
 }
@@ -85,7 +85,7 @@ class teachingbooksScraper extends Extractor {
       // add it so next time it won't be tried 
       this.notSupported.add(window.location.href);
       await this._saveState({ notSupported: Array.from(this.notSupported) });
-      throw "Id not found";
+      throw new Error(`Overdrive ID not found for URL: ${window.location.href}`);
     }
     return getDetailsFromOverdriveId(idMatch[1]);
   }
@@ -101,11 +101,11 @@ async function getDetailsFromOverdriveId(id) {
 
   const req = await fetch(url);
   if (!req.ok) {
-    throw "Failed to retrive data from api";  // failed to retrieve data
+    throw new Error(`Failed to retrieve data from Overdrive API: (${req.status}) ${req.statusText}`); // failed to retrieve data
   }
   let data = await req.json();
   if (data.length < 1) {
-    throw "Data not found"
+    throw new Error("No data returned from Overdrive API");
   }
   data = data[0];
 
