@@ -164,7 +164,7 @@ export function renderDetails(details) {
         details['ISBN-13'] ||
         details['ISBN-10'] ||
         details['ASIN'] ||
-        details['Mappings'] ||
+        Object.values(details['Mappings'] || {})[0] ||
         details['Title'] ||
         Date.now();
       downloadImage(details.img, fallbackId);
