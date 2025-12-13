@@ -1,8 +1,10 @@
 // googlebooks.js
 import { Extractor } from './AbstractExtractor.js';
-import { logMarian, getCoverData, cleanText, normalizeReadingFormat, collectObject } from '../shared/utils.js';
+import { logMarian, getCoverData, cleanText, normalizeReadingFormat, collectObject, queryDeep, queryAllDeep } from '../shared/utils.js';
 
-// TODO: add support for https://books.google.ca/books
+// TODO: add support for https://books.google.ca/books (classic google books)
+
+const KNOWN_HOSTS = ['g-expandable-content'];
 
 class googleBooksScraper extends Extractor {
     get _name() { return "Google Books Extractor"; }
@@ -87,7 +89,7 @@ function getGoogleBooksDetails() {
  */
 function getGoogleBookTitle() {
     try {
-        const titleEl = document.querySelector('div.zNLTKd[aria-level="1"][role="heading"]');
+        const titleEl = queryDeep('div.zNLTKd[aria-level="1"][role="heading"]', KNOWN_HOSTS);
         return cleanText(titleEl?.textContent);
     } catch (error) {
         console.error("Error extracting Google Book title:", error);
@@ -100,7 +102,7 @@ function getGoogleBookTitle() {
  * @returns {{ isbn10: string|null, isbn13: string|null }}
  */
 function extractIsbns() {
-    const containers = document.querySelectorAll("div.zloOqf.PZPZlf");
+    const containers = queryAllDeep("div.zloOqf.PZPZlf", KNOWN_HOSTS);
 
     for (const container of containers) {
         const label = container.querySelector(".w8qArf");
@@ -131,7 +133,7 @@ function extractIsbns() {
  */
 function getGoogleBookReleaseDate() {
     try {
-        const allDetailBlocks = Array.from(document.querySelectorAll("div.zloOqf.PZPZlf"));
+        const allDetailBlocks = Array.from(queryAllDeep("div.zloOqf.PZPZlf", KNOWN_HOSTS));
 
         for (const block of allDetailBlocks) {
             const labelSpan = block.querySelector("span.w8qArf");
@@ -156,7 +158,7 @@ function getGoogleBookReleaseDate() {
  */
 function getGoogleBookPublisher() {
     try {
-        const allDetailBlocks = Array.from(document.querySelectorAll("div.zloOqf.PZPZlf"));
+        const allDetailBlocks = Array.from(queryAllDeep("div.zloOqf.PZPZlf", KNOWN_HOSTS));
 
         for (const block of allDetailBlocks) {
             const labelSpan = block.querySelector("span.w8qArf");
@@ -182,7 +184,7 @@ function getGoogleBookPublisher() {
  */
 function getGoogleBookLanguage() {
     try {
-        const labelNodes = Array.from(document.querySelectorAll("div.zloOqf.PZPZlf"));
+        const labelNodes = Array.from(queryAllDeep("div.zloOqf.PZPZlf", KNOWN_HOSTS));
 
         for (const node of labelNodes) {
             const label = node.querySelector("span.w8qArf")?.textContent?.trim();
@@ -205,7 +207,7 @@ function getGoogleBookLanguage() {
  */
 function getGoogleBookPageCount() {
     try {
-        const labelNodes = Array.from(document.querySelectorAll("div.zloOqf.PZPZlf"));
+        const labelNodes = Array.from(queryAllDeep("div.zloOqf.PZPZlf", KNOWN_HOSTS));
 
         for (const node of labelNodes) {
             const label = node.querySelector("span.w8qArf")?.textContent?.trim();
@@ -234,7 +236,7 @@ function getGoogleBookPageCount() {
 function getGoogleBookDescription() {
     try {
         // NOTE: this seems very fragile, if the class name changes then this breaks 
-        const descriptionContainer = document.querySelector("g-expandable-content[data-eb='0'] div.Y0Qrof");
+        const descriptionContainer = queryDeep("g-expandable-content[data-eb='0'] div.Y0Qrof", KNOWN_HOSTS);
         if (!descriptionContainer) {
             return "";
         }
@@ -253,7 +255,7 @@ function getGoogleBookDescription() {
  */
 function getGoogleBookReadingFormat() {
     try {
-        const formatContainer = [...document.querySelectorAll("div.zloOqf.PZPZlf")]
+        const formatContainer = [...queryAllDeep("div.zloOqf.PZPZlf", KNOWN_HOSTS)]
             .find((div) => div.querySelector("span.w8qArf")?.textContent.includes("Format"));
 
         if (!formatContainer) {
@@ -293,7 +295,7 @@ function getGoogleBookReadingFormat() {
  */
 function getGoogleBookAuthors() {
     try {
-        const authorContainer = Array.from(document.querySelectorAll("div.zloOqf.PZPZlf"))
+        const authorContainer = Array.from(queryAllDeep("div.zloOqf.PZPZlf", KNOWN_HOSTS))
             .find((div) => div.textContent.trim().toLowerCase().startsWith("author"));
 
         if (!authorContainer) {

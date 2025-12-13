@@ -77,6 +77,8 @@ class Extractor {
     obj[this._storage_name] = state;
     await storageAPI?.local?.set(obj);
   }
+
+  // NOTE: maybe add extraction functions into methods on the class
 }
 
 export { Extractor };
