@@ -1,4 +1,3 @@
-// TODO: try to not have this be imported to reduce output side
 import { getExtractor } from "../extractors/index.js";
 import { showStatus } from "./ui.js";
 
@@ -80,7 +79,6 @@ Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a
 
       const extractor = getExtractor(tab?.url || "");
       const wantsReload = extractor != undefined && extractor.needsReload;
-      // FIXME: when this is false sometimes you have to click the button twice
 
       if (!injectRefresh) {
         injectRefresh = true;
