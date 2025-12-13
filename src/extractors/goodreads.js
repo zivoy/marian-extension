@@ -4,7 +4,7 @@ import { logMarian, delay, getCoverData, addContributor, cleanText, normalizeRea
 class goodreadsScraper extends Extractor {
   get _name() { return "GoodReads Extractor"; }
   _sitePatterns = [
-    /https:\/\/www\.goodreads\.[a-z.]+\/book\/show\/\d+(-[a-zA-Z0-9-]+)?/,
+    /https:\/\/www\.goodreads\.[a-z.]+\/(?:\w+\/)?book\/show\/\d+(-[a-zA-Z0-9-]+)?/,
   ];
 
   async getDetails() {
@@ -160,7 +160,7 @@ function extractSeriesInfo(bookDetails) {
  * Extracts the Goodreads book ID from a Goodreads book URL.
  */
 function getGoodreadsBookIdFromUrl(url) {
-  const regex = /goodreads\.com\/book\/show\/(\d+)(?:[.\-/]|$)/i;
+  const regex = /goodreads\.com\/(?:\w+\/)?book\/show\/(\d+)(?:[.\-/]|$)/i;
   const match = url.match(regex);
   return match ? match[1] : null;
 }
