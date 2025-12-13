@@ -41,7 +41,7 @@ function isForThisSidebar(messageWindowId) {
 
 document.addEventListener("DOMContentLoaded", () => {
   notifyBackground("SIDEBAR_READY");
-  window.addEventListener("unload", () => notifyBackground("SIDEBAR_UNLOADED"));
+  window.addEventListener("pagehide", () => notifyBackground("SIDEBAR_UNLOADED"));
 
   chrome.windows.getCurrent(rememberWindowId);
 

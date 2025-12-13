@@ -118,7 +118,19 @@ chrome.action.onClicked.addListener((tab) => {
   }
 
   openSidebar(tab);
-  windowReady[tab.windowId] = tab.url;
+
+  // wait for pane before requesting a refresh
+  new Promise((ready) => {
+    if (activeSidebarWindows.has(tab.windowId)) {
+      // exit early if already open
+      ready();
+      return;
+    }
+
+    windowReady[tab.windowId] = ready;
+  }).then(() => {
+    sendWhenReady({ type: "REFRESH_SIDEBAR", url: tab.url, windowId: tab.windowId });
+  })
 });
 
 // when tab URL changes in the current active tab
@@ -153,7 +165,7 @@ runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   if (request?.type === "SIDEBAR_READY") {
     if (request.windowId in windowReady) {
-      sendWhenReady({ type: "REFRESH_SIDEBAR", url: windowReady[request.windowId], windowId: request.windowId });
+      windowReady[request.windowId]();
       delete windowReady[request.windowId];
     }
 
