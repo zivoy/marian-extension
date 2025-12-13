@@ -22,6 +22,7 @@ class isbndbScraper extends Extractor {
     // logMarian("bookDetails", bookDetails);
 
     return collectObject([
+      bookDetails,
       coverData,
     ]);
   }

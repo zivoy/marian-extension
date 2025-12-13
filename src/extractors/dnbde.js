@@ -35,6 +35,7 @@ class dnbdeScraper extends Extractor {
     // logMarian("bookDetails", bookDetails);
 
     return collectObject([
+      bookDetails,
       coverData,
       bookDescription,
     ]);

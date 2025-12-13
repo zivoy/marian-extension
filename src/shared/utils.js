@@ -324,9 +324,15 @@ export async function collectObject(items) {
   const objList = await Promise.all(items);
 
   let obj = {};
-  objList.forEach((o) => Object.entries(o)
-    .forEach(([k, v]) => obj[k] = v)
-  );
+  for (let i = 0; i < objList.length; i += 1) {
+    const elm = objList[i];
+    if (elm == undefined) {
+      logMarian(`WARN: element number ${i} is ${elm}`)
+      continue;
+    }
+    Object.entries(elm)
+      .forEach(([k, v]) => obj[k] = v);
+  }
 
   return obj;
 }
