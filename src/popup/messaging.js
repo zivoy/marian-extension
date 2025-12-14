@@ -43,7 +43,8 @@ export async function getCurrentTab() {
   * @returns {Promise<{tab: any, details: Record<string,any>}>}
   */
 export async function tryGetDetails(tab, retries = 8, delay = 300) {
-  let injectRefresh = false;
+  let hasReloaded = false;
+  let hasInjected = false;
 
   return await new Promise((resolve, reject) => {
     if (!tab?.id) {
@@ -58,33 +59,17 @@ export async function tryGetDetails(tab, retries = 8, delay = 300) {
       console.log('Ping response:', pingResp, 'Remaining attempts:', remaining);
       const pingFail = chrome.runtime.lastError || pingResp !== 'pong';
 
-      if (pingFail && injectRefresh) {
+      if (pingFail) {
         if (chrome.runtime.lastError) {
           console.error('Content script not ready:', chrome.runtime.lastError.message);
         }
 
-        if (remaining > 0) {
-          setTimeout(() => attempt(remaining - 1), delay);
-          return;
-        }
+        const extractor = getExtractor(tab?.url || "");
+        const wantsReload = extractor != undefined && extractor.needsReload;
 
-        console.log('All attempts exhausted. Content script not responding.');
-        const issueUrl = buildIssueUrl(tab?.url || '(unknown URL)');
-        reject(`
-This site is supported, but either this page isn't yet or you've encountered an error.<br/><br/>
-Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a> the full URL of this page so we can add support!
-`);
-        return;
-      }
-
-      const extractor = getExtractor(tab?.url || "");
-      const wantsReload = extractor != undefined && extractor.needsReload;
-
-      if (!injectRefresh) {
-        injectRefresh = true;
-        if (wantsReload) {
-          // showStatus("Content script not ready, refreshing tab...");
-          chrome.tabs.reload(tab.id, { bypassCache: true }); // issue might be here
+        if (wantsReload && !hasReloaded) {
+          hasReloaded = true;
+          chrome.tabs.reload(tab.id, { bypassCache: true });
           showStatus("Tab reloaded, fetching details...");
 
           const onUpdated = (updatedTabId, info) => {
@@ -96,12 +81,15 @@ Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a
           };
           chrome.tabs.onUpdated.addListener(onUpdated);
           return;
-        } else if (pingFail) { // only inject if pinging failed
+        }
+
+        if (!hasInjected) {
           console.log("injecting new script");
+          hasInjected = true;
           await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             files: ['content.js']
-          }).catch();
+          }).catch(() => { });
           const error = chrome.runtime.lastError;
 
           if (error) {
@@ -119,6 +107,19 @@ Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a
           }, 100);
           return;
         }
+
+        if (remaining > 0) {
+          setTimeout(() => attempt(remaining - 1), delay);
+          return;
+        }
+
+        console.log('All attempts exhausted. Content script not responding.');
+        const issueUrl = buildIssueUrl(tab?.url || '(unknown URL)');
+        reject(`
+This site is supported, but either this page isn't yet or you've encountered an error.<br/><br/>
+Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a> the full URL of this page so we can add support!
+`);
+        return;
       }
 
       chrome.tabs.sendMessage(tab.id, 'getDetails', (details) => {
