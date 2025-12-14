@@ -28,60 +28,56 @@ class amazonScraper extends Extractor {
   ];
 
   async getDetails() {
-    return getAmazonDetails();
-  }
-}
+    const coverData = getCover();
+    const bookDetails = getDetailBullets();
+    const audibleDetails = getAudibleDetails();
+    const contributors = extractAmazonContributors();
 
-async function getAmazonDetails() {
-  const coverData = getCover();
-  const bookDetails = getDetailBullets();
-  const audibleDetails = getAudibleDetails();
-  const contributors = extractAmazonContributors();
+    bookDetails["Edition Format"] = getSelectedFormat() || '';
+    bookDetails["Title"] = document.querySelector('#productTitle')?.innerText.trim();
+    bookDetails["Description"] = getBookDescription() || '';
+    bookDetails["Contributors"] = contributors;
 
-  bookDetails["Edition Format"] = getSelectedFormat() || '';
-  bookDetails["Title"] = document.querySelector('#productTitle')?.innerText.trim();
-  bookDetails["Description"] = getBookDescription() || '';
-  bookDetails["Contributors"] = contributors;
+    // TODO: get the goodreads id for the novel
 
-  // TODO: get the goodreads id for the novel
-
-  bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails["Edition Format"]);
-  if (bookDetails['Reading Format'] === 'Ebook') {
-    // Normalize `Kindle Edition` to to `Kindle` like it is on amazon.com 
-    bookDetails["Edition Format"] = "Kindle";
-  }
-
-  // combined publisher date
-  const pubDate = bookDetails["Publisher"]?.match(/^(?<pub>[^(;]+?)(?:; (?<edition>[\w ]+))? \((?<date>\d{1,2} \w+ \d{4})\)$/);
-  if (pubDate != undefined) {
-    bookDetails["Publisher"] = pubDate.groups["pub"].trim();
-    bookDetails["Publication date"] = pubDate.groups["date"];
-    if (pubDate.groups["edition"]) {
-      bookDetails["Edition Information"] = pubDate.groups["edition"].trim();
+    bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails["Edition Format"]);
+    if (bookDetails['Reading Format'] === 'Ebook') {
+      // Normalize `Kindle Edition` to to `Kindle` like it is on amazon.com 
+      bookDetails["Edition Format"] = "Kindle";
     }
+
+    // combined publisher date
+    const pubDate = bookDetails["Publisher"]?.match(/^(?<pub>[^(;]+?)(?:; (?<edition>[\w ]+))? \((?<date>\d{1,2} \w+ \d{4})\)$/);
+    if (pubDate != undefined) {
+      bookDetails["Publisher"] = pubDate.groups["pub"].trim();
+      bookDetails["Publication date"] = pubDate.groups["date"];
+      if (pubDate.groups["edition"]) {
+        bookDetails["Edition Information"] = pubDate.groups["edition"].trim();
+      }
+    }
+
+    // Fill in Edition Info from Version or Edition
+    const version = bookDetails['Version'] || audibleDetails['Version'];
+    const edition = bookDetails["Edition"];
+    if (!!version && !!edition) { // if both edition and version are present mix them
+      bookDetails["Edition Information"] = `${edition}; ${version}`;
+    } else { // otherwise pick one or leave it undefined if neither exist
+      bookDetails["Edition Information"] = edition || version;
+    }
+
+    const mergedDetails = await collectObject([
+      bookDetails,
+      audibleDetails,
+      coverData,
+    ]);
+
+    delete mergedDetails.Edition;
+    delete mergedDetails.Version;
+
+    // logMarian("details", mergedDetails);
+
+    return mergedDetails;
   }
-
-  // Fill in Edition Info from Version or Edition
-  const version = bookDetails['Version'] || audibleDetails['Version'];
-  const edition = bookDetails["Edition"];
-  if (!!version && !!edition) { // if both edition and version are present mix them
-    bookDetails["Edition Information"] = `${edition}; ${version}`;
-  } else { // otherwise pick one or leave it undefined if neither exist
-    bookDetails["Edition Information"] = edition || version;
-  }
-
-  const mergedDetails = await collectObject([
-    bookDetails,
-    audibleDetails,
-    coverData,
-  ]);
-
-  delete mergedDetails.Edition;
-  delete mergedDetails.Version;
-
-  // logMarian("details", mergedDetails);
-
-  return mergedDetails;
 }
 
 async function getCover() {
