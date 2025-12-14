@@ -76,7 +76,7 @@ export async function tryGetDetails(tab, retries = 8, delay = 300) {
             if (updatedTabId === tab.id && info.status === 'complete') {
               chrome.tabs.onUpdated.removeListener(onUpdated);
               console.log(retries, 'Tab reloaded, fetching details again...');
-              setTimeout(() => attempt(retries), 350);
+              setTimeout(() => attempt(retries), 50);
             }
           };
           chrome.tabs.onUpdated.addListener(onUpdated);
@@ -104,7 +104,7 @@ export async function tryGetDetails(tab, retries = 8, delay = 300) {
           setTimeout(() => {
             console.log(retries, 'Script injected manually, retrying...');
             attempt(retries);
-          }, 100);
+          }, 50);
           return;
         }
 
