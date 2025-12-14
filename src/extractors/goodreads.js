@@ -8,9 +8,6 @@ class goodreadsScraper extends Extractor {
   ];
 
   async getDetails() {
-    const sourceId = getGoodreadsBookIdFromUrl(window.location.href);
-    const mappingsPromise = new Promise(r => r(sourceId ? { "Mappings": { "Goodreads": [sourceId] } } : {}));
-
     const imgEl = document.querySelector('.BookCover__image img');
     const coverData = getCoverData(imgEl?.src);
 
@@ -19,13 +16,15 @@ class goodreadsScraper extends Extractor {
     return collectObject([
       coverData,
       bookDetails,
-      mappingsPromise,
     ]);
   }
 }
 
 async function getGoodreadsDetails() {
   const bookDetails = {};
+
+  const sourceId = getGoodreadsBookIdFromUrl(window.location.href);
+  if (sourceId) bookDetails["Mappings"] = { "Goodreads": [sourceId] };
 
   bookDetails["Title"] = cleanText(document.querySelector('[data-testid="bookTitle"]')?.innerText);
 
