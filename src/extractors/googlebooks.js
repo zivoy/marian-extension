@@ -15,7 +15,7 @@ class googleBooksScraper extends Extractor {
     async getDetails() {
         // Store the source ID
         const sourceId = getGoogleBooksIdFromUrl(window.location.href);
-        const mappingsPromise = new Promise(r => r(sourceId ? { "Mappings": { "Google Books": [sourceId] } } : {}));
+        const mappings = sourceId ? { "Mappings": { "Google Books": [sourceId] } } : null;
 
         // Extract cover image using volume ID
         const coverData = getCoverData(getGoogleBooksCoverUrl(sourceId));
@@ -25,7 +25,7 @@ class googleBooksScraper extends Extractor {
         return collectObject([
             coverData,
             bookDetails,
-            mappingsPromise,
+            mappings,
         ]);
     }
 }
