@@ -98,11 +98,9 @@ export async function tryGetDetails(tab, retries = 8, delay = 300) {
             return;
           }
 
-          showStatus("Script injected, retrying...");
-
           // Wait a tiny bit for the script to initialize listeners, then retry
           setTimeout(() => {
-            console.log(retries, 'Script injected manually, retrying...');
+            console.log(retries, 'Script injected, retrying...');
             attempt(retries);
           }, 50);
           return;
