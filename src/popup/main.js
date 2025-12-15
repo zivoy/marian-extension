@@ -49,14 +49,15 @@ document.addEventListener("DOMContentLoaded", () => {
   getCurrentTab().then((tab) => {
     const url = tab?.url || "";
 
+    showStatus("DOM Loaded, fetching details...");
+
+    addRefreshButton();
     updateRefreshButtonForUrl(url);
 
     if (!isAllowedUrl(url)) {
       showStatus("This extension only works on supported product pages.");
       return;
     }
-
-    showStatus("DOM Loaded, fetching details...");
   });
 });
 
@@ -82,19 +83,6 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
         const detailsEl = document.getElementById('details');
         if (detailsEl) detailsEl.innerHTML = "";
         renderDetails(details);
-
-        addRefreshButton(async () => {
-          showStatus("Refreshing...");
-          tab = await getCurrentTab();
-          try {
-            const details = tryGetDetails(tab)
-            showDetails();
-            renderDetails(details);
-          } catch (err) {
-            notifyBackground("REFRESH_ICON", { tab });
-            showStatus(err);
-          };
-        });
 
         setLastFetchedUrl(tab?.url || "");
         getCurrentTab().then((activeTab) => {

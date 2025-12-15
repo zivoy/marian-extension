@@ -368,7 +368,7 @@ export function initSidebarLogger() {
   console.debug('Sidebar logger initialized');
 }
 
-export function addRefreshButton(onClick) {
+export function addRefreshButton() {
   const container = document.getElementById('content') || document.body;
 
   if (document.getElementById('refresh-button')) return;
