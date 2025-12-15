@@ -1,4 +1,5 @@
 import { isAllowedUrl } from "../extractors";
+import { tryGetDetails } from "./messaging.js";
 import {
   showStatus, showDetails, renderDetails, initSidebarLogger,
   addRefreshButton, updateRefreshButtonForUrl
@@ -76,23 +77,24 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
 
   if (msg.type === "REFRESH_SIDEBAR" && isForThisSidebar(msg.windowId) && msg.url && isAllowedUrl(msg.url)) {
     showStatus("Loading details...");
+    // FIXME: there is a bug here where sidebar is opened but refresh is not completed
     let tab = await getCurrentTab();
-    tryGetDetails(tab)
-      .then((details) => {
-        showDetails();
-        const detailsEl = document.getElementById('details');
-        if (detailsEl) detailsEl.innerHTML = "";
-        renderDetails(details);
+    try {
+      const details = await tryGetDetails(tab);
+      showDetails();
+      const detailsEl = document.getElementById('details');
+      if (detailsEl) detailsEl.innerHTML = "";
+      renderDetails(details);
 
-        setLastFetchedUrl(tab?.url || "");
-        getCurrentTab().then((activeTab) => {
-          updateRefreshButtonForUrl(activeTab?.url || "");
-        });
-      })
-      .catch(err => {
-        showStatus(err);
-        notifyBackground("REFRESH_ICON", { tab });
+      setLastFetchedUrl(tab?.url || "");
+      getCurrentTab().then((activeTab) => {
+        updateRefreshButtonForUrl(activeTab?.url || "");
       });
+
+    } catch (err) {
+      showStatus(err);
+      notifyBackground("REFRESH_ICON", { tab });
+    };
   }
 
   if (msg.type === "TAB_URL_CHANGED" && isForThisSidebar(msg.windowId)) {
