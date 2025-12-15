@@ -1,6 +1,6 @@
-import { tryGetDetails, getCurrentTab } from "./messaging.js";
+import { tryGetDetails } from "./messaging.js";
 import { isAllowedUrl } from "../extractors";
-import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl } from "./utils.js";
+import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl, getCurrentTab } from "./utils.js";
 
 // DOM refs (looked up when functions are called)
 function statusBox() { return document.getElementById('status'); }
@@ -390,7 +390,7 @@ export function addRefreshButton(onClick) {
 
       // 👇 After refreshing, set last fetched & disable if same tab
       setLastFetchedUrl(tab?.url || "");
-      chrome.tabs.query({ active: true, currentWindow: true }, ([activeTab]) => {
+      getCurrentTab().then((activeTab) => {
         updateRefreshButtonForUrl(activeTab?.url || "");
       });
     } catch (err) {
@@ -436,7 +436,7 @@ export function updateRefreshButtonForUrl(url) {
 }
 
 export function checkActiveTabAndUpdateButton() {
-  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+  getCurrentTab().then((tab) => {
     updateRefreshButtonForUrl(tab?.url || "");
   });
 }

@@ -33,3 +33,13 @@ export function buildIssueUrl(tabUrl) {
     + `&body=${encodeURIComponent(body)}`
     + `&labels=${encodeURIComponent(labels)}`;
 }
+
+/**
+ * Gets the current active tab
+ * 
+ * @returns {Promise<chrome.tabs.Tab | undefined>} A promise that resolves to the active tab object, or undefined if no active tab is found.
+ */
+export async function getCurrentTab() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tab;
+}

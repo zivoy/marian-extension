@@ -25,16 +25,6 @@ function buildIssueUrl(tabUrl) {
 }
 
 /**
- * Gets the current active tab
- * 
- * @returns {Promise<chrome.tabs.Tab | undefined>} A promise that resolves to the active tab object, or undefined if no active tab is found.
- */
-export async function getCurrentTab() {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  return tab;
-}
-
-/**
   * Polling function to try multiple times before giving up
   *
   * @param {chrome.tabs.Tab} tab 

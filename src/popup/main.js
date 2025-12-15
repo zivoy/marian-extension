@@ -1,10 +1,9 @@
 import { isAllowedUrl } from "../extractors";
-import { tryGetDetails, getCurrentTab } from "./messaging.js";
 import {
   showStatus, showDetails, renderDetails, initSidebarLogger,
   addRefreshButton, updateRefreshButtonForUrl
 } from "./ui.js";
-import { setLastFetchedUrl } from "./utils.js";
+import { setLastFetchedUrl, getCurrentTab } from "./utils.js";
 
 const DEBUG = false;
 let sidebarWindowId = null;
@@ -47,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (DEBUG) initSidebarLogger(); // DEBUG: Initialize sidebar logger
 
-  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+  getCurrentTab().then((tab) => {
     const url = tab?.url || "";
 
     updateRefreshButtonForUrl(url);
@@ -98,7 +97,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
         });
 
         setLastFetchedUrl(tab?.url || "");
-        chrome.tabs.query({ active: true, currentWindow: true }, ([activeTab]) => {
+        getCurrentTab().then((activeTab) => {
           updateRefreshButtonForUrl(activeTab?.url || "");
         });
       })

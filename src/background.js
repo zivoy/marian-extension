@@ -1,4 +1,5 @@
 import { isAllowedUrl } from "./extractors";
+import { getCurrentTab } from "./popup/utils";
 import { runtime } from "./shared/utils"
 
 const activeSidebarWindows = new Set();
@@ -142,7 +143,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 // when the active tab changes
 chrome.tabs.onActivated.addListener(() => {
-  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+  getCurrentTab().then((tab) => {
     if (!tab || !hasActiveSidebar(tab.windowId)) return;
     safeRuntimeSend({ type: "TAB_URL_CHANGED", url: tab.url || "", windowId: tab.windowId });
   });
