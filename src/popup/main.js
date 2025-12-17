@@ -72,7 +72,6 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
 
   if (msg.type === "REFRESH_SIDEBAR" && isForThisSidebar(msg.windowId) && msg.url && isAllowedUrl(msg.url)) {
     showStatus("Loading details...");
-    // FIXME: there is a bug here where sidebar is opened but refresh is not completed
     let tab = await getCurrentTab();
     try {
       const details = await tryGetDetails(tab);
