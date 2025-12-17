@@ -36,14 +36,19 @@ export async function tryGetDetails(tab, retries = 8, delay = 300) {
   let hasReloaded = false;
   let hasInjected = false;
 
-  return await new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     if (!tab?.id) {
       reject('No active tab found.');
       return;
     }
 
     async function attempt(remaining) {
-      tab = await waitForTabToComplete(tab.id)
+      try {
+        tab = await waitForTabToComplete(tab.id);
+      } catch (e) {
+        reject(e);
+        return;
+      }
 
       const pingResp = await chrome.tabs.sendMessage(tab.id, 'ping').catch(() => undefined);
       console.log('Ping response:', pingResp, 'Remaining attempts:', remaining);
@@ -133,21 +138,27 @@ Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a
  * @returns {Promise<chrome.tabs.Tab>} A promise that resolves with the fully loaded Tab object.
  */
 function waitForTabToComplete(tabId) {
-  return new Promise((resolve) => {
-    // get the current status just in case it finished loading
+  return new Promise((resolve, reject) => {
+    function listener(updatedTabId, changeInfo, updatedTab) {
+      if (updatedTabId === tabId && changeInfo.status === 'complete') {
+        chrome.tabs.onUpdated.removeListener(listener);
+        resolve(updatedTab);
+      }
+    };
+
+    chrome.tabs.onUpdated.addListener(listener);
+
     chrome.tabs.get(tabId, (tab) => {
+      // could have issues if tab is closed, so reject
+      if (chrome.runtime.lastError) {
+        chrome.tabs.onUpdated.removeListener(listener);
+        reject(chrome.runtime.lastError);
+        return;
+      }
+
       if (tab.status === 'complete') {
+        chrome.tabs.onUpdated.removeListener(listener);
         resolve(tab);
-      } else {
-        // not complete, wait for the "complete" update
-        function listener(updatedTabId, changeInfo, updatedTab) {
-          if (updatedTabId === tabId && changeInfo.status === 'complete') {
-            // clean up
-            chrome.tabs.onUpdated.removeListener(listener);
-            resolve(updatedTab);
-          }
-        };
-        chrome.tabs.onUpdated.addListener(listener);
       }
     });
   });
