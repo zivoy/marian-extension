@@ -13,8 +13,9 @@ async function getDetails() {
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg === 'ping') {
+  if (msg === 'ping_content') {
     sendResponse('pong');
+    return false;
   }
 
   if (msg === 'getDetails') {

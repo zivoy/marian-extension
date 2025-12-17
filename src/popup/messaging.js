@@ -50,7 +50,7 @@ export async function tryGetDetails(tab, retries = 8, delay = 300) {
         return;
       }
 
-      const pingResp = await chrome.tabs.sendMessage(tab.id, 'ping').catch(() => undefined);
+      const pingResp = await chrome.tabs.sendMessage(tab.id, 'ping_content').catch(() => undefined);
       console.log('Ping response:', pingResp, 'Remaining attempts:', remaining);
       const pingFail = chrome.runtime.lastError || pingResp !== 'pong';
 

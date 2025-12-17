@@ -63,11 +63,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
-  if (msg === "ping" || msg?.type === "ping") {
-    sendResponse("pong");
-    return;
-  }
-
   if (msg?.type === "SIDEBAR_PING") {
     if (isForThisSidebar(msg.windowId)) {
       sendResponse("pong");
@@ -92,6 +87,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
       });
 
     } catch (err) {
+      console.log("err", err);
       showStatus(err);
       notifyBackground("REFRESH_ICON", { tab });
     };
