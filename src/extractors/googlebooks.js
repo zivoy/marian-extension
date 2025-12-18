@@ -1,8 +1,6 @@
 // googlebooks.js
 import { Extractor } from './AbstractExtractor.js';
-import { logMarian, getCoverData, cleanText, normalizeReadingFormat, collectObject, queryDeep, queryAllDeep } from '../shared/utils.js';
-
-// TODO: add support for https://books.google.ca/books (classic google books)
+import { logMarian, getCoverData, cleanText, normalizeReadingFormat, collectObject, queryDeep, queryAllDeep, getFormattedText, addContributor } from '../shared/utils.js';
 
 const KNOWN_HOSTS = ['g-expandable-content'];
 
@@ -10,17 +8,22 @@ class googleBooksScraper extends Extractor {
     get _name() { return "Google Books Extractor"; }
     _sitePatterns = [
         /^https?:\/\/(www\.)?google\.[a-z.]+\/books/,
+        /^https?:\/\/books.google\.[a-z.]+\/books(?:\/[^?]*)?/,
     ];
 
     async getDetails() {
         // Store the source ID
         const sourceId = getGoogleBooksIdFromUrl(window.location.href);
+        const googlebooksClassic = window.location.href.includes("books.google");
+
         const mappings = sourceId ? { "Mappings": { "Google Books": [sourceId] } } : null;
 
         // Extract cover image using volume ID
         const coverData = getCoverData(getGoogleBooksCoverUrl(sourceId));
 
-        const bookDetails = getGoogleBooksDetails();
+        const bookDetails = googlebooksClassic ?
+            getClassicGoogleBooksDetails() :
+            getGoogleBooksDetails();
 
         return collectObject([
             coverData,
@@ -81,6 +84,82 @@ function getGoogleBooksDetails() {
     logMarian("Google Books extraction complete:", bookDetails);
 
     return bookDetails;
+}
+
+function getClassicGoogleBooksDetails() {
+    const bookDetails = {};
+
+    bookDetails["Description"] = getFormattedText(document.querySelector("#bookinfo #synopsis #synopsistext"));
+
+    const bookInfo = Array.from(document.querySelectorAll("#metadata_content table tr"))
+        .reduce((acc, cur) => {
+            if (cur.children.length !== 2) logMarian(`WARN: ${cur} might be invalid`);
+            const label = cur.children[0].textContent.trim();
+            if (label) acc[label] = cur.children[1];
+            return acc;
+        }, {});
+    // logMarian("bookInfo", bookInfo);
+
+    // TODO: the series can be extracted if there is an a tag
+    // bookDetails["Title"] = cleanText(bookInfo["Title"].textContent);
+    delete bookInfo["Title"];
+    bookDetails["Title"] = cleanText(document.querySelector("#bookinfo .booktitle").textContent);
+
+    if ("Edition" in bookInfo) {
+        bookDetails["Edition Information"] = cleanText(bookInfo["Edition"].textContent);
+        delete bookInfo["Edition"];
+    }
+
+    if ("Length" in bookInfo && bookInfo["Length"].textContent.includes("pages")) {
+        bookDetails["Pages"] = cleanText(bookInfo["Length"].textContent.split("pages")[0])
+        delete bookInfo["Length"];
+    }
+
+    if ("ISBN" in bookInfo) {
+        bookInfo["ISBN"].textContent.split(",").forEach(isbn_dirty => {
+            const isbn = cleanText(isbn_dirty);
+            if (isbn.length === 10) bookDetails["ISBN-10"] = isbn;
+            if (isbn.length === 13) bookDetails["ISBN-13"] = isbn;
+        });
+        delete bookInfo["ISBN"];
+    }
+
+    // assuming that its always in the format of "Publisher name, publication year"
+    const pubSplit = bookInfo["Publisher"].textContent.split(",");
+    // const pubYear = pubSplit[pubSplit.length - 1];
+    // bookDetails["Publication date"] = new Date(+pubYear, 0).toISOString();
+    bookDetails["Publisher"] = cleanText(pubSplit.slice(0, pubSplit.length - 1).join(","));
+    delete bookInfo["Publisher"];
+
+    const headerInfo = document.querySelectorAll("#bookinfo .bookinfo_sectionwrap div");
+    const pubYearElement = Array.from(document.querySelectorAll("#bookinfo .bookinfo_sectionwrap div"))
+        .filter(el => el.textContent.includes(bookDetails["Publisher"]))[0]
+    if (pubYearElement) {
+        bookDetails["Publication date"] = new Date(pubYearElement.children[1].textContent);
+    }
+
+    let contributors = [];
+    if ("Author" in bookInfo) {
+        addContributor(contributors, cleanText(bookInfo["Author"].textContent), "Author");
+        delete bookInfo["Author"];
+    }
+    if ("Authors" in bookInfo) {
+        Array.from(bookInfo["Authors"].children).map(author =>
+            addContributor(contributors, cleanText(author.textContent), "Author")
+        );
+        delete bookInfo["Authors"];
+    }
+    bookDetails["Contributors"] = contributors;
+
+    // unneeded fields
+    delete bookInfo["Export Citation"];
+    delete bookInfo["Subjects"];
+
+    return {
+        ...bookDetails,
+        // dump the rest in case it will be useful
+        ...Object.keys(bookInfo).reduce((acc, cur) => { acc[cur] = cleanText(bookInfo[cur].textContent); return acc; }, {}),
+    };
 }
 
 /**
@@ -318,7 +397,7 @@ function getGoogleBookAuthors() {
 function getGoogleBooksIdFromUrl(url) {
     const patterns = [
         /books\/edition\/(?:[^/]+\/)?([A-Za-z0-9_-]{10,})/, // e.g., books/edition/_/PYsFzwEACAAJ
-        /books\?id=([A-Za-z0-9_-]{10,})/, // e.g., books?id=PYsFzwEACAAJ
+        /books(?:\/[^?]*)?\?id=([A-Za-z0-9_-]{10,})/, // e.g., books?id=PYsFzwEACAAJ or books/about/bookname.html?id=PYsFzwEACAAJ
         /\/volume\/([A-Za-z0-9_-]{10,})/, // e.g., volume/PYsFzwEACAAJ
     ];
 
