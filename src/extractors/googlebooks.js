@@ -100,7 +100,14 @@ function getClassicGoogleBooksDetails() {
         }, {});
     // logMarian("bookInfo", bookInfo);
 
-    // TODO: the series can be extracted if there is an a tag
+    const titleSeries = bookInfo["Title"].querySelector("a");
+    if (titleSeries) {
+        const match = titleSeries.textContent.match(/^Volume (\d+) of (.+)$/);
+        if (match) {
+            bookDetails["Series"] = match[2];
+            bookDetails["Series Place"] = match[1];
+        }
+    }
     // bookDetails["Title"] = cleanText(bookInfo["Title"].textContent);
     delete bookInfo["Title"];
     bookDetails["Title"] = cleanText(document.querySelector("#bookinfo .booktitle").textContent);
