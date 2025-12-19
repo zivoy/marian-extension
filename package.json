@@ -3,6 +3,7 @@
   "version": "1.7.3",
   "description": "Extracts book details from Amazon product pages. Created for the fine librarian corps of Hardcover.app.",
   "main": "background.js",
+  "type": "module",
   "scripts": {
     "build": "node build.js"
   },

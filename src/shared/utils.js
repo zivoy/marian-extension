@@ -82,18 +82,15 @@ export function getFormattedText(element) {
 
   processNode(element);
 
-  return result
+  result = result
     .replace(/[ \t]+/g, ' ')    // Multiple spaces/tabs to single space
     .replace(/\n /g, '\n')      // Remove spaces after newlines
     .replace(/ \n/g, '\n')      // Remove spaces before newlines
     .replace(/\n{3,}/g, '\n\n') // Max 2 consecutive newlines
     .trim();
-}
 
-export function sendMessage(message) {
-  return new Promise(async (resolve) => {
-    await runtime.sendMessage(message, resolve);
-  });
+  return result;
+  // return cleanText(result);
 }
 
 const deepQueryCache = new Map();
@@ -199,4 +196,137 @@ export async function getCoverData(covers) {
   // logMarian("covers", { covers, coversObj, highestScoreCover });
 
   return highestScoreCover;
+}
+
+/**
+ * Returns a new object with keys renamed according to the mapping.
+ * Keys not in the mapping are preserved as-is.
+ *
+ * @param {Record<string, string>} mapping - Map of old keys to new keys
+ * @param {Record<string,any>} object - Source object
+ * @returns {Record<string, any>} New object with mapped keys
+ */
+export function remapKeys(mapping, object) {
+  const newObj = {};
+
+  for (const key of Object.keys(object)) {
+    // If the key exists in mapping, use the new name, otherwise keep original
+    const finalKey = Object.hasOwn(mapping, key) ? mapping[key] : key;
+    newObj[finalKey] = object[key];
+  }
+
+  return newObj;
+}
+
+/**
+ * @typedef {{name: string, roles: string[]}} contributor
+ */
+
+/**
+ * adds a contributor with one or more roles to the contributor list
+ *
+ * @param {contributor[]} contributors - list of contributors
+ * @param {string} name - name of the contributor 
+ * @param {string | string[]} roles - a role or list of roles to add to a contributor
+ */
+export function addContributor(contributors, name, roles) {
+  if (!Array.isArray(roles)) {
+    roles = [roles];
+  }
+
+  const contributor = contributors.findIndex((contributor) => contributor.name === name);
+  if (contributor == -1) {
+    contributors.push({ name, roles: roles });
+    return contributors;
+  }
+
+  for (const role of roles) {
+    if (contributors[contributor].roles.includes(role)) continue;
+    contributors[contributor].roles.push(role);
+  }
+
+  return contributors;
+}
+
+/**
+ * Normalize arbitrary text by stripping invisible characters and squeezing whitespace.
+ *
+ * @param {string | null | undefined} text Raw text content to sanitize.
+ * @returns {string} Sanitized text with normalized spacing.
+ */
+export function cleanText(text) {
+  if (!text) return '';
+  return text
+    .normalize('NFKC')                                        // Normalize Unicode to one style
+    .replace(/\p{Cf}/gu, '')                                  // Remove Unicode control chars
+    .replace(/[\u200E\u200F\u202A-\u202E\u00A0\uFEFF‎‏]/g, ' ') // Normalize invisible formatting chars (NBSP, BOM, Bidi marks) to spaces (should not be needed but keeping for consistency)
+    .replace(/^\s*,+\s*/, '')                                 // Remove artifact leading commas/spaces (e.g. ", value")
+    .replace(/\s+/g, ' ')                                     // Collapse all recurring whitespace (tabs, newlines) into a single space
+    .trim();
+}
+
+/**
+ * Normalizes raw format string to one of: Audiobook, Ebook, or Physical Book.
+ * @param {string} rawFormat
+ * @returns {string} 'Audiobook' | 'Ebook' | 'Physical Book'
+ */
+export function normalizeReadingFormat(rawFormat) {
+  if (!rawFormat) return 'Physical Book';
+  const format = rawFormat.toLowerCase();
+
+  if (
+    format.includes("audio") ||
+    format.includes("audible") ||
+    format.includes("narrat") ||
+    format.includes("mp3") ||
+    format.includes("cd")
+  ) return "Audiobook";
+
+  if (
+    format.includes("ebook") ||
+    format.includes("e-book") ||
+    format.includes("digital") ||
+    format.includes("kindle")
+  ) {
+    return "Ebook";
+  }
+
+  if (
+    format.includes("physical") ||
+    format.includes("hardcover") ||
+    format.includes("paperback") ||
+    format.includes("book")
+  ) {
+    return "Physical Book";
+  }
+
+  return "Physical Book"; // Fallback
+}
+
+/**
+ * collect a list of objects or promises of objects into a single new object
+ * overrides keys based on order of objects in list
+ *
+ * @typedef {Record<string,any>} obj a object
+ * @param {Array<Promise<obj>|obj>|obj|Promise<obj>} items item or items
+ *
+ * @returns {Promise<obj>}
+ */
+export async function collectObject(items) {
+  if (!Array.isArray(items)) return await items;
+
+  const objList = await Promise.all(items);
+
+  let obj = {};
+  for (let i = 0; i < objList.length; i += 1) {
+    const elm = objList[i];
+    if (elm == undefined) {
+      logMarian(`WARN: element number ${i} is ${elm}`)
+      continue;
+    }
+    Object.entries(elm)
+      .forEach(([k, v]) => obj[k] = v);
+  }
+
+  return obj;
 }
