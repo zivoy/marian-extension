@@ -1,7 +1,6 @@
 import { getExtractor } from './extractors';
 import { logMarian } from './shared/utils.js';
 
-
 async function getDetails() {
   const url = window.location.href;
   logMarian(`Current URL: ${url}`);

@@ -103,7 +103,9 @@
 		"https://portal.dnb.de/*",
 		"https://deposit.dnb.de/*",
 		"https://www.isbn.de/*",
-		"https://isbn.de/*"
+		"https://isbn.de/*",
+
+		"https://www.barnesandnoble.com/*"
 	],
 	"icons": {
 		"16": "icons/icon.png",
