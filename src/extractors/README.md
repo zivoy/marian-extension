@@ -87,6 +87,19 @@ You can fill in extra custom fields if you have more data you want to show, and 
 |      `Language`       | String                            | The language that the edition is written in |
 |       `Country`       | String                            | The country that the edition was published in |
 
+## Optional Overrides
+
+The `Extractor` base class provides some default behavior that you can override if needed.
+
+### needsReload
+The `needsReload` property defaults to `true`. Set this to `false` if the extractor does not require the page to be reloaded before extraction (e.g., if it can reliably work with the current DOM state regardless of how the user arrived there).
+
+### isSupported(url)
+The default `isSupported` implementation checks the URL against the `_sitePatterns` regexes. You can override this function to provide custom logic for determining if a URL is supported.
+
+### _saveState / _handleStateUpdate
+These methods are used for persistent state management. `_saveState(state)` saves the current state to browser storage, and `_handleStateUpdate(state)` is called when the state is updated (either from storage initialization or changes).
+
 ## Best practices
 
 When writing an extractor it is best to have as few delays as possible, and when they are required, try to put it in a promise and extract something else at the same time.
@@ -174,3 +187,7 @@ Example:
 ```javascript
 const title = queryDeep('h1', ['product-header']);
 ```
+
+### runtime
+Exports the `browser.runtime` (Firefox) or `chrome.runtime` (Chrome) API, providing a cross-browser way to access runtime methods.
+
