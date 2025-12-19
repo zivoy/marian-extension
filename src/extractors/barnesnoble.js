@@ -26,12 +26,12 @@ class barnesAndNobleScraper extends Extractor {
     bookDetails['Title'] = document.querySelector('h1').textContent.trim();
     bookDetails['Contributors'] = getContributors();
 
-    return {
-      ...(await getCover()),
-      ...(await getBookDescription()),
-      ...getAudioBookTimes(),
-      ...bookDetails,
-    };
+    return collectObject([
+      getCover(),
+      getBookDescription(),
+      getAudioBookTimes(),
+      bookDetails,
+    ]);
   }
 }
 
