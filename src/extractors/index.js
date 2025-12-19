@@ -1,6 +1,7 @@
 // Auto-generated file. Do not edit manually.
 import { amazonScraper } from "./amazon";
 import { audibleScraper } from "./audible";
+import { barnesAndNobleScraper } from "./barnesnoble";
 import { dnbdeScraper } from "./dnbde";
 import { goodreadsScraper } from "./goodreads";
 import { googleBooksScraper } from "./googlebooks";
@@ -11,13 +12,13 @@ import { koboScraper } from "./kobo";
 import { libbyScraper, overdriveScraper, teachingbooksScraper } from "./overdrive";
 import { librofmScraper } from "./librofm";
 import { storygraphScraper } from "./storygraph";
-import { barnesAndNobleScraper } from "./barnesnoble";
 
 /** @import { Extractor } from "./AbstractExtractor";
  * @type{Extractor[]} */
 const extractors = [
   new amazonScraper(),
   new audibleScraper(),
+  new barnesAndNobleScraper(),
   new dnbdeScraper(),
   new goodreadsScraper(),
   new googleBooksScraper(),
@@ -30,7 +31,6 @@ const extractors = [
   new overdriveScraper(),
   new storygraphScraper(),
   new teachingbooksScraper(),
-  new barnesAndNobleScraper(),
 ];
 
 /** @param {string} url */
