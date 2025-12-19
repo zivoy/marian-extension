@@ -204,23 +204,8 @@ function getAudioBookTimes() {
     const time = rawAudiobookTime
       .substring(rawAudiobookTime.indexOf('—') + 1)
       .replace(',', '');
-    const hours = REGEX_HOURS.exec(time);
-    const minutes = REGEX_MINUTES.exec(time);
-    let totalTimeSeconds = 0;
-
-    if (hours) {
-      totalTimeSeconds += hours * SECONDS_IN_HOUR;
-    }
-
-    if (minutes) {
-      totalTimeSeconds += minutes * SECONDS_IN_MINUTE;
-    }
 
     audiobook['Listening Length'] = time.trim();
-
-    if (totalTimeSeconds) {
-      audiobook['Listening Length Seconds'] = totalTimeSeconds;
-    }
   }
 
   return audiobook;
