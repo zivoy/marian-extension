@@ -21,7 +21,8 @@ class barnesAndNobleScraper extends Extractor {
     logMarian('Extracting Barnes & Noble details');
     const bookDetails = getProductDetails();
 
-    bookDetails['Reading Format'] = getSelectedFormat();
+    bookDetails['Edition Format'] = getSelectedFormat();
+    bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails["Edition Format"]);
     bookDetails['Title'] = document.querySelector('h1').textContent.trim();
     bookDetails['Contributors'] = getContributors();
 
@@ -179,19 +180,7 @@ function getSelectedFormat() {
     '.otherAvailFormats .selected-format-chiclet p span'
   )?.innerText;
 
-  if (
-    edition.toLowerCase() == 'paperback' ||
-    edition.toLowerCase() == 'hardcover'
-  ) {
-    return 'Physical Book';
-  } else if (
-    edition.toLowerCase().includes('cd') ||
-    edition.toLowerCase().includes('mp3')
-  ) {
-    return 'Audiobook';
-  } else {
-    return edition || null;
-  }
+  return edition;
 }
 
 function getAudioBookTimes() {
