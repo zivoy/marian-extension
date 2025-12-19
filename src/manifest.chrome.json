@@ -10,6 +10,8 @@
 		"activeTab",
 		"tabs",
 		"sidePanel",
+		"storage",
+		"scripting",
 		"notifications"
 	]
 }

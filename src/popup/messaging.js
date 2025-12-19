@@ -1,3 +1,4 @@
+import { getExtractor } from "../extractors/index.js";
 import { showStatus } from "./ui.js";
 
 function buildIssueUrl(tabUrl) {
@@ -23,67 +24,142 @@ function buildIssueUrl(tabUrl) {
     + `&labels=${encodeURIComponent('bug')}`;
 }
 
-// Polling function to try multiple times before giving up
-export function tryGetDetails(retries = 8, delay = 300) {
-  let didRefresh = false;
+/**
+  * Polling function to try multiple times before giving up
+  *
+  * @param {chrome.tabs.Tab} tab 
+  * @param {number} [retries=8] number of time to retry
+  * @param {number} [delay=300] delay in ms
+  * @returns {Promise<{tab: any, details: Record<string,any>}>}
+  */
+export async function tryGetDetails(tab, retries = 8, delay = 300) {
+  let hasReloaded = false;
+  let hasInjected = false;
 
   return new Promise((resolve, reject) => {
-    function attempt(remaining) {
-      chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-        if (!tab?.id) {
-          reject('No active tab found.');
-          return;
+    if (!tab?.id) {
+      reject('No active tab found.');
+      return;
+    }
+
+    async function attempt(remaining) {
+      try {
+        tab = await waitForTabToComplete(tab.id);
+      } catch (e) {
+        reject(e);
+        return;
+      }
+
+      const pingResp = await chrome.tabs.sendMessage(tab.id, 'ping_content').catch(() => undefined);
+      console.log('Ping response:', pingResp, 'Remaining attempts:', remaining);
+      const pingFail = chrome.runtime.lastError || pingResp !== 'pong';
+
+      if (pingFail) {
+        if (chrome.runtime.lastError) {
+          console.error('Content script not ready:', chrome.runtime.lastError.message);
         }
 
-        if (tab.status !== 'complete') {
-          console.log('Tab is still loading, delaying content-script ping...');
-          setTimeout(() => attempt(remaining), delay);
-          return;
-        }
+        const extractor = getExtractor(tab?.url || "");
+        const wantsReload = extractor != undefined && extractor.needsReload;
 
-        chrome.tabs.sendMessage(tab.id, 'ping', (response) => {
-          console.log('Ping response:', response, 'Remaining attempts:', remaining);
-          if (chrome.runtime.lastError || response !== 'pong') {
-            if (remaining > 0) {
-              setTimeout(() => attempt(remaining - 1), delay);
-            } else {
-              if (!didRefresh) {
-                didRefresh = true;
-                // showStatus("Content script not ready, refreshing tab...");
-                chrome.tabs.reload(tab.id, { bypassCache: true });
-                showStatus("Tab reloaded, fetching details...");
+        if (wantsReload && !hasReloaded) {
+          hasReloaded = true;
+          chrome.tabs.reload(tab.id, { bypassCache: true });
+          showStatus("Tab reloaded, fetching details...");
 
-                const onUpdated = (updatedTabId, info) => {
-                  if (updatedTabId === tab.id && info.status === 'complete') {
-                    chrome.tabs.onUpdated.removeListener(onUpdated);
-                    console.log(retries, 'Tab reloaded, fetching details again...');
-                    setTimeout(() => attempt(retries), 350);
-                  }
-                };
-                chrome.tabs.onUpdated.addListener(onUpdated);
-              } else {
-                console.log('All attempts exhausted. Content script not responding.');
-                const issueUrl = buildIssueUrl(tab?.url || '(unknown URL)');
-                showStatus(`
-                  This site is supported, but either this page isn't yet or you've encountered an error.<br/><br/>
-                  Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a> the full URL of this page so we can add support!
-                `);
-                // reject('Unsupported URL or no content script after refresh.');
-              }
+          const onUpdated = (updatedTabId, info) => {
+            if (updatedTabId === tab.id && info.status === 'complete') {
+              chrome.tabs.onUpdated.removeListener(onUpdated);
+              console.log(retries, 'Tab reloaded, fetching details again...');
+              setTimeout(() => attempt(retries), 50);
             }
+          };
+          chrome.tabs.onUpdated.addListener(onUpdated);
+          return;
+        }
+
+        if (!hasInjected) {
+          console.log("injecting new script");
+          hasInjected = true;
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['content.js']
+          }).catch(() => { });
+          const error = chrome.runtime.lastError;
+
+          if (error) {
+            console.error("Script injection failed: ", error.message);
+            showStatus("Cannot access this page.");
             return;
           }
 
-          chrome.tabs.sendMessage(tab.id, 'getDetails', (details) => {
-            if (chrome.runtime.lastError || !details) {
-              reject('Failed to retrieve book details.');
-              return;
-            }
-            resolve(details);
-          });
-        });
+          // Wait a tiny bit for the script to initialize listeners, then retry
+          setTimeout(() => {
+            console.log(retries, 'Script injected, retrying...');
+            attempt(retries);
+          }, 50);
+          return;
+        }
+
+        if (remaining > 0) {
+          setTimeout(() => attempt(remaining - 1), delay);
+          return;
+        }
+
+        console.log('All attempts exhausted. Content script not responding.');
+        const issueUrl = buildIssueUrl(tab?.url || '(unknown URL)');
+        reject(`
+This site is supported, but either this page isn't yet or you've encountered an error.<br/><br/>
+Please <a href="${issueUrl}" target="_blank" rel="noopener noreferrer">report</a> the full URL of this page so we can add support!
+`);
+        return;
+      }
+
+      chrome.tabs.sendMessage(tab.id, 'getDetails', (details) => {
+        if (chrome.runtime.lastError || !details) {
+          reject('Failed to retrieve book details.');
+          return;
+        }
+        resolve(details);
       });
     }
     attempt(retries);
+  });
+}
+
+/**
+ * Waits for a specific tab to reach the 'complete' status.
+ *
+ * This function first checks the current status of the tab. If it is already
+ * complete, it resolves immediately. Otherwise, it sets up a one-time listener
+ * on `chrome.tabs.onUpdated` to resolve when the status changes to 'complete'.
+ *
+ * @param {number} tabId - The unique ID of the tab to wait for.
+ * @returns {Promise<chrome.tabs.Tab>} A promise that resolves with the fully loaded Tab object.
+ */
+function waitForTabToComplete(tabId) {
+  return new Promise((resolve, reject) => {
+    function listener(updatedTabId, changeInfo, updatedTab) {
+      if (updatedTabId === tabId && changeInfo.status === 'complete') {
+        chrome.tabs.onUpdated.removeListener(listener);
+        resolve(updatedTab);
+      }
+    };
+
+    chrome.tabs.onUpdated.addListener(listener);
+
+    chrome.tabs.get(tabId, (tab) => {
+      // could have issues if tab is closed, so reject
+      if (chrome.runtime.lastError) {
+        chrome.tabs.onUpdated.removeListener(listener);
+        reject(chrome.runtime.lastError);
+        return;
+      }
+
+      if (tab.status === 'complete') {
+        chrome.tabs.onUpdated.removeListener(listener);
+        resolve(tab);
+      }
+    });
   });
 }
