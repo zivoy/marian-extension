@@ -1,6 +1,16 @@
 export function normalizeUrl(u) {
-  try { const x = new URL(u); return `${x.origin}${x.pathname}`; }
-  catch { return u || ''; }
+  try {
+    const x = new URL(u);
+    // Preserve key product identifiers when the format is encoded in query params.
+    const keepParams = ['ean', 'isbn', 'upc'];
+    const kept = keepParams
+      .filter((key) => x.searchParams.has(key))
+      .map((key) => `${key}=${x.searchParams.get(key)}`);
+    const suffix = kept.length ? `?${kept.join('&')}` : '';
+    return `${x.origin}${x.pathname}${suffix}`;
+  } catch {
+    return u || '';
+  }
 }
 
 let __lastFetchedNorm = '';
