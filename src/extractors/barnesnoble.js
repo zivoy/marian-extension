@@ -12,6 +12,7 @@ const SECONDS_IN_MINUTE = 60;
 
 class barnesAndNobleScraper extends Extractor {
   get _name() { return "Barnes & Noble Extractor"; }
+  needsReload = false;
   _sitePatterns = [
     /https:\/\/(?:www\.)?barnesandnoble\.com\/.+\/(\d+)/
   ];
