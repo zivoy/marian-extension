@@ -77,10 +77,7 @@ function getContributors() {
   if (rawNarrators) {
     for (let i = 0; i < rawNarrators?.children.length; i++) {
       if (rawNarrators.children[i].nodeName == 'A') {
-        contributors.push({
-          name: rawNarrators.children[i].text,
-          roles: ['Narrator'],
-        });
+        addContributor(contributors, rawNarrators.children[i].text, 'Narrator');
       }
     }
   }
