@@ -201,11 +201,11 @@ function getAudioBookTimes() {
   const audiobook = {};
 
   if (rawAudiobookTime) {
-    const time = rawAudiobookTime
-      .substring(rawAudiobookTime.indexOf('—') + 1)
-      .replace(',', '');
+    let [abridgedness, time] = rawAudiobookTime.split('—').map(a => a.trim());
+    time = time.split(',');
 
-    audiobook['Listening Length'] = time.trim();
+    audiobook['Edition Information'] = abridgedness;
+    audiobook['Listening Length'] = time;
   }
 
   return audiobook;
