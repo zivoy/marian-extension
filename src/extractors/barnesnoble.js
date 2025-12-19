@@ -1,5 +1,5 @@
 import { Extractor } from "./AbstractExtractor.js"
-import { logMarian, getFormattedText, getCoverData, addContributor, cleanText, normalizeReadingFormat, collectObject } from '../shared/utils.js';
+import { logMarian, getFormattedText, getCoverData, addContributor, normalizeReadingFormat, collectObject } from '../shared/utils.js';
 
 
 const MODAL_DELAY = 1500;
