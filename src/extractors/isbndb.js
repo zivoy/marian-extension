@@ -1,4 +1,32 @@
-import { logMarian, getFormattedText, getCoverData } from '../shared/utils.js';
+import { Extractor } from './AbstractExtractor.js';
+import {
+  logMarian, getFormattedText, getCoverData, remapKeys,
+  addContributor, cleanText,
+  collectObject
+} from '../shared/utils.js';
+
+class isbndbScraper extends Extractor {
+  get _name() { return "ISBNdb Extractor"; }
+  _sitePatterns = [
+    /https:\/\/(?:www\.)?isbndb\.com\/book\/((?:\d{3})?\d{9}(?:X|x|\d))\b/,
+  ];
+
+  async getDetails() {
+    const container = document.querySelector(".book-table table");
+    if (!container) return null;
+
+    const coverData = getCover(container);
+
+    const bookDetails = extractTable(container)
+
+    // logMarian("bookDetails", bookDetails);
+
+    return collectObject([
+      bookDetails,
+      coverData,
+    ]);
+  }
+}
 
 const remapings = {
   "ISBN": "ISBN-10",
@@ -7,24 +35,7 @@ const remapings = {
   "Edition": "Edition Information",
   "Full Title": "Title",
 }
-const remappingKeys = Object.keys(remapings);
-
-async function getIsbnDbDetails() {
-  logMarian('Extracting isbndb.com details');
-
-  const container = document.querySelector(".book-table table");
-  if (!container) return null;
-
-  const coverData = getCover(container);
-
-  const bookDetails = extractTable(container)
-
-  // logMarian("bookDetails", bookDetails);
-
-  return (await Promise.all([
-    coverData,
-  ])).reduce((acc, currentVal) => ({ ...acc, ...currentVal }), bookDetails);
-}
+const nameRemap = remapKeys.bind(undefined, remapings);
 
 async function getCover() {
   /**@type{string|null}*/
@@ -54,8 +65,8 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
       continue;
     }
 
-    const key = th.textContent?.replace(":", "")?.trim()
-    let value = td.textContent?.trim();
+    const key = cleanText(th.textContent?.replace(":", ""));
+    let value = cleanText(td.textContent);
 
     // rest of table
     if (!key) {
@@ -68,9 +79,9 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
       const contributors = [];
       td.childNodes.forEach((node) => {
         if (node.nodeName === "BR") return;
-        const author = node.textContent?.trim();
+        const author = cleanText(node.textContent);
         if (!author) return;
-        contributors.push({ name: node.textContent, roles: ["Author"] })
+        addContributor(contributors, author, "Author");
       })
       table["Contributors"] = contributors;
       continue;
@@ -96,16 +107,7 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
     table[key] = value
   }
 
-
-  for (let [key, value] of Object.entries(table)) {
-    if (remappingKeys.includes(key)) {
-      delete table[key];
-      key = remapings[key];
-    }
-    table[key] = value;
-  }
-
-  return table;
+  return nameRemap(table);
 }
 
-export { getIsbnDbDetails };
+export { isbndbScraper };

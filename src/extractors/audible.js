@@ -1,3 +1,4 @@
+import { Extractor } from './AbstractExtractor.js';
 import {
   getImageScore,
   logMarian,
@@ -6,6 +7,7 @@ import {
   queryDeep,
   clearDeepQueryCache,
   withTimeout,
+  cleanText,
 } from '../shared/utils.js';
 
 const DEBUG = false;
@@ -23,14 +25,23 @@ const KNOWN_DEEP_HOSTS = [
   '[data-automation-id="hero-art"]',
 ];
 
+class audibleScraper extends Extractor {
+  get _name() { return "Audible Extractor"; }
+  _sitePatterns = [
+    /^https?:\/\/(www\.)?audible\.[a-z.]+\/pd\/(?:[^/]+\/)*[A-Z0-9]{10}(?:\?.*)?$/,
+  ];
+
+  async getDetails() {
+    return getAudibleDetails();
+  }
+}
+
 async function getAudibleDetails() {
   clearDeepQueryCache();
   const details = {};
   const asyncJobs = [];
 
   try {
-    logMarian('Extracting Audible details');
-
     const cover = getPrimaryImage();
     if (cover?.src) {
       const src = cover.src;
@@ -368,21 +379,6 @@ function getFirstText(selectors) {
 }
 
 /**
- * Normalize arbitrary text by stripping invisible characters and squeezing whitespace.
- *
- * @param {string | null | undefined} text Raw text content to sanitize.
- * @returns {string} Sanitized text with normalized spacing.
- */
-function cleanText(text) {
-  if (!text) return '';
-  return text
-    .replace(/[\u200E\u200F\u202A-\u202E\u00A0\uFEFF]/g, ' ')
-    .replace(/^\s*,+\s*/, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-/**
  * Deduplicate, normalize, and explode composite value strings.
  *
  * @param {Array<string | null | undefined>} values Raw value candidates (possibly pipe-delimited).
@@ -431,4 +427,4 @@ function extractAsinFromUrl(url) {
   return match ? match[1].toUpperCase() : null;
 }
 
-export { getAudibleDetails };
+export { audibleScraper };

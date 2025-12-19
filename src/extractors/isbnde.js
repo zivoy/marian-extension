@@ -1,4 +1,32 @@
-import { getCoverData, logMarian } from '../shared/utils.js';
+import { Extractor } from './AbstractExtractor.js';
+import { addContributor, getCoverData, logMarian, remapKeys, cleanText, normalizeReadingFormat, collectObject } from '../shared/utils.js';
+
+class isbndeScraper extends Extractor {
+  get _name() { return "ISBN.de Extractor"; }
+  _sitePatterns = [
+    /https:\/\/(?:www\.)?isbn\.de\/(buch|ebook|hoerbuch)\/((?:\d{3})?\d{9}(?:X|\d))\b/,
+  ];
+
+  async getDetails() {
+    const bookDetails = {};
+
+    const coverData = getCover();
+    bookDetails["Title"] = getTitle();
+    bookDetails["Description"] = getDescription() || "";
+
+    const details = extractTable()
+
+    // TODO: get language from ISBN
+
+    // logMarian("bookDetails", { ...bookDetails, ...details });
+
+    return collectObject([
+      bookDetails,
+      details,
+      coverData,
+    ]);
+  }
+}
 
 const remapings = {
   'Auflage': 'Edition Information',
@@ -6,34 +34,12 @@ const remapings = {
   'Verlag': "Publisher",
   "Rubrik": "Category",
 }
-const remappingKeys = Object.keys(remapings);
-
-async function getIsbnDeDetails() {
-  logMarian('Extracting isbn.de details');
-
-  const bookDetails = {};
-
-  const coverData = getCover();
-  bookDetails["Title"] = getTitle();
-  bookDetails["Description"] = getDescription() || "";
-
-  const details = extractTable()
-
-  // TODO: get language from ISBN
-
-  // logMarian("bookDetails", { ...bookDetails, ...details });
-
-  return {
-    ...bookDetails,
-    ...details,
-    ...(await coverData)
-  };
-}
+const nameRemap = remapKeys.bind(undefined, remapings);
 
 function getTitle() {
   const container = document.querySelector(".isbnhead");
-  let title = container.querySelector("h1")?.textContent?.trim();
-  const subtitle = container.querySelector("h2")?.textContent?.trim();
+  let title = cleanText(container.querySelector("h1")?.textContent);
+  const subtitle = cleanText(container.querySelector("h2")?.textContent);
   if (subtitle && !subtitle.toLowerCase().includes("kein Untertitel".toLowerCase())) {
     title = `${title}: ${subtitle}`;
   }
@@ -77,7 +83,7 @@ function extractTable() {
     let children = el.childNodes;
 
     // exceptions
-    const title = children[0].textContent.trim();
+    const title = cleanText(children[0].textContent);
     if (title.includes("Einband")) return; // part of paperback -- skip
     if (title.includes("Digitalprodukt")) return; // part of ebook -- skip
     if (title === "Audio CD") return; // part of audiobook -- skip
@@ -94,10 +100,10 @@ function extractTable() {
         format = "Ebook";
         cover = title.split(",")[1]?.trim();
       }
-      table["Reading Format"] = format;
+      table["Reading Format"] = normalizeReadingFormat(format);
       table["Edition Format"] = cover;
 
-      const pages = children[1].textContent.trim();
+      const pages = cleanText(children[1].textContent);
       if (!pages.includes("Seiten")) {
         logMarian("Invalid pages", pages)
       } else {
@@ -124,14 +130,14 @@ function extractTable() {
       return;
     }
     if (title === "Autor") {
-      table["Contributors"] = [{ name: children[1].textContent.trim(), roles: ["Author"] }];
+      table["Contributors"] = addContributor([], children[1].textContent.trim(), "Author");
       return;
     }
     if (title === "Autoren") {
       const contributors = []
       children.forEach((node) => {
         if (node.nodeName !== "A") return;
-        contributors.push({ name: node.textContent.trim(), roles: ["Author"] });
+        addContributor(contributors, node.textContent.trim(), "Author");
       })
       table["Contributors"] = contributors
       return;
@@ -160,16 +166,7 @@ function extractTable() {
     table[key] = value
   });
 
-
-  for (let [key, value] of Object.entries(table)) {
-    if (remappingKeys.includes(key)) {
-      delete table[key];
-      key = remapings[key];
-    }
-    table[key] = value;
-  }
-
-  return table;
+  return nameRemap(table);
 }
 
-export { getIsbnDeDetails };
+export { isbndeScraper };
