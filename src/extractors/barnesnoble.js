@@ -2,7 +2,6 @@ import { Extractor } from "./AbstractExtractor.js"
 import { logMarian, getFormattedText, getCoverData, addContributor, normalizeReadingFormat, collectObject } from '../shared/utils.js';
 
 
-const MODAL_DELAY = 1500;
 const REGEX_SERIES_PLACE = /#(\d+)/;
 const REGEX_BRACKET_CONTENT = /\([^()]*\)/;
 
@@ -143,17 +142,8 @@ function getProductDetails() {
 async function getBookDescription() {
   const description = {};
 
-  const readFullOverviewButton = document.querySelector('.read-full-ov');
-
-  if (readFullOverviewButton) {
-    readFullOverviewButton.click();
-    await delay(MODAL_DELAY);
-    const overview = document.querySelector('#overview-content');
-    description['Description'] = getFormattedText(overview);
-  } else {
-    const overview = document.querySelector('.overview-cntnt');
-    description['Description'] = getFormattedText(overview);
-  }
+  const descriptionElement = document.querySelector("[itemprop='description']");
+  description['Description'] = getFormattedText(descriptionElement);
 
   return description;
 }
