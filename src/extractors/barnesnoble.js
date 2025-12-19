@@ -66,29 +66,16 @@ function getContributors() {
 
       switch (contributorRole) {
         case 'Read by':
-          contributors.push({
-            name: contributorName,
-            roles: ['Narrator'],
-          });
+          contributorRole = 'Narrator'
           break;
         case 'Artist':
-          contributors.push({
-            name: contributorName,
-            roles: ['Illustrator'],
-          });
+          contributorRole = 'Illustrator'
           break;
         case undefined:
-          contributors.push({
-            name: contributorName,
-            roles: ['Author'],
-          });
+          contributorRole = 'Author'
           break;
-        default:
-          contributors.push({
-            name: contributorName,
-            roles: [contributorRole],
-          });
       }
+      addContributor(contributors, contributorName, contributorRole);
     }
   }
 
