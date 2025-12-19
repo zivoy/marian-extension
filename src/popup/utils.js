@@ -1,8 +1,18 @@
 import SettingsManager from "./settings";
 
 export function normalizeUrl(u) {
-  try { const x = new URL(u); return `${x.origin}${x.pathname}`; }
-  catch { return u || ''; }
+  try {
+    const x = new URL(u);
+    // Preserve key product identifiers when the format is encoded in query params.
+    const keepParams = ['ean', 'isbn', 'upc'];
+    const kept = keepParams
+      .filter((key) => x.searchParams.has(key))
+      .map((key) => `${key}=${x.searchParams.get(key)}`);
+    const suffix = kept.length ? `?${kept.join('&')}` : '';
+    return `${x.origin}${x.pathname}${suffix}`;
+  } catch {
+    return u || '';
+  }
 }
 
 let __lastFetchedNorm = '';
@@ -143,4 +153,14 @@ export function SetupSettings(settingsContainer, settingOptions) {
   });
 
   return settingsObj;
+}
+
+/**
+ * Gets the current active tab
+ * 
+ * @returns {Promise<chrome.tabs.Tab | undefined>} A promise that resolves to the active tab object, or undefined if no active tab is found.
+ */
+export async function getCurrentTab() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tab;
 }

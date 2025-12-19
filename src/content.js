@@ -1,51 +1,35 @@
-import { getAmazonDetails } from './extractors/amazon.js';
-import { getGoodreadsDetails } from './extractors/goodreads.js';
-import { getStoryGraphDetails } from './extractors/storygraph.js';
-import { getGoogleBooksDetails } from './extractors/googlebooks.js';
-import { getKoboDetails } from './extractors/kobo.js';
-import { getLibroDetails } from './extractors/librofm.js';
-import { getIsbnSearchDetails } from './extractors/isbnsearch.js'
-import { getIsbnDeDetails } from './extractors/isbnde.js';
-import { getDnbDeDetails } from './extractors/dnbde.js';
-import { getIsbnDbDetails } from './extractors/isbndb.js';
-import { getOverdriveDetails, getLibbyDetails, getTeachingBooksDetails } from './extractors/overdrive.js';
-import { getAudibleDetails } from './extractors/audible.js';
+import { getExtractor } from './extractors';
 import { logMarian } from './shared/utils.js';
-
 
 async function getDetails() {
   const url = window.location.href;
   logMarian(`Current URL: ${url}`);
-  if (url.includes('amazon')) return await getAmazonDetails();
-  if (url.includes('goodreads')) return await getGoodreadsDetails();
-  if (url.includes('thestorygraph')) return await getStoryGraphDetails();
-  if (url.includes('isbnsearch')) return await getIsbnSearchDetails();
-  if (url.includes('google')) return await getGoogleBooksDetails();
-  if (url.includes('kobo')) return await getKoboDetails();
-  if (url.includes('libro.fm')) return await getLibroDetails();
-  if (url.includes('isbn.de')) return await getIsbnDeDetails();
-  if (url.includes('dnb.de')) return await getDnbDeDetails();
-  if (url.includes('isbndb')) return await getIsbnDbDetails();
-  if (url.includes('libbyapp')) return await getLibbyDetails();
-  if (url.includes('overdrive')) return await getOverdriveDetails();
-  if (url.includes('teachingbooks')) return await getTeachingBooksDetails();
-  if (url.includes('audible')) return await getAudibleDetails();
-  return {};
+  const extractor = getExtractor(url);
+  if (extractor == undefined) return {};
+
+  logMarian(`Getting details from ${extractor}`)
+  return await extractor.getDetails()
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg === 'ping') {
+  if (msg === 'ping_content') {
     sendResponse('pong');
+    return false;
   }
 
   if (msg === 'getDetails') {
     const send = async () => {
-      const details = await getDetails();
-      sendResponse(details);
+      try {
+        const details = await getDetails();
+        sendResponse(details);
+      } catch (e) {
+        logMarian("Error getting info", e);
+        sendResponse(null);
+      }
     };
 
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', send);
+      document.addEventListener('DOMContentLoaded', send, { once: true });
     } else {
       send();
     }

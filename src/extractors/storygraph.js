@@ -1,21 +1,37 @@
-import { logMarian, delay, getCoverData } from '../shared/utils.js';
+import { Extractor } from './AbstractExtractor.js';
+import { logMarian, delay, getCoverData, addContributor, cleanText, normalizeReadingFormat, collectObject } from '../shared/utils.js';
 
-async function getStoryGraphDetails() {
-    logMarian('Extracting The StoryGraph details');
+class storygraphScraper extends Extractor {
+    get _name() { return "StoryGraph Extractor"; }
+    _sitePatterns = [
+        /^https:\/\/app\.thestorygraph\.[a-z.]+\/books\/[0-9a-fA-F-]+$/,
+    ];
+
+    async getDetails() {
+        const bookDetails = gatherBookDetails();
+
+        // Book cover image
+        const imgEl = document.querySelector('.book-cover img');
+        const metaCover = document.querySelector('head meta[property="og:image"]');
+        const coverData = getCoverData([imgEl?.src, metaCover?.content]);
+
+        return collectObject([
+            coverData,
+            bookDetails
+        ]);
+    }
+}
+
+async function gatherBookDetails() {
     const bookDetails = {};
-
-    // Book cover image
-    const imgEl = document.querySelector('.book-cover img');
-    const metaCover = document.querySelector('head meta[property="og:image"]');
-    const coverData = getCoverData([imgEl?.src, metaCover?.content]);
 
     // Source ID
     const sourceId = getStoryGraphBookIdFromUrl(window.location.href);
-    if (sourceId) bookDetails["Source ID"] = sourceId;
+    if (sourceId) bookDetails["Mappings"] = { "Storygraph": [sourceId] };
 
     // Book title
     const h3 = document.querySelector('.book-title-author-and-series h3');
-    const rawTitle = h3?.childNodes[0]?.textContent.trim();
+    const rawTitle = cleanText(h3?.childNodes[0]?.textContent);
     bookDetails["Title"] = rawTitle || null;
 
     // Series and series place
@@ -33,12 +49,7 @@ async function getStoryGraphDetails() {
     extractEditionInfo(bookDetails);
     await extractEditionDescription(bookDetails);
 
-    // logMarian("bookDetails", bookDetails);
-
-    return {
-        ...(await coverData),
-        ...bookDetails
-    };
+    return bookDetails;
 }
 
 function extractContributors(bookDetails) {
@@ -58,16 +69,7 @@ function extractContributors(bookDetails) {
             const roleMatch = nextText?.match(/\(([^)]+)\)/);
             const role = roleMatch ? roleMatch[1] : "Author";
 
-            // See if this contributor already exists
-            let contributor = contributors.find(c => c.name === name);
-            if (contributor) {
-                // Add role if not already present
-                if (!contributor.roles.includes(role)) {
-                    contributor.roles.push(role);
-                }
-            } else {
-                contributors.push({ name, roles: [role] });
-            }
+            addContributor(contributors, name, role);
         });
     }
 
@@ -87,35 +89,31 @@ function extractEditionInfo(bookDetails) {
     if (!editionEl) return;
 
     editionEl.querySelectorAll('p').forEach(p => {
-    const label = p.querySelector('span.font-semibold')?.innerText.trim().replace(':', '');
-    const value = p.childNodes[1]?.textContent.trim();
+        const label = p.querySelector('span.font-semibold')?.innerText.trim().replace(':', '');
+        const value = p.childNodes[1]?.textContent.trim();
 
-    if (!label || !value) return;
+        if (!label || !value) return;
 
-    switch (label) {
-        case 'ISBN/UID':
-            bookDetails['ISBN-13'] = value;
-            break;
-        case 'Format':
-            if (value.toLowerCase() === 'audio') {
-                bookDetails['Reading Format'] = 'Audiobook';
-            } else if (value.toLowerCase() === 'digital') {
-                bookDetails['Reading Format'] = 'Ebook';
-            } else {
-                bookDetails['Reading Format'] = 'Physical Book';
-                bookDetails['Edition Format'] = value;
-            }
-            break;
-        case 'Language':
-            bookDetails['Language'] = value;
-            break;
-        case 'Publisher':
-            bookDetails['Publisher'] = value;
-            break;
-        case 'Edition Pub Date':
-            bookDetails['Publication date'] = value;
-            break;
-    }
+        switch (label) {
+            case 'ISBN/UID':
+                bookDetails['ISBN-13'] = value;
+                break;
+            case 'Format':
+                bookDetails['Reading Format'] = normalizeReadingFormat(value);
+                if (bookDetails['Reading Format'] === 'Physical Book') {
+                    bookDetails['Edition Format'] = value;
+                }
+                break;
+            case 'Language':
+                bookDetails['Language'] = value;
+                break;
+            case 'Publisher':
+                bookDetails['Publisher'] = value;
+                break;
+            case 'Edition Pub Date':
+                bookDetails['Publication date'] = value;
+                break;
+        }
     });
 
     const durationEl = document.querySelector('p.text-sm.font-light');
@@ -144,16 +142,16 @@ async function extractEditionDescription(bookDetails) {
     }
 
     const descriptionEl = document.querySelector('.blurb-pane .trix-content');
-    bookDetails["Description"] = descriptionEl ? descriptionEl.innerText.trim() : null;
+    bookDetails["Description"] = descriptionEl ? cleanText(descriptionEl.innerText) : null;
 }
 
 /**
  * Extracts the StoryGraph book ID from a StoryGraph book URL.
  */
 function getStoryGraphBookIdFromUrl(url) {
-  const regex = /thestorygraph\.com\/books\/([^/?]+)/i;
-  const match = url.match(regex);
-  return match ? match[1] : null;
+    const regex = /thestorygraph\.com\/books\/([^/?]+)/i;
+    const match = url.match(regex);
+    return match ? match[1] : null;
 }
 
-export { getStoryGraphDetails };
+export { storygraphScraper };

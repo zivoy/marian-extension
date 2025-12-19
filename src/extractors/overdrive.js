@@ -1,36 +1,94 @@
-import { logMarian, getFormattedText, delay } from '../shared/utils.js';
+import { Extractor } from './AbstractExtractor.js';
+import { logMarian, getFormattedText, delay, normalizeReadingFormat } from '../shared/utils.js';
 
-async function getOverdriveDetails() {
-  const id = document.querySelector(".cover img")?.dataset?.id;
-  if (id == undefined) throw "Id not found";
-  return getDetailsFromOverdriveId(id);
-}
+class overdriveScraper extends Extractor {
+  get _name() { return "Overdrive Extractor"; }
+  _sitePatterns = [
+    /https:\/\/(?:www\.)?overdrive\.com\/media\/(\d+)\/.+/,
+  ];
+  needsReload = false;
 
-async function getLibbyDetails() {
-  // await for data to load so we can rip it
-  await delay(300);
-  // normal libby app
-  let id = document.querySelector(".view-train-car:not([aria-hidden='true']) .cover-box img")?.dataset?.coverId;
-
-  // share page
-  if (id == undefined) {
-    const shareScript = document.querySelector("script");
-    if (shareScript != undefined) {
-      const idMatch = shareScript.textContent.match(/'\/availability\/'\+library\+'(\d+)'\+location\.search/);
-      if (idMatch != undefined) {
-        id = idMatch[1];
-      }
-    }
+  /** list of URLs that don't have IDs */
+  notSupported = new Set();
+  _handleStateUpdate(state) {
+    if (state.notSupported) state.notSupported.forEach(this.notSupported.add, this.notSupported);
   }
 
-  if (id == undefined) throw "Id not found";
-  return getDetailsFromOverdriveId(id);
+  isSupported(url) {
+    if (this.notSupported.has(url)) return false;
+    return super.isSupported(url);
+  }
+
+  async getDetails() {
+    const id = document.querySelector(".cover img")?.dataset?.id;
+    if (id == undefined) {
+      // add it so next time it won't be tried 
+      this.notSupported.add(window.location.href);
+      await this._saveState({ notSupported: Array.from(this.notSupported) });
+      throw new Error(`Overdrive ID not found for URL: ${window.location.href}`);
+    }
+    return getDetailsFromOverdriveId(id);
+  }
 }
 
-async function getTeachingBooksDetails() {
-  const idMatch = document.querySelector("a.book")?.href?.match(/overdrive.com\/media\/(\d+)\//);
-  if (idMatch == undefined || idMatch.length < 2) throw "Id not found";
-  return getDetailsFromOverdriveId(idMatch[1]);
+class libbyScraper extends Extractor {
+  get _name() { return "Libby Extractor"; }
+  _sitePatterns = [
+    /https:\/\/share\.libbyapp\.com\/title\/(\d+)/,
+    /https:\/\/libbyapp\.com\/.+\/(\d+)/,
+  ];
+  needsReload = false;
+
+  async getDetails() {
+    // await for data to load so we can rip it
+    await delay(300);
+    // normal libby app
+    let id = document.querySelector(".view-train-car:not([aria-hidden='true']) .cover-box img")?.dataset?.coverId;
+
+    // share page
+    if (id == undefined) {
+      const shareScript = document.querySelector("script");
+      if (shareScript != undefined) {
+        const idMatch = shareScript.textContent.match(/'\/availability\/'\+library\+'(\d+)'\+location\.search/);
+        if (idMatch != undefined) {
+          id = idMatch[1];
+        }
+      }
+    }
+
+    if (id == undefined) throw new Error(`Overdrive ID not found for URL: ${window.location.href}`);
+    return getDetailsFromOverdriveId(id);
+  }
+}
+
+class teachingbooksScraper extends Extractor {
+  get _name() { return "TeachingBooks Extractor"; }
+  _sitePatterns = [
+    /https:\/\/school\.teachingbooks\.net\/.+?tid=(\d+)/,
+  ];
+  needsReload = false;
+
+  /** list of URLs that don't have IDs */
+  notSupported = new Set();
+  _handleStateUpdate(state) {
+    if (state.notSupported) state.notSupported.forEach(this.notSupported.add, this.notSupported);
+  }
+
+  isSupported(url) {
+    if (this.notSupported.has(url)) return false;
+    return super.isSupported(url);
+  }
+
+  async getDetails() {
+    const idMatch = document.querySelector("a.book")?.href?.match(/overdrive.com\/media\/(\d+)\//);
+    if (idMatch == undefined || idMatch.length < 2) {
+      // add it so next time it won't be tried 
+      this.notSupported.add(window.location.href);
+      await this._saveState({ notSupported: Array.from(this.notSupported) });
+      throw new Error(`Overdrive ID not found for URL: ${window.location.href}`);
+    }
+    return getDetailsFromOverdriveId(idMatch[1]);
+  }
 }
 
 const apiUrl = "https://thunder.api.overdrive.com/v2/media/bulk";
@@ -43,11 +101,11 @@ async function getDetailsFromOverdriveId(id) {
 
   const req = await fetch(url);
   if (!req.ok) {
-    throw "Failed to retrive data from api";  // failed to retrieve data
+    throw new Error(`Failed to retrieve data from Overdrive API: (${req.status}) ${req.statusText}`); // failed to retrieve data
   }
   let data = await req.json();
   if (data.length < 1) {
-    throw "Data not found"
+    throw new Error("No data returned from Overdrive API");
   }
   data = data[0];
 
@@ -59,7 +117,7 @@ async function getDetailsFromOverdriveId(id) {
 
   // Get relevant details
   // source id
-  details["Source ID"] = data.id;
+  details["Mappings"] = { "Overdrive": [data.id] };
 
   // cover
   const cover = Object.values(data.covers)
@@ -94,6 +152,8 @@ async function getDetailsFromOverdriveId(id) {
   // format
   details["Edition Format"] = data.type?.name; // eBook most of the time
   details["Edition Information"] = data.edition;
+
+  details["Reading Format"] = normalizeReadingFormat(details["Edition Format"]);
 
   // publisher
   details["Publisher"] = data.publisher?.name;
@@ -279,4 +339,4 @@ function collapseAudiobookFormats(formats) {
   return formatList
 }
 
-export { getOverdriveDetails, getLibbyDetails, getTeachingBooksDetails };
+export { overdriveScraper, libbyScraper, teachingbooksScraper };
