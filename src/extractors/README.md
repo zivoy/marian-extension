@@ -60,7 +60,7 @@ it will then guide you on what is correct or incorrect syntax as well as highlig
 
 ## Details
 
-The `getDetails` returns an object with these fields, if you don't have some of them they can be left out and they will be omited from display (or a fallback will be used).
+The `getDetails` returns an object with these fields, if you don't have some of them they can be left out and they will be omitted from display (or a fallback will be used).
 
 You can fill in extra custom fields if you have more data you want to show, and it will also be displayed for the user.
 
@@ -85,9 +85,9 @@ You can fill in extra custom fields if you have more data you want to show, and 
 | `Edition Information` | String                            | Extra information about the edition (Reprint, Large Text, 2nd Edition, Unabridged, etc.) |
 |  `Publication date`   | String\|Date                      | The date that this edition was published |
 |      `Language`       | String                            | The language that the edition is written in |
-|       `Country`       | String                            | The cotunry that the edition was published in |
+|       `Country`       | String                            | The country that the edition was published in |
 
-## Best pracices
+## Best practices
 
 When writing an extractor it is best to have as few delays as possible, and when they are required, try to put it in a promise and extract something else at the same time.
 to that effect the [`collectObject`](#collectObject) is very useful as it allows you to await multiple promises of objects and join them into a single object.
@@ -100,7 +100,7 @@ You can find them in [utils.js](../shared/utils.js).
 
 ### collectObject
 Takes in a list of objects, promises of objects or null/undefined.
-it will await all promimses at the same time and then merge them into a single object, if a key is present in more then one object it will be overwritten, by order of the list.
+it will await all promises at the same time and then merge them into a single object, if a key is present in more then one object it will be overwritten, by order of the list.
 
 ### getCoverData
 Takes in a url, or a list of urls an returns an object with `img` and `imgScore` of the url with the best score.
@@ -139,9 +139,9 @@ Takes in a promise, a timeout duration and a default object.
 if the promise does not resolve within the timeout duration it will fallback to using the default object. Returns a promise
 
 ### getFormattedText
-Takes in a HTMLElement, extracts the text content of an element that has lot's of paragraphs and spesified newlines.
+Takes in a HTMLElement, extracts the text content of an element that has lot's of paragraphs and specified newlines.
 
-Usefull for extracting descriptions.
+Useful for extracting descriptions.
 
 ### remapKeys
 Takes in an object with string to string mappings as well as an object to act on. It will return a new object that replaces the keys of the provided object with the new values

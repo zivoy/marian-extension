@@ -36,8 +36,7 @@ This project supports building browser extension packages for both **Chrome (Man
 ## Creating an extractor
 
 Creating an extractor requires adding any URL's the extractor has to support to the 
-[manifest.base.json](./src/manifest.base.json) file,
-then create an extractor that goes into the [extractors](./src/extractors/) folder.
+[manifest.base.json](./src/manifest.base.json) file, and then create an extractor that goes into the [extractors](./src/extractors/) folder.
 
 Refer to the [extractors README](./src/extractors/README.md) 
 for more info on what a extractor consists of and requires
