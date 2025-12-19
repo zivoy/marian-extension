@@ -11,6 +11,7 @@ import { koboScraper } from "./kobo";
 import { libbyScraper, overdriveScraper, teachingbooksScraper } from "./overdrive";
 import { librofmScraper } from "./librofm";
 import { storygraphScraper } from "./storygraph";
+import { barnesAndNobleScraper } from "./barnesnoble";
 
 /** @import { Extractor } from "./AbstractExtractor";
  * @type{Extractor[]} */
@@ -29,6 +30,7 @@ const extractors = [
   new overdriveScraper(),
   new storygraphScraper(),
   new teachingbooksScraper(),
+  new barnesAndNobleScraper(),
 ];
 
 /** @param {string} url */

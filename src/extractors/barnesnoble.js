@@ -1,9 +1,6 @@
-import {
-  logMarian,
-  delay,
-  getFormattedText,
-  getCoverData,
-} from '../shared/utils.js';
+import { Extractor } from "./AbstractExtractor.js"
+import { logMarian, getFormattedText, getCoverData, addContributor, cleanText, normalizeReadingFormat, collectObject } from '../shared/utils.js';
+
 
 const MODAL_DELAY = 1500;
 const REGEX_HOURS = /(\d+)\s*h/;
@@ -13,20 +10,27 @@ const REGEX_BRACKET_CONTENT = /\([^()]*\)/;
 const SECONDS_IN_HOUR = 3600;
 const SECONDS_IN_MINUTE = 60;
 
-async function getBarnesAndNobleDetails() {
-  logMarian('Extracting Barnes & Noble details');
-  const bookDetails = getProductDetails();
+class barnesAndNobleScraper extends Extractor {
+  get _name() { return "Barnes & Noble Extractor"; }
+  _sitePatterns = [
+    /https:\/\/(?:www\.)?barnesandnoble\.com\/.+\/(\d+)/
+  ];
 
-  bookDetails['Reading Format'] = getSelectedFormat();
-  bookDetails['Title'] = document.querySelector('h1').textContent.trim();
-  bookDetails['Contributors'] = getContributors();
+  async getDetails() {
+    logMarian('Extracting Barnes & Noble details');
+    const bookDetails = getProductDetails();
 
-  return {
-    ...(await getCover()),
-    ...(await getBookDescription()),
-    ...getAudioBookTimes(),
-    ...bookDetails,
-  };
+    bookDetails['Reading Format'] = getSelectedFormat();
+    bookDetails['Title'] = document.querySelector('h1').textContent.trim();
+    bookDetails['Contributors'] = getContributors();
+
+    return {
+      ...(await getCover()),
+      ...(await getBookDescription()),
+      ...getAudioBookTimes(),
+      ...bookDetails,
+    };
+  }
 }
 
 async function getCover() {
@@ -221,4 +225,4 @@ function getAudioBookTimes() {
   return audiobook;
 }
 
-export { getBarnesAndNobleDetails };
+export { barnesAndNobleScraper };
