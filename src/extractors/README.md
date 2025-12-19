@@ -150,5 +150,27 @@ Takes in an object with string to string mappings as well as an object to act on
 Given a url it will return a promise to a calculated score based on the dimensions of the image 
 
 ### clearDeepQueryCache
+Clears the internal cache used by [`queryDeep`](#queryDeep) and [`queryAllDeep`](#queryAllDeep).
+It is recommended to call this at the beginning of `getDetails` to ensure you don't get cached results from a previous run or page state.
+
 ### queryAllDeep
+Performs a deep DOM query that traverses into the shadow roots of the provided host selectors.
+This is useful for sites that heavily rely on Web Components and Shadow DOM (like Audible).
+
+Takes in a `selector` string and an optional `hostSelectors` array of strings.
+It searches for the `selector` in the main document, and recursively inside the shadow roots of any elements matching `hostSelectors`.
+Returns an array of unique matching Elements.
+
+Example:
+```javascript
+// Search for .price inside the document and inside <product-card> shadow roots
+const prices = queryAllDeep('.price', ['product-card']);
+```
+
 ### queryDeep
+Same as [`queryAllDeep`](#queryallDeep) but returns only the first matching element, or `null` if none found.
+
+Example:
+```javascript
+const title = queryDeep('h1', ['product-header']);
+```
