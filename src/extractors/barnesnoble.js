@@ -3,12 +3,8 @@ import { logMarian, getFormattedText, getCoverData, addContributor, normalizeRea
 
 
 const MODAL_DELAY = 1500;
-const REGEX_HOURS = /(\d+)\s*h/;
-const REGEX_MINUTES = /(\d+)\s*m/;
 const REGEX_SERIES_PLACE = /#(\d+)/;
 const REGEX_BRACKET_CONTENT = /\([^()]*\)/;
-const SECONDS_IN_HOUR = 3600;
-const SECONDS_IN_MINUTE = 60;
 
 class barnesAndNobleScraper extends Extractor {
   get _name() { return "Barnes & Noble Extractor"; }
