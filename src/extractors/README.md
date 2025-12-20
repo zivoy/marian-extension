@@ -71,15 +71,15 @@ You can fill in extra custom fields if you have more data you want to show, and 
 |     `Description`     | String                            | The description of the book |
 |       `Series`        | String                            | The name of the series a book is a part of |
 |    `Series Place`     | String\|Number                    | The location/number of a book in a series |
-|         `img`         | Url\|String                       | A url to the image resource, in most cases you will not need to fill in this field and you can instead use the [`getCoverData`](#getCoverData) function |
-|      `imgScore`       | Number                            | The score of the image, same as above in most cases you will use the [`getCoverData`](#getCoverData) function.<br>but if you need to fill it manually you can use the [`getImageScore`](#getImageScore) function to calculate it from a url |
+|         `img`         | Url\|String                       | A url to the image resource, in most cases you will not need to fill in this field and you can instead use the [`getCoverData`](#getcoverdata) function |
+|      `imgScore`       | Number                            | The score of the image, same as above in most cases you will use the [`getCoverData`](#getcoverdata) function.<br>but if you need to fill it manually you can use the [`getImageScore`](#getimagescore) function to calculate it from a url |
 |       `ISBN-10`       | String                            | The ISBN-10 of a book |
 |       `ISBN-13`       | String                            | The ISBN-13 of a book |
 |        `ASIN`         | String                            | The ASIN id of a book |
 |      `Mappings`       | {[sourceName: String]: String[]}  | An object containing the names of the sources pointing to a list of ID's, can be used to show the books ID if there is a unique one for the website (e.g. goodreads) |
-|    `Contributors`     | {name: String, roles: String[]}[] | A list of objects containing who contributed to the creation of a book (author, narrator, editor, etc.).<br> in most cases you can use the [`addContributor`](#addContributor) function to create the object and fill in the list |
+|    `Contributors`     | {name: String, roles: String[]}[] | A list of objects containing who contributed to the creation of a book (author, narrator, editor, etc.).<br> in most cases you can use the [`addContributor`](#addcontributor) function to create the object and fill in the list |
 |      `Publisher`      | String                            | The name of the publisher |
-|   `Reading Format`    | String                            | The format of the media, `Physical book`, `Ebook`, `Audiobook`. in most cases you can call the [`normalizeReadingFormat`](#normalizeReadingFormat) function on the `Edition Format` to fill this in |
+|   `Reading Format`    | String                            | The format of the media, `Physical book`, `Ebook`, `Audiobook`. in most cases you can call the [`normalizeReadingFormat`](#normalizereadingformat) function on the `Edition Format` to fill this in |
 |  `Listening Length`   | String[]                          | For audiobooks, in the format of ["xxx hours", "xxx minutes"] |
 |        `Pages`        | String\|Number                    | The number of pages a book has |
 |   `Edition Format`    | String                            | The edition format of the edition (Kindle, Paperback, Hardcover, Audible, E-pub, etc.) |
@@ -104,7 +104,7 @@ These methods are used for persistent state management. `_saveState(state)` save
 ## Best practices
 
 When writing an extractor it is best to have as few delays as possible, and when they are required, try to put it in a promise and extract something else at the same time.
-to that effect the [`collectObject`](#collectObject) is very useful as it allows you to await multiple promises of objects and join them into a single object.
+to that effect the [`collectObject`](#collectobject) is very useful as it allows you to await multiple promises of objects and join them into a single object.
 
 ## Utils functions
 
@@ -164,7 +164,7 @@ Takes in an object with string to string mappings as well as an object to act on
 Given a url it will return a promise to a calculated score based on the dimensions of the image 
 
 ### clearDeepQueryCache
-Clears the internal cache used by [`queryDeep`](#queryDeep) and [`queryAllDeep`](#queryAllDeep).
+Clears the internal cache used by [`queryDeep`](#querydeep) and [`queryAllDeep`](#queryalldeep).
 It is recommended to call this at the beginning of `getDetails` to ensure you don't get cached results from a previous run or page state.
 
 ### queryAllDeep
@@ -182,7 +182,7 @@ const prices = queryAllDeep('.price', ['product-card']);
 ```
 
 ### queryDeep
-Same as [`queryAllDeep`](#queryallDeep) but returns only the first matching element, or `null` if none found.
+Same as [`queryAllDeep`](#queryalldeep) but returns only the first matching element, or `null` if none found.
 
 Example:
 ```javascript
