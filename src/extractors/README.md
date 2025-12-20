@@ -1,10 +1,10 @@
 # Creating an extractor
 
 A basic extractor consists of a class that extends the `Extractor` class and implements
-the `_name` and `getDetails` functions as well as filling in a list of supported url,
+the `_name` and `getDetails` functions as well as filling in a list of supported URLs,
 as regexes, in the `_sitePatterns` list.
 
-You can define more then one extractor in a file, the extractors have to be exported,
+You can define more than one extractor in a file, the extractors have to be exported,
 they will then be picked up by the build system when you run `npm run build` and
 the [index.js](./index.js) will be updated with all the extractors.
 
@@ -37,7 +37,7 @@ class extractorNameScraper extends Extractor {
   needsReload = true;
 
   // if you need to implement custom logic for if the page is supported,
-  // beyond just checking against the regexes, you can can implement this function
+  // beyond just checking against the regexes, you can implement this function
   isSupported(url) {
     return super.isSupported(url);
   }
@@ -56,7 +56,7 @@ export { extractorNameScraper };
 
 A good resource for creating a regex for the `_sitePatterns` is the site
 [regex101.com](https://regex101.com/).
-You can put in a few URL's that you want to have matched in the big text box,
+You can put in a few URLs that you want to have matched in the big text box,
 it will then guide you on what is correct
 or incorrect syntax as well as highlight what matched.
 
@@ -73,8 +73,8 @@ You can fill in extra custom fields if you have more data you want to show, and 
 |     `Description`     | String                            | The description of the book |
 |       `Series`        | String                            | The name of the series a book is a part of |
 |    `Series Place`     | String\|Number                    | The location/number of a book in a series |
-|         `img`         | Url\|String                       | A url to the image resource, in most cases you will not need to fill in this field and you can instead use the [`getCoverData`](#getcoverdata) function |
-|      `imgScore`       | Number                            | The score of the image, same as above in most cases you will use the [`getCoverData`](#getcoverdata) function.<br>but if you need to fill it manually you can use the [`getImageScore`](#getimagescore) function to calculate it from a url |
+|         `img`         | Url\|String                       | A URL to the image resource, in most cases you will not need to fill in this field and you can instead use the [`getCoverData`](#getcoverdata) function |
+|      `imgScore`       | Number                            | The score of the image, same as above in most cases you will use the [`getCoverData`](#getcoverdata) function.<br>but if you need to fill it manually you can use the [`getImageScore`](#getimagescore) function to calculate it from a URL |
 |       `ISBN-10`       | String                            | The ISBN-10 of a book |
 |       `ISBN-13`       | String                            | The ISBN-13 of a book |
 |        `ASIN`         | String                            | The ASIN id of a book |
@@ -123,7 +123,7 @@ as it allows you to await multiple promises of objects and join them into a sing
 
 ## Utility functions
 
-There are some util function that you can use to make it easier to implement an extractor
+There are some util functions that you can use to make it easier to implement an extractor
 
 You can find them in [utils.js](../shared/utils.js).
 
@@ -131,12 +131,12 @@ You can find them in [utils.js](../shared/utils.js).
 
 Takes in a list of objects, promises of objects or null/undefined.
 it will await all promises at the same time and then merge them into a single object,
-if a key is present in more then one object it will be overwritten, by order of the list.
+if a key is present in more than one object it will be overwritten, by order of the list.
 
 ### getCoverData
 
-Takes in a url, or a list of URLs an returns an
-object with `img` and `imgScore` of the url with the best score.
+Takes in a URL, or a list of URLs and returns an
+object with `img` and `imgScore` of the URL with the best score.
 
 ### addContributor
 
@@ -158,7 +158,7 @@ Takes in a string and returns one of `Audiobook`, `Ebook`, `Physical Book`
 ### logMarian
 
 Does a `console.log` but prepends `[👩🏻‍🏫 Marian]` to the start,
-if more then one argument was passed then it will log it in a `console.group`
+if more than one argument was passed then it will log it in a `console.group`
 
 ### delay
 
@@ -166,13 +166,13 @@ Takes a duration in milliseconds and returns a promise
 
 ### cleanText
 
-Takes in a string an cleans it up
+Takes in a string and cleans it up
 
 * normalizes unicode to be NFKC
 * remove unicode control characters
 * replace invisible characters and bidi characters with space(s)
 * remove leading commas
-* replace replace repeating whitespace to be at most 1 space
+* replace repeating whitespace to be at most 1 space
 * trims spaces from beginning and end
 
 ### withTimeout
@@ -195,7 +195,7 @@ It will return a new object that replaces the keys of the provided object with t
 
 ### getImageScore
 
-Given a url it will return a promise to a calculated score based on the dimensions of the image 
+Given a url it will return a promise to a calculated score based on the dimensions of the image. 
 
 ### clearDeepQueryCache
 
