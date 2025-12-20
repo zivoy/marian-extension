@@ -5,7 +5,7 @@ the `_name` and `getDetails` functions as well as filling in a list of supported
 as regexes, in the `_sitePatterns` list.
 
 You can define more then one extractor in a file, the extractors have to be exported,
-they will then be picked up by the build system when you run `npm run build` and 
+they will then be picked up by the build system when you run `npm run build` and
 the [index.js](./index.js) will be updated with all the extractors.
 
 ## Example
@@ -54,9 +54,11 @@ export { extractorNameScraper };
 
 ## Creating a regex
 
-A good resource for creating a regex for the `_sitePatterns` is the site [regex101.com](https://regex101.com/). 
+A good resource for creating a regex for the `_sitePatterns` is the site
+[regex101.com](https://regex101.com/).
 You can put in a few URL's that you want to have matched in the big text box,
-it will then guide you on what is correct or incorrect syntax as well as highlight what matched.
+it will then guide you on what is correct
+or incorrect syntax as well as highlight what matched.
 
 ## Details
 
@@ -93,36 +95,55 @@ You can fill in extra custom fields if you have more data you want to show, and 
 The `Extractor` base class provides some default behavior that you can override if needed.
 
 ### needsReload
-The `needsReload` property defaults to `true`. Set this to `false` if the extractor does not require the page to be reloaded before extraction (e.g., if it can reliably work with the current DOM state regardless of how the user arrived there).
+
+The `needsReload` property defaults to `true`. Set this to `false`
+if the extractor does not require the page to be reloaded before extraction
+(e.g., if it can reliably work with the current DOM state regardless of how the user arrived there).
 
 ### isSupported(url)
-The default `isSupported` implementation checks the URL against the `_sitePatterns` regexes. You can override this function to provide custom logic for determining if a URL is supported.
 
-### _saveState / _handleStateUpdate
-These methods are used for persistent state management. `_saveState(state)` saves the current state to browser storage, and `_handleStateUpdate(state)` is called when the state is updated (either from storage initialization or changes).
+The default `isSupported` implementation checks the URL against the `_sitePatterns` regexes.
+You can override this function to provide custom logic for determining if a URL is supported.
+
+But it is best to fallback to calling `super.isSupported` if your custom logic does not handle some cases.
+
+### Persistent state
+
+These methods are used for persistent state management.
+`_saveState(state)` saves the current state to browser storage,
+and `_handleStateUpdate(state)` is called when the state is updated
+(either from storage initialization or changes).
 
 ## Best practices
 
-When writing an extractor it is best to have as few delays as possible, and when they are required, try to put it in a promise and extract something else at the same time.
-to that effect the [`collectObject`](#collectobject) is very useful as it allows you to await multiple promises of objects and join them into a single object.
+When writing an extractor it is best to have as few delays as possible,
+and when they are required, try to put it in a promise and extract something else at the same time.
+To that effect the [`collectObject`](#collectobject) is very useful
+as it allows you to await multiple promises of objects and join them into a single object.
 
-## Utils functions
+## Utility functions
 
 There are some util function that you can use to make it easier to implement an extractor
 
 You can find them in [utils.js](../shared/utils.js).
 
 ### collectObject
+
 Takes in a list of objects, promises of objects or null/undefined.
-it will await all promises at the same time and then merge them into a single object, if a key is present in more then one object it will be overwritten, by order of the list.
+it will await all promises at the same time and then merge them into a single object,
+if a key is present in more then one object it will be overwritten, by order of the list.
 
 ### getCoverData
-Takes in a url, or a list of urls an returns an object with `img` and `imgScore` of the url with the best score.
+
+Takes in a url, or a list of URLs an returns an
+object with `img` and `imgScore` of the url with the best score.
 
 ### addContributor
-Takes in a list and an author name as well as a role (or list of roles). if a name is already present then the role will be appended to it.
 
-example:
+Takes in a list and an author name as well as a role (or list of roles).
+If a name is already present then the role will be appended to it.
+
+Example:
 ```javascript
 let contributors = [];
 addContributor(contributors, "A", "Author");
@@ -131,43 +152,58 @@ addContributor(contributors, "A", "Narrator");
 ```
 
 ### normalizeReadingFormat
+
 Takes in a string and returns one of `Audiobook`, `Ebook`, `Physical Book`
 
 ### logMarian
-Does a `console.log` but prepends `[👩🏻‍🏫 Marian]` to the start, if more then one argument was passed then it will log it in a `console.group`
+
+Does a `console.log` but prepends `[👩🏻‍🏫 Marian]` to the start,
+if more then one argument was passed then it will log it in a `console.group`
 
 ### delay
+
 Takes a duration in milliseconds and returns a promise
 
 ### cleanText
+
 Takes in a string an cleans it up
+
 * normalizes unicode to be NFKC
 * remove unicode control characters
-* replace invisable characters and bidi characters with space(s)
+* replace invisible characters and bidi characters with space(s)
 * remove leading commas
 * replace replace repeating whitespace to be at most 1 space
-* trims spaces from begining and end
+* trims spaces from beginning and end
 
 ### withTimeout
+
 Takes in a promise, a timeout duration and a default object.
-if the promise does not resolve within the timeout duration it will fallback to using the default object. Returns a promise
+If the promise does not resolve within the timeout duration
+it will fallback to using the default object. Returns a promise
 
 ### getFormattedText
-Takes in a HTMLElement, extracts the text content of an element that has lot's of paragraphs and specified newlines.
+
+Takes in a HTMLElement, extracts the text content of an element
+that has a lot of paragraphs and specified newlines.
 
 Useful for extracting descriptions.
 
 ### remapKeys
-Takes in an object with string to string mappings as well as an object to act on. It will return a new object that replaces the keys of the provided object with the new values
+
+Takes in an object with string to string mappings as well as an object to act on.
+It will return a new object that replaces the keys of the provided object with the new values
 
 ### getImageScore
+
 Given a url it will return a promise to a calculated score based on the dimensions of the image 
 
 ### clearDeepQueryCache
+
 Clears the internal cache used by [`queryDeep`](#querydeep) and [`queryAllDeep`](#queryalldeep).
 It is recommended to call this at the beginning of `getDetails` to ensure you don't get cached results from a previous run or page state.
 
 ### queryAllDeep
+
 Performs a deep DOM query that traverses into the shadow roots of the provided host selectors.
 This is useful for sites that heavily rely on Web Components and Shadow DOM (like Audible).
 
@@ -182,7 +218,9 @@ const prices = queryAllDeep('.price', ['product-card']);
 ```
 
 ### queryDeep
-Same as [`queryAllDeep`](#queryalldeep) but returns only the first matching element, or `null` if none found.
+
+Same as [`queryAllDeep`](#queryalldeep) but returns only the first matching element,
+or `null` if none found.
 
 Example:
 ```javascript
@@ -190,5 +228,7 @@ const title = queryDeep('h1', ['product-header']);
 ```
 
 ### runtime
-Exports the `browser.runtime` (Firefox) or `chrome.runtime` (Chrome) API, providing a cross-browser way to access runtime methods.
+
+Exports the `browser.runtime` (Firefox) or `chrome.runtime` (Chrome) API,
+providing a cross-browser way to access runtime methods.
 
