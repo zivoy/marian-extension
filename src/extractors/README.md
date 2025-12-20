@@ -60,7 +60,8 @@ it will then guide you on what is correct or incorrect syntax as well as highlig
 
 ## Details
 
-The `getDetails` returns an object with these fields, if you don't have some of them they can be left out and they will be omitted from display (or a fallback will be used).
+The `getDetails` function operates on the currently open page and returns an object with the fields listed below,
+if you don't have some of them they can be left out and they will be omitted from display (or a fallback will be used).
 
 You can fill in extra custom fields if you have more data you want to show, and it will also be displayed for the user.
 
@@ -75,7 +76,7 @@ You can fill in extra custom fields if you have more data you want to show, and 
 |       `ISBN-10`       | String                            | The ISBN-10 of a book |
 |       `ISBN-13`       | String                            | The ISBN-13 of a book |
 |        `ASIN`         | String                            | The ASIN id of a book |
-|      `Mappings`       | {[sourceName]: String[]}          | An object containing the names of the sources pointing to a list of ID's, can be used to show the books ID if there is a unique one for the website (e.g. goodreads) |
+|      `Mappings`       | {[sourceName: String]: String[]}  | An object containing the names of the sources pointing to a list of ID's, can be used to show the books ID if there is a unique one for the website (e.g. goodreads) |
 |    `Contributors`     | {name: String, roles: String[]}[] | A list of objects containing who contributed to the creation of a book (author, narrator, editor, etc.).<br> in most cases you can use the [`addContributor`](#addContributor) function to create the object and fill in the list |
 |      `Publisher`      | String                            | The name of the publisher |
 |   `Reading Format`    | String                            | The format of the media, `Physical book`, `Ebook`, `Audiobook`. in most cases you can call the [`normalizeReadingFormat`](#normalizeReadingFormat) function on the `Edition Format` to fill this in |
