@@ -174,12 +174,13 @@ export async function getCurrentTab() {
  */
 export function getISBN10CheckDigit(isbn) {
   isbn = isbn.replaceAll("-", "");
-  if (!(isbn.length === 9 || isbn.length === 10)) return null;
 
   // remove original check digit
   if (isbn.length === 10) isbn = isbn.slice(0, isbn.length - 1);
 
   if (isbn.length !== 9) return null;
+  if (/[^0-9]/.exec(isbn) != null) return null; // check for non digits
+
   const checksum = [...isbn].reduce((acc, d, i) => acc + d * (i + 1), 0) % 11;
   return checksum === 10 ? "X" : checksum.toString();
 }
@@ -193,12 +194,13 @@ export function getISBN10CheckDigit(isbn) {
  */
 export function getISBN13CheckDigit(isbn) {
   isbn = isbn.replaceAll("-", "");
-  if (!(isbn.length === 12 || isbn.length === 13)) return null;
 
   // remove original check digit
   if (isbn.length === 13) isbn = isbn.slice(0, isbn.length - 1);
 
   if (isbn.length !== 12) return null;
+  if (/[^0-9]/.exec(isbn) != null) return null; // check for non digits
+
   const checksum = (10 - ([...isbn].reduce((acc, d, i) => acc + d * (i % 2 ? 3 : 1), 0) % 10)) % 10;
   return checksum.toString();
 }
