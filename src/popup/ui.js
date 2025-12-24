@@ -227,7 +227,7 @@ function normalizeDetails(details, settings, inplace = true) {
   // Regenerate missing ISBN using other one
   if (!details["ISBN-13"] && !!details["ISBN-10"] && details["ISBN-10-valid"]) {
     // make isbn13 from isbn10
-    let isbn = details["ISBN-10"].replace("-", "");
+    let isbn = details["ISBN-10"].replaceAll("-", "");
     if (isbn.length == 10) {
       isbn = "978" + isbn; // add prefix
       const checksum = getISBN13CheckDigit(isbn);
@@ -240,7 +240,7 @@ function normalizeDetails(details, settings, inplace = true) {
   }
   if (!!details["ISBN-13"] && !details["ISBN-10"] && details["ISBN-13"].startsWith("978") && details["ISBN-13-valid"]) {
     // make isbn10 from isbn13
-    let isbn = details["ISBN-13"].replace("-", "");
+    let isbn = details["ISBN-13"].replaceAll("-", "");
     if (isbn.length == 13) {
       isbn = isbn.slice(3); // remove prefix
       const checksum = getISBN10CheckDigit(isbn);
