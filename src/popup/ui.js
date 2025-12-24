@@ -9,9 +9,9 @@ const settingsManager = SetupSettings(document.querySelector("#settings"), {
       no: "No (Hardcover)", none: "Leave Alone"
     }, default: "none"
   },
-  filterNonHardcover: { type: "toggle", label: "Filter out non hardcover fields", default: false },
   dateFormat: { type: "selection", label: "Format date", default: "local", options: { local: `Local format (${getLocalDateFormat()})`, ymd: "yyyy-mm-dd", dmy: "dd/mm/yyyy", mdy: "mm/dd/yyyy" } },
-  keepFields: { type: "selection", label: "Always display non present hardcover fields", options: { yes: "Yes", no: "No", none: "Leave Alone" }, default: "none" },
+  filterNonHardcover: { type: "toggle", label: "Filter out non hardcover fields", default: false },
+  keepFields: { type: "toggle", label: "Always display non present hardcover fields", default: false },
 });
 
 const orderedKeys = [
@@ -311,7 +311,7 @@ function normalizeDetails(details, settings, inplace = true) {
   }
 
   // add or remove fields even if they are not set
-  if (settings.keepFields === "no") {
+  if (!settings.keepFields) {
     Object.keys(details).forEach((key) => {
       // ignore non hardcover fields
       if (!hardcoverKeys.includes(key)) return;
@@ -320,7 +320,7 @@ function normalizeDetails(details, settings, inplace = true) {
         delete details[key];
       }
     });
-  } else if (settings.keepFields === "yes") {
+  } else {
     // fill in non present fields
     hardcoverKeys.forEach((key) => {
       if (details["Reading Format"] != "Audiobook") {
