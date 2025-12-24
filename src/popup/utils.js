@@ -164,3 +164,39 @@ export async function getCurrentTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   return tab;
 }
+
+/**
+ * Calculates and returns the check digit for an isbn10
+ * Returns the check digit or undefined if the isbn is invalid
+ *
+ * @param {String} isbn - a 9 or 10 digit long isbn, if 10 long the present check digit is ignored 
+ * @returns {String|null}
+ */
+export function getISBN10CheckDigit(isbn) {
+  isbn = isbn.replaceAll("-", "");
+  if (!(isbn.length === 9 || isbn.length === 10)) return null;
+
+  // remove original check digit
+  if (isbn.length === 10) isbn = isbn.slice(0, isbn.length - 1);
+
+  const checksum = Array.from(isbn).reduce((acc, digit, i) => (i + 1) * parseInt(digit) + acc, 0) % 11;
+  return checksum > 9 ? "X" : checksum.toString();
+}
+
+/**
+ * Calculates and returns the check digit for an isbn13
+ * Returns the check digit or undefined if the isbn is invalid
+ *
+ * @param {String} isbn - a 12 or 13 digit long isbn, if 13 long the present check digit is ignored 
+ * @returns {String|null}
+ */
+export function getISBN13CheckDigit(isbn) {
+  isbn = isbn.replaceAll("-", "");
+  if (!(isbn.length === 12 || isbn.length === 13)) return null;
+
+  // remove original check digit
+  if (isbn.length === 13) isbn = isbn.slice(0, isbn.length - 1);
+
+  const checksum = 10 - Array.from(isbn).reduce((acc, digit, i) => (i % 2 == 0 ? 1 : 3) * parseInt(digit) + acc, 0) % 10;
+  return checksum;
+}

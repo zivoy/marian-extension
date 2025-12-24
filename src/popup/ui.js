@@ -1,6 +1,6 @@
 import { tryGetDetails } from "./messaging.js";
 import { isAllowedUrl } from "../extractors";
-import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl, getCurrentTab, SetupSettings } from "./utils.js";
+import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl, getCurrentTab, SetupSettings, getISBN10CheckDigit, getISBN13CheckDigit } from "./utils.js";
 
 const settingsManager = SetupSettings(document.querySelector("#settings"), {
   hyphenateIsbn: {
@@ -218,10 +218,12 @@ function normalizeDetails(details, settings, inplace = true) {
     let isbn = details["ISBN-10"].replace("-", "");
     if (isbn.length == 10) {
       isbn = "978" + isbn; // add prefix
-      isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
-      const checksum = 10 - Array.from(isbn).reduce((acc, digit, i) => (i % 2 == 0 ? 1 : 3) * parseInt(digit) + acc, 0) % 10;
-      isbn = isbn + checksum.toString(); // add new check digit
-      details["ISBN-13"] = isbn;
+      const checksum = getISBN13CheckDigit(isbn);
+      if (checksum != null) {
+        isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
+        isbn = isbn + checksum; // add new check digit
+        details["ISBN-13"] = isbn;
+      }
     }
   }
   if (!!details["ISBN-13"] && !details["ISBN-10"] && details["ISBN-13"].startsWith("978")) {
@@ -229,10 +231,12 @@ function normalizeDetails(details, settings, inplace = true) {
     let isbn = details["ISBN-13"].replace("-", "");
     if (isbn.length == 13) {
       isbn = isbn.slice(3); // remove prefix
-      isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
-      const checksum = Array.from(isbn).reduce((acc, digit, i) => (i + 1) * parseInt(digit) + acc, 0) % 11
-      isbn = isbn + checksum.toString(); // add new check digit
-      details["ISBN-10"] = isbn;
+      const checksum = getISBN10CheckDigit(isbn);
+      if (checksum != null) {
+        isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
+        isbn = isbn + checksum; // add new check digit
+        details["ISBN-10"] = isbn;
+      }
     }
   }
 
