@@ -179,8 +179,9 @@ export function getISBN10CheckDigit(isbn) {
   // remove original check digit
   if (isbn.length === 10) isbn = isbn.slice(0, isbn.length - 1);
 
-  const checksum = Array.from(isbn).reduce((acc, digit, i) => (i + 1) * parseInt(digit) + acc, 0) % 11;
-  return checksum > 9 ? "X" : checksum.toString();
+  if (isbn.length !== 9) return null;
+  const checksum = [...isbn].reduce((acc, d, i) => acc + d * (i + 1), 0) % 11;
+  return checksum === 10 ? "X" : checksum.toString();
 }
 
 /**
@@ -197,6 +198,7 @@ export function getISBN13CheckDigit(isbn) {
   // remove original check digit
   if (isbn.length === 13) isbn = isbn.slice(0, isbn.length - 1);
 
-  const checksum = 10 - Array.from(isbn).reduce((acc, digit, i) => (i % 2 == 0 ? 1 : 3) * parseInt(digit) + acc, 0) % 10;
-  return checksum;
+  if (isbn.length !== 12) return null;
+  const checksum = (10 - ([...isbn].reduce((acc, d, i) => acc + d * (i % 2 ? 3 : 1), 0) % 10)) % 10;
+  return checksum.toString();
 }
