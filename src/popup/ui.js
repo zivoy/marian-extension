@@ -212,8 +212,20 @@ function normalizeDetails(details, settings, inplace = true) {
 
   // normalize
 
+  // Validate the ISBNs validity
+  if (details["ISBN-10"]) {
+    const isbn = details["ISBN-10"];
+    const checksum = getISBN10CheckDigit(isbn);
+    details["ISBN-10-valid"] = checksum == isbn[isbn.length - 1]
+  }
+  if (details["ISBN-13"]) {
+    const isbn = details["ISBN-13"];
+    const checksum = getISBN13CheckDigit(isbn);
+    details["ISBN-13-valid"] = checksum == isbn[isbn.length - 1]
+  }
+
   // Regenerate missing ISBN using other one
-  if (!details["ISBN-13"] && !!details["ISBN-10"]) {
+  if (!details["ISBN-13"] && !!details["ISBN-10"] && details["ISBN-10-valid"]) {
     // make isbn13 from isbn10
     let isbn = details["ISBN-10"].replace("-", "");
     if (isbn.length == 10) {
@@ -226,7 +238,7 @@ function normalizeDetails(details, settings, inplace = true) {
       }
     }
   }
-  if (!!details["ISBN-13"] && !details["ISBN-10"] && details["ISBN-13"].startsWith("978")) {
+  if (!!details["ISBN-13"] && !details["ISBN-10"] && details["ISBN-13"].startsWith("978") && details["ISBN-13-valid"]) {
     // make isbn10 from isbn13
     let isbn = details["ISBN-13"].replace("-", "");
     if (isbn.length == 13) {
@@ -486,9 +498,22 @@ function renderDetailsWithSettings(details, settings = {}) {
       renderRow(container, key, details[key]);
       rendered.add(key);
     }
+
+    // show warnings
+    if (["ISBN-10", "ISBN-13"].includes(key)) {
+      const valid = details[`${key}-valid`];
+      if (!valid && valid != undefined) {
+        const div = document.createElement('div');
+        div.className = 'row warning';
+        div.appendChild(document.createTextNode(
+          "WARNING: The ISBN above is invalid!"
+        ));
+        container.appendChild(div);
+      }
+    }
   });
 
-  const filteredKeys = ['img', 'imgScore', 'Title', 'Description'];
+  const filteredKeys = ['img', 'imgScore', 'Title', 'Description', "ISBN-10-valid", "ISBN-13-valid"];
   Object.entries(details).forEach(([key, value]) => {
     if (filteredKeys.includes(key) || rendered.has(key)) return;
     renderRow(container, key, value);
