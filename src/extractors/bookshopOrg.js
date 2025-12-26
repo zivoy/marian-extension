@@ -74,6 +74,21 @@ class bookshopScraper extends Extractor {
       const value = cleanText(val.textContent);
       if (keyname === "Language") {
         details["Language"] = value;
+        continue;
+      }
+      if (keyname === "Dimensions") {
+        if (value === "N/A") continue;
+        value.split("|").forEach(component => {
+          if (component.includes(" g")) {
+            details["Weight"] = component.trim();
+            return;
+          }
+          if (component.includes("mm")) {
+            details["Dimensions"] = component.trim();
+            return;
+          }
+        });
+        continue;
       }
     }
 
