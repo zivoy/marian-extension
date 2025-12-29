@@ -5,6 +5,7 @@ if (typeof global.chrome === "undefined") {
   global.chrome = {};
 }
 import path from "path";
+import { pathToFileURL } from "url";
 import esbuild from "esbuild";
 const pkg = JSON.parse(fs.readFileSync("./package.json", "utf-8"));
 
@@ -87,15 +88,15 @@ async function generateExtractorsIndex() {
   const imports = [];
   const instances = [];
 
-  const AbstractExtractor = await import(path.resolve(SRC_DIR, "extractors", "AbstractExtractor.js"));
+  const AbstractExtractor = await import(pathToFileURL(path.resolve(SRC_DIR, "extractors", "AbstractExtractor.js")).href);
   const Extractor = AbstractExtractor.Extractor;
 
   for (const file of files) {
     const modulePath = path.join(extractorsDir, file);
-    const module = await import(path.resolve(modulePath)).catch((err) => {
+    const module = await import(pathToFileURL(path.resolve(modulePath)).href).catch((err) => {
       if (err.message.includes('chrome is not defined')) {
         global.chrome = {};
-        return import(path.resolve(modulePath));
+        return import(pathToFileURL(path.resolve(modulePath)).href);
       }
       throw err;
     });
