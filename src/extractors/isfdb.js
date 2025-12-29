@@ -16,10 +16,10 @@ class isfdbScraper extends Extractor {
 
   async getDetails() {
     const url = window.location.href;
-    // if (url.match(editionRegex)) return scrapeEdition();
+    if (url.match(editionRegex)) return scrapeEdition();
     if (url.match(novelRegex)) return scrapeBook();
 
-    throw new Error("Not implemented")
+    throw new Error("Not implemented");
   }
 }
 
@@ -34,8 +34,8 @@ const remapings = remapKeys.bind(undefined, {
   "User Rating": undefined,
 });
 
-function scrapeBook() {
-  const contentEl = document.querySelector("#wrap div.ContentBox:has(.recordID)");
+function scrapeBook(doc = document) {
+  const contentEl = doc.querySelector("#wrap div.ContentBox:has(.recordID)");
   if (contentEl == undefined) throw new Error("Failed to find book element");
   const clonedContent = contentEl.cloneNode(true);
 
@@ -64,6 +64,12 @@ function scrapeBook() {
     labelEl.remove();
     let value = cleanText(container.textContent);
 
+    if (label === "Date") {
+      const valSplit = value.split("-");
+      if (valSplit.length === 3) {
+        value = new Date(valSplit[0], Math.max(0, valSplit[1] - 1), valSplit[2]);
+      }
+    }
     if (label === "Author") {
       value = addContributor(details["Contributors"] ?? [], value, "Author");
       label = "Contributors";
@@ -85,6 +91,80 @@ function scrapeBook() {
   details = remapings(details);
 
   return details;
+}
+
+async function scrapeEdition() {
+  const contentEl = document.querySelector("#wrap div.ContentBox:has(.recordID)");
+  if (contentEl == undefined) throw new Error("Failed to find edition element");
+  const clonedContent = contentEl.cloneNode(true);
+
+  const titlesBoxEl = document.querySelector("#wrap div.ContentBox:not(:has(.recordID))");
+  if (titlesBoxEl == undefined) throw new Error("Failed to find book info element");
+
+  const recordEl = clonedContent.querySelector(".recordID");
+  recordEl.remove();
+
+  let details = {};
+
+  details["Title"] = "Foundation's Edge";
+
+  recordEl.querySelector("b")?.remove();
+  const editionId = cleanText(recordEl.textContent);
+
+  const titlesLi = [...titlesBoxEl.querySelectorAll("li")];
+  const titleLinks = titlesLi
+    .map(i => [...i.querySelectorAll("a")])
+    .flat()
+    .filter(i => i.href.includes("title.cgi"));
+  const titleLink = (titleLinks
+    .filter(i => cleanText(i.textContent) === details["Title"])[0]
+    ?? titleLinks[0]
+  )?.href;
+
+  console.log("titleLink", titleLink);
+
+  details = await collectObject([
+    new Promise((resolve, reject) => {
+      if (titleLink == undefined) {
+        resolve({});
+        return;
+      }
+      fetchHTML(titleLink)
+        .then((doc) => {
+          if (doc == undefined) {
+            reject("No document");
+            return;
+          }
+
+          resolve(scrapeBook(doc));
+        })
+        .catch(reject);
+    }),
+    details,
+  ]);
+
+  const mappings = details["Mappings"] ?? {};
+  mappings["ISFDB Edition"] = [editionId];
+  details["Mappings"] = mappings;
+
+  return details;
+}
+
+async function fetchHTML(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const html = await response.text();
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    return doc;
+  } catch (error) {
+    console.error('Error fetching HTML:', error);
+  }
 }
 
 export { isfdbScraper };
