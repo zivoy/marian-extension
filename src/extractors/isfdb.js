@@ -27,7 +27,11 @@ class isfdbScraper extends Extractor {
 const remapings = remapKeys.bind(undefined, {
   "Series Number": "Series Place",
   "Date": "Publication date",
-  "Synopsis": "Description"
+  "Synopsis": "Description",
+
+  "Current Tags": undefined,
+  "Webpages": undefined,
+  "User Rating": undefined,
 });
 
 function scrapeBook() {
@@ -48,6 +52,10 @@ function scrapeBook() {
   if (notesEl) content.push.apply(content, notesEl.innerHTML.split(/<br>/i));
 
   let details = {};
+
+  recordEl.querySelector("b")?.remove();
+  details["Mappings"] = { "ISFDB Title": [cleanText(recordEl.textContent)] };
+
   const container = document.createElement("div");
   for (const con of content) {
     container.innerHTML = con;
@@ -74,17 +82,7 @@ function scrapeBook() {
     details[label] = value;
   }
 
-  delete details["Current Tags"];
-  delete details["Webpages"];
-  delete details["User Rating"];
-
   details = remapings(details);
-
-  recordEl.querySelector("b")?.remove();
-  details["Mappings"] = { "ISFDB Title": [cleanText(recordEl.textContent)] };
-
-  console.log("content", content, details);
-
 
   return details;
 }

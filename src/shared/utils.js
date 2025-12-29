@@ -212,6 +212,7 @@ export function remapKeys(mapping, object) {
   for (const key of Object.keys(object)) {
     // If the key exists in mapping, use the new name, otherwise keep original
     const finalKey = Object.hasOwn(mapping, key) ? mapping[key] : key;
+    if (finalKey == undefined) continue;
     newObj[finalKey] = object[key];
   }
 
