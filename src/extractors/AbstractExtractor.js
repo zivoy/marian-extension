@@ -78,6 +78,27 @@ class Extractor {
     await storageAPI?.local?.set(obj);
   }
 
+  /**
+   * Takes in a url and returns a url with only the components needed to identify the book
+   * 
+   * @param {string} u 
+   * @returns {string}
+   */
+  normalizeUrl(u) {
+    try {
+      const x = new URL(u);
+      // Preserve key product identifiers when the format is encoded in query params.
+      const keepParams = ['ean', 'isbn', 'upc'];
+      const kept = keepParams
+        .filter((key) => x.searchParams.has(key))
+        .map((key) => `${key}=${x.searchParams.get(key)}`);
+      const suffix = kept.length ? `?${kept.join('&')}` : '';
+      return `${x.origin}${x.pathname}${suffix}`;
+    } catch {
+      return u || '';
+    }
+  }
+
   // NOTE: maybe add extraction functions into methods on the class
 }
 
