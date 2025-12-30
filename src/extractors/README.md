@@ -204,7 +204,23 @@ Useful for extracting descriptions.
 ### remapKeys
 
 Takes in an object with string to string mappings as well as an object to act on.
-It will return a new object that replaces the keys of the provided object with the new values
+It will return a new object that replaces the keys of the provided object with the new values.
+Any key not specified in the mappings will be left alone.
+
+This function also let's you easily delete keys from an object by setting the target to undefined.
+
+This function works well together with the bind function to create a function that operates on objects.
+
+Example:
+
+```javascript
+const remappings = remapKeys.bind(undefined, {
+  "Date": "Publication date", // rename 'Date' -> 'Publication Date'
+  "User Rating": undefined,   // delete 'User Ratings'
+});
+
+const newObject = remappings(originalObject);
+```
 
 ### getImageScore
 
