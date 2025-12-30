@@ -28,20 +28,22 @@ function formatDate(dateStr) {
 }
 
 function downloadImage(url, bookId) {
-  fetch(url)
-    .then(res => res.blob())
-    .then(blob => {
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      const safeId = String(bookId || '').replace(/[^a-z0-9]/gi, '');
-      a.download = `${safeId}_cover.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(blobUrl);
-    })
-    .catch(err => console.error('Image download failed:', err));
+  const safeId = String(bookId || '').replace(/[^a-z0-9]/gi, '');
+  const filename = `${safeId}_cover.jpg`;
+
+  chrome.downloads.download({
+    url: url,
+    filename: filename,
+    saveAs: false,
+    conflictAction: 'uniquify'
+  }, (downloadId) => {
+    if (chrome.runtime.lastError) {
+      console.error('Image download failed:', chrome.runtime.lastError);
+      showStatus(`Download failed: ${chrome.runtime.lastError.message}`);
+    } else {
+      console.log('Image download started, ID:', downloadId);
+    }
+  });
 }
 
 
