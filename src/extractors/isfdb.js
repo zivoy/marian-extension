@@ -21,6 +21,14 @@ class isfdbScraper extends Extractor {
 
     throw new Error("Not implemented");
   }
+
+  normalizeUrl(url) {
+    if (!url.includes("?")) return super.normalizeUrl(url);
+
+    let [domain, id] = url.split("?");
+    id = id.match(/\d+/)[0];
+    return `${domain}?${id}`;
+  }
 }
 
 
