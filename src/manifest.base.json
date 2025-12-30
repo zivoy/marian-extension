@@ -9,7 +9,6 @@
 	},
 	"homepage_url": "https://hardcover.app/join?referrer_id=8753",
 	"host_permissions": [
-		"https://m.media-amazon.com/images/*",
 		"https://www.amazon.com/*",
 		"https://www.amazon.co.uk/*",
 		"https://www.amazon.com.au/*",
@@ -106,7 +105,6 @@
 		"https://www.isbn.de/*",
 		"https://isbn.de/*",
 
-		"https://www.isfdb.org/wiki/images/*",
 		"https://www.isfdb.org/cgi-bin/*",
 
 		"https://www.barnesandnoble.com/*"
