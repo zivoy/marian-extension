@@ -245,7 +245,7 @@ async function scrapeEdition() {
   });
 
   details = await collectObject([
-    // bookDetailsPromise,
+    bookDetailsPromise,
     coverData,
     details,
   ]);
