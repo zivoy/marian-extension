@@ -165,6 +165,14 @@ async function scrapeEdition() {
       }
       continue;
     }
+    if (label === "Pages") {
+      // get page primary count
+      const newValue = value.match(/(\d+(?!]))/g)?.map(Number)?.reduce((a, b) => a + b) ?? value;
+      if (newValue != value) {
+        details["Pages original"] = value;
+        value = newValue;
+      }
+    }
     if (label === "Format") {
     }
 
