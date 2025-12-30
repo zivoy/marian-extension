@@ -81,21 +81,22 @@ class Extractor {
   /**
    * Takes in a url and returns a url with only the components needed to identify the book
    * 
-   * @param {string} u 
+   * @param {string} url 
+   * @param {string[]} [keepParams=['ean', 'isbn', 'upc']] url params to not discard
+   *
    * @returns {string}
    */
-  normalizeUrl(u) {
+  normalizeUrl(url, keepParams = ['ean', 'isbn', 'upc']) {
     try {
-      const x = new URL(u);
+      const x = new URL(url);
       // Preserve key product identifiers when the format is encoded in query params.
-      const keepParams = ['ean', 'isbn', 'upc'];
       const kept = keepParams
         .filter((key) => x.searchParams.has(key))
         .map((key) => `${key}=${x.searchParams.get(key)}`);
       const suffix = kept.length ? `?${kept.join('&')}` : '';
       return `${x.origin}${x.pathname}${suffix}`;
     } catch {
-      return u || '';
+      return url || '';
     }
   }
 
