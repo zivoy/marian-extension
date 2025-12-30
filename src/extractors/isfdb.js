@@ -29,6 +29,8 @@ const remapings = remapKeys.bind(undefined, {
   "Date": "Publication date",
   "Synopsis": "Description",
 
+  "Publication": "Title",
+
   "Current Tags": undefined,
   "Webpages": undefined,
   "User Rating": undefined,
@@ -165,6 +167,9 @@ async function scrapeEdition() {
       }
       continue;
     }
+    if (label === "Notes") {
+      value = getFormattedText(element);
+    }
     if (label === "Pages") {
       // get page primary count
       const newValue = value.match(/(\d+(?!]))/g)?.map(Number)?.reduce((a, b) => a + b) ?? value;
@@ -172,6 +177,24 @@ async function scrapeEdition() {
         details["Pages original"] = value;
         value = newValue;
       }
+    }
+    if (label === "External IDs") {
+      element.querySelectorAll("li").forEach(extId => {
+        const extNameEl = extId.querySelector("abbr");
+        if (extNameEl == undefined) {
+          console.log("abbrivation name not found", extId);
+          return;
+        }
+        let extName = cleanText(extNameEl.textContent);
+        extNameEl.remove();
+        console.log(extId)
+        let id = cleanText(extId.textContent.replace(":", ""));
+
+        mappings[extName] = mappings[extName] || [];
+        mappings[extName].push(id);
+
+      });
+      continue;
     }
     if (label === "Format") {
     }
@@ -187,10 +210,12 @@ async function scrapeEdition() {
     .map(i => [...i.querySelectorAll("a")])
     .flat()
     .filter(i => i.href.includes("title.cgi"));
-  const titleLink = (titleLinks
+  let titleLink = (titleLinks
     .filter(i => cleanText(i.textContent) === details["Title"])[0]
     ?? titleLinks[0]
   )?.href;
+  // if there is more then one book then don't fetch details for only one
+  if (details["Type"] === "OMNIBUS") titleLink = undefined;
 
   const bookDetailsPromise = new Promise((resolve, reject) => {
     if (titleLink == undefined) {
