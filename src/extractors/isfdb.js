@@ -1,4 +1,4 @@
-import { addContributor, cleanText, collectObject, getCoverData, getFormattedText, logMarian, remapKeys } from "../shared/utils.js";
+import { addContributor, cleanText, collectObject, getCoverData, getFormattedText, logMarian, normalizeReadingFormat, remapKeys } from "../shared/utils.js";
 import { Extractor } from "./AbstractExtractor.js"
 
 const editionRegex = /https:\/\/(?:www\.)?isfdb\.org\/cgi-bin\/pl\.cgi\?(\d+)/;
@@ -30,6 +30,7 @@ const remapings = remapKeys.bind(undefined, {
   "Synopsis": "Description",
 
   "Publication": "Title",
+  "Format": "Edition Format",
 
   "Current Tags": undefined,
   "Webpages": undefined,
@@ -197,12 +198,21 @@ async function scrapeEdition() {
       continue;
     }
     if (label === "Format") {
+      if (value.startsWith("hc")) {
+        value = "Hardcover";
+      } else if (value.startsWith("tp")) {
+        value = "Trade Paperback";
+      } else if (value.startsWith("pb")) {
+        value = "Paperback";
+      }
     }
 
     details[label] = value;
   }
 
   details = remapings(details);
+
+  details["Reading Format"] = normalizeReadingFormat(details["Edition Format"]);
 
   // get link for main title, either one that matches the book, or the first one
   const titlesLi = [...titlesBoxEl.querySelectorAll("li")];
