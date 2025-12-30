@@ -1,4 +1,4 @@
-import { addContributor, cleanText, collectObject, getFormattedText, remapKeys } from "../shared/utils.js";
+import { addContributor, cleanText, collectObject, getCoverData, getFormattedText, logMarian, remapKeys } from "../shared/utils.js";
 import { Extractor } from "./AbstractExtractor.js"
 
 const editionRegex = /https:\/\/(?:www\.)?isfdb\.org\/cgi-bin\/pl\.cgi\?(\d+)/;
@@ -51,6 +51,8 @@ function scrapeBook(doc = document) {
   const content = clonedContent.innerHTML.split(/<br>/i);
   if (notesEl) content.push.apply(content, notesEl.innerHTML.split(/<br>/i));
 
+  clonedContent.querySelectorAll("sup.mouseover").forEach(i => i.innerText = " ")
+
   let details = {};
 
   recordEl.querySelector("b")?.remove();
@@ -60,6 +62,10 @@ function scrapeBook(doc = document) {
   for (const con of content) {
     container.innerHTML = con;
     const labelEl = container.querySelector("b");
+    if (labelEl == undefined) {
+      console.log("label is not found", element);
+      continue;
+    }
     let label = cleanText(labelEl.textContent.replace(":", ""));
     labelEl.remove();
     let value = cleanText(container.textContent);
@@ -105,12 +111,69 @@ async function scrapeEdition() {
   recordEl.remove();
 
   let details = {};
-
-  details["Title"] = "Foundation's Edge";
+  let mappings = {};
 
   recordEl.querySelector("b")?.remove();
-  const editionId = cleanText(recordEl.textContent);
+  mappings["ISFDB Edition"] = [cleanText(recordEl.textContent)];
 
+  clonedContent.querySelectorAll("sup.mouseover").forEach(i => i.innerText = " ")
+
+  const coverData = getCoverData(clonedContent.querySelector("img.scan")?.src);
+
+  const listElements = clonedContent.querySelectorAll(".pubheader>ul>li")
+  for (const element of listElements) {
+    const labelEl = element.querySelector("b");
+    if (labelEl == undefined) {
+      console.log("label is not found", element);
+      continue;
+    }
+    let label = cleanText(labelEl.textContent.replace(":", ""));
+    labelEl.remove();
+    let value = cleanText(element.textContent);
+
+    if (label === "Date") {
+      const valSplit = value.split("-");
+      if (valSplit.length === 3) {
+        value = new Date(valSplit[0], Math.max(0, valSplit[1] - 1), valSplit[2]);
+      }
+    }
+    if (label === "Author") {
+      value = addContributor(details["Contributors"] ?? [], value, "Author");
+      label = "Contributors";
+    }
+    if (label === "Authors") {
+      let contrbutors = details["Contributors"] ?? [];
+      for (const author of container.querySelectorAll("a")) {
+        value = addContributor(contrbutors, cleanText(author.textContent), "Author");
+      }
+      label = "Contributors";
+    }
+    if (label === "ISBN") {
+      const isbns = value.split(" ");
+      while (isbns.length > 0) {
+        let isbn = isbns.pop();
+        if (!isbn) break;
+        isbn = isbn.replace(/[\[\] ]/g, "");
+        const length = isbn.replaceAll("-", "").length;
+        if (length === 10) {
+          details["ISBN-10"] = isbn;
+        } else if (length === 13) {
+          details["ISBN-13"] = isbn;
+        } else {
+          logMarian(`WARN: unknown isbn '${isbn}'`)
+        }
+      }
+      continue;
+    }
+    if (label === "Format") {
+    }
+
+    details[label] = value;
+  }
+
+  details = remapings(details);
+
+  // get link for main title, either one that matches the book, or the first one
   const titlesLi = [...titlesBoxEl.querySelectorAll("li")];
   const titleLinks = titlesLi
     .map(i => [...i.querySelectorAll("a")])
@@ -121,31 +184,33 @@ async function scrapeEdition() {
     ?? titleLinks[0]
   )?.href;
 
-  console.log("titleLink", titleLink);
+  const bookDetailsPromise = new Promise((resolve, reject) => {
+    if (titleLink == undefined) {
+      resolve({});
+      return;
+    }
+    fetchHTML(titleLink)
+      .then((doc) => {
+        if (doc == undefined) {
+          reject("No document");
+          return;
+        }
+
+        resolve(scrapeBook(doc));
+      })
+      .catch(reject);
+  });
 
   details = await collectObject([
-    new Promise((resolve, reject) => {
-      if (titleLink == undefined) {
-        resolve({});
-        return;
-      }
-      fetchHTML(titleLink)
-        .then((doc) => {
-          if (doc == undefined) {
-            reject("No document");
-            return;
-          }
-
-          resolve(scrapeBook(doc));
-        })
-        .catch(reject);
-    }),
+    // bookDetailsPromise,
+    coverData,
     details,
   ]);
 
-  const mappings = details["Mappings"] ?? {};
-  mappings["ISFDB Edition"] = [editionId];
-  details["Mappings"] = mappings;
+  details["Mappings"] = await collectObject([
+    details["Mappings"],
+    mappings,
+  ]);
 
   return details;
 }
