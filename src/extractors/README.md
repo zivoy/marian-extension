@@ -47,6 +47,11 @@ class extractorNameScraper extends Extractor {
   // the `_handleStateUpdate` function you will get updates when the state is changed
   _handleStateUpdate(state) {
   }
+
+  // if the site has special parameters for identifying a book
+  normalizeUrl(url) {
+    return super.normalizeUrl(url);
+  }
 }
 
 export { extractorNameScraper };
@@ -106,6 +111,14 @@ The default `isSupported` implementation checks the URL against the `_sitePatter
 You can override this function to provide custom logic for determining if a URL is supported.
 
 But it is best to fallback to calling `super.isSupported` if your custom logic does not handle some cases.
+
+### normalizeUrl(url)
+
+The default `normalizeUrl` implementation strips all get params from the URL except for `ean`, `isbn`, and `upc`.
+
+If the site uses something else to identify a specific novel you need to override this function and if either
+in the simple case just pass in the needed params to the `keepParams` optional argument when calling it through super, 
+or implement completely custom logic for getting a sanitized normalized URL 
 
 ### Persistent state
 
