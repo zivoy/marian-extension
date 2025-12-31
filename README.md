@@ -29,6 +29,7 @@ Book pages on these sites are currently supported by Marian. To request support 
 - German National Library
 - Barnes & Noble
 - Romance.io
+- IndieBookstores.ca
 
 ## Creating an extractor
 

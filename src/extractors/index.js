@@ -16,6 +16,7 @@ import { libbyScraper, overdriveScraper, teachingbooksScraper } from "./overdriv
 import { librofmScraper } from "./librofm";
 import { romanceIoScraper } from "./romanceio";
 import { storygraphScraper } from "./storygraph";
+import { indieBookstoreScraper } from "./indiebookstore";
 
 /** @type{Extractor[]} */
 const extractors = [
@@ -25,6 +26,7 @@ const extractors = [
   new dnbdeScraper(),
   new goodreadsScraper(),
   new googleBooksScraper(),
+  new indieBookstoreScraper(),
   new isbnSearchScraper(),
   new isbndbScraper(),
   new isbndeScraper(),

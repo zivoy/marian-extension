@@ -107,7 +107,8 @@
 
 		"https://www.isfdb.org/cgi-bin/*",
 		"https://www.romance.io/books/*",
-		"https://www.barnesandnoble.com/*"
+		"https://www.barnesandnoble.com/*",
+		"https://www.indiebookstores.ca/book/*"
 	],
 	"icons": {
 		"16": "icons/icon.png",
