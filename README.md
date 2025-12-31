@@ -27,7 +27,7 @@ Book pages on these sites are currently supported by Marian. To request support 
 - ISBN.de
 - German National Library
 - Barnes & Noble
-
+- IndieBookstores.ca
 
 ## Building from Source
 
