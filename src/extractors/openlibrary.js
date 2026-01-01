@@ -29,6 +29,9 @@ class openlibraryScraper extends Extractor {
 
 const mappingDict = {
   "goodreads": "Goodreads",
+  "google": "Google Books",
+  "project_gutenberg": "Project Gutenberg",
+  "librarything": "LibraryThing",
 
   "paperback": "Paperback",
   "hardcover": "Hardcover",
@@ -85,6 +88,10 @@ async function getDetails(idUrl) {
   if ("identifiers" in data) {
     Object.entries(data["identifiers"]).forEach(([k, v]) => {
       k = remappings(k);
+      if (k === "amazon") {
+        detailsList.push({ "ASIN": v[0] });
+        return;
+      }
       v.forEach(i => addMapping(mappings, k, i));
     });
   }
