@@ -43,6 +43,10 @@ const remappings = remapKeys.bind(undefined, {
   "Current Tags": undefined,
   "Webpages": undefined,
   "User Rating": undefined,
+  "Price": undefined,
+
+  // "Type": undefined,
+  // "Notes": undefined,
 });
 
 function scrapeBook(doc = document) {
@@ -262,10 +266,6 @@ async function scrapeEdition() {
     details["Mappings"],
     mappings,
   ]);
-
-  delete details["Type"];
-  delete details["Price"];
-  delete details["Notes"];
 
   return details;
 }
