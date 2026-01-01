@@ -10,6 +10,7 @@ import { googleBooksScraper } from "./googlebooks";
 import { isbnSearchScraper } from "./isbnsearch";
 import { isbndbScraper } from "./isbndb";
 import { isbndeScraper } from "./isbnde";
+import { isfdbScraper } from "./isfdb";
 import { koboScraper } from "./kobo";
 import { libbyScraper, overdriveScraper, teachingbooksScraper } from "./overdrive";
 import { librofmScraper } from "./librofm";
@@ -27,6 +28,7 @@ const extractors = [
   new isbnSearchScraper(),
   new isbndbScraper(),
   new isbndeScraper(),
+  new isfdbScraper(),
   new koboScraper(),
   new libbyScraper(),
   new librofmScraper(),
