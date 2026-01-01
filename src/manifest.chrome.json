@@ -7,10 +7,12 @@
 		"default_path": "popup.html"
 	},
 	"permissions": [
-		"scripting",
+		"downloads",
 		"activeTab",
 		"tabs",
 		"sidePanel",
+		"storage",
+		"scripting",
 		"notifications"
 	]
 }

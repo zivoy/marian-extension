@@ -1,7 +1,8 @@
-const fs = require("fs");
-const path = require("path");
-const esbuild = require("esbuild");
-const package = require("./package.json");
+import fs from "fs";
+
+import path from "path";
+import esbuild from "esbuild";
+const pkg = JSON.parse(fs.readFileSync("./package.json", "utf-8"));
 
 const SRC_DIR = "src";
 const DIST_DIR = "distro";
@@ -27,7 +28,7 @@ function copyDir(src, dest) {
 function copyManifests(target) {
   const destDir = path.join(DIST_DIR, target);
   const baseManifest = JSON.parse(fs.readFileSync(path.join(SRC_DIR, "manifest.base.json")));
-  baseManifest.version = process.env.RELEASE_TAG?.replace("v", "") || package.version;
+  baseManifest.version = process.env.RELEASE_TAG?.replace("v", "") || pkg.version;
   const targetManifest = JSON.parse(fs.readFileSync(path.join(SRC_DIR, `manifest.${target}.json`)));
 
   const combinedManifest = {
@@ -70,7 +71,6 @@ async function buildScripts(outDir) {
 
 async function build(target) {
   const destDir = path.join(DIST_DIR, target);
-
   copyDir(SRC_DIR, destDir);
   copyManifests(target);
 

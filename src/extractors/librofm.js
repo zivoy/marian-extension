@@ -1,64 +1,60 @@
-import { getImageScore, logMarian, delay } from "../shared/utils.js";
+import { Extractor } from "./AbstractExtractor.js";
+import { addContributor, getCoverData, logMarian, cleanText, collectObject } from "../shared/utils.js";
 
-async function getLibroDetails() {
-	logMarian("Extracting Libro details");
-	const bookDetails = {};
+class librofmScraper extends Extractor {
+	get _name() { return "Libro.fm Extractor"; }
+	_sitePatterns = [
+		/^https?:\/\/(www\.)?libro\.fm\/audiobooks\/\d+(-[a-zA-Z0-9-]+)?/,
+	];
 
-	const imggrab = document.querySelector('.audiobook-cover .book-cover-wrap img.book-cover');
-	bookDetails["img"] = imggrab?.src;
-	bookDetails["imgScore"] = imggrab?.src ? await getImageScore(imggrab.src) : 0;
+	async getDetails() {
+		const bookDetails = {};
 
-	// Title
-	getLibroBookTitle(bookDetails);
+		const imggrab = document.querySelector('.audiobook-cover .book-cover-wrap img.book-cover');
+		const coverData = getCoverData(imggrab?.src);
 
-	// Series name and number
-	getLibroSeries(bookDetails);
+		// Title
+		getLibroBookTitle(bookDetails);
 
-	// Contributors
-	extractLibroContributors(bookDetails);
+		// Series name and number
+		getLibroSeries(bookDetails);
 
-	//get format and length
-	getLibroFormatInfo(bookDetails, window.location.href)
+		// Contributors
+		extractLibroContributors(bookDetails);
 
-	// get extra block of info - isbn, language, etc.
-	extraLibroInfo(bookDetails);
+		//get format and length
+		getLibroFormatInfo(bookDetails, window.location.href)
 
-	// Description
-	extractLibroDescription(bookDetails);
+		// get extra block of info - isbn, language, etc.
+		extraLibroInfo(bookDetails);
 
-	logMarian("Libro extraction complete:", bookDetails);
-	return {
-		...bookDetails,
-	};
+		// Description
+		extractLibroDescription(bookDetails);
 
+		logMarian("Libro extraction complete:", bookDetails);
+		return collectObject([
+			coverData,
+			bookDetails,
+		]);
+	}
 }
 
 function extractLibroContributors(bookDetails) {
-	const contributions = {}
+	let contributors = []
 
 	const section = extractSection('audiobook details')
 	const authors = section.querySelectorAll('span[itemprop="author"] a')
 	authors.forEach(author => {
 		const name = author.textContent.trim()
-		if (!(name in contributions)) {
-			contributions[name] = []
-		}
-		contributions[name].push("Author")
+		addContributor(contributors, name, "Author");
 	})
 
 	const narrators = section.querySelectorAll('a[href$="searchby=narrators"]')
 	narrators.forEach(narrator => {
 		const name = narrator.textContent.trim()
-		if (!(name in contributions)) {
-			contributions[name] = []
-		}
-		contributions[name].push("Narrator")
+		addContributor(contributors, name, "Narrator");
 	})
 
-	let contributors = []
-	for (let [name, roles] of Object.entries(contributions)) {
-		contributors.push({ name, roles })
-	}
 	if (contributors.length) {
 		bookDetails["Contributors"] = contributors;
 	}
@@ -79,7 +75,7 @@ function getLibroSeries(bookDetails) {
 
 function getLibroBookTitle(bookDetails) {
 	const h1 = document.querySelector('h1.audiobook-title');
-	const rawTitle = h1?.childNodes[0]?.textContent.trim();
+	const rawTitle = cleanText(h1?.childNodes[0]?.textContent);
 	rawTitle ? bookDetails["Title"] = rawTitle : null;
 }
 
@@ -171,4 +167,4 @@ function extraLibroInfo(bookDetails) {
 	}
 }
 
-export { getLibroDetails };
+export { librofmScraper };

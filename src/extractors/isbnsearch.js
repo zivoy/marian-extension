@@ -1,66 +1,53 @@
-import { getImageScore, logMarian } from '../shared/utils.js';
+import { Extractor } from './AbstractExtractor.js';
+import { addContributor, getCoverData, logMarian, remapKeys, cleanText, normalizeReadingFormat, collectObject } from '../shared/utils.js';
+
+class isbnSearchScraper extends Extractor {
+  get _name() { return "ISBN Search Extractor"; }
+  _sitePatterns = [
+    /^https?:\/\/isbnsearch\.(?:org|com)\/isbn\/((?:\d{3})?\d{9}(?:X|\d))\b/,
+  ];
+
+  async getDetails() {
+    const imgEl = document.querySelector('.image img');
+    const coverData = getCoverData(imgEl?.src);
+
+    const details = extractTable()
+    const bookDetails = nameRemap(details);
+
+    getContributers(bookDetails);
+
+    // Treat as local time when parsing
+    bookDetails['Publication date'] = bookDetails['Publication date'] + "T00:00:00";
+
+    bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails["Edition Format"]);
+
+    // logMarian("bookDetails", bookDetails);
+
+    return collectObject([
+      coverData,
+      bookDetails,
+    ]);
+  }
+}
 
 const remapings = {
   'Edition': 'Edition Information',
   'Binding': 'Edition Format',
   'Published': 'Publication date'
 }
-const remappingKeys = Object.keys(remapings);
-
-async function getIsbnSearchDetails() {
-  logMarian('Extracting ISBNSearch details');
-
-  const bookDetails = {};
-
-  const imgEl = document.querySelector('.image img');
-  bookDetails["img"] = imgEl?.src || null;
-  bookDetails["imgScore"] = imgEl?.src ? await getImageScore(imgEl.src) : 0;
-
-  const details = extractTable()
-
-  for (let [key, value] of Object.entries(details)) {
-    if (remappingKeys.includes(key)) {
-      key = remapings[key];
-    }
-    bookDetails[key] = value;
-  }
-
-  getContributers(bookDetails);
-
-  // Treat as local time when parsing
-  bookDetails['Publication date'] = bookDetails['Publication date'] + "T00:00:00";
-
-  if (bookDetails["Edition Format"]?.includes("Kindle")) {
-    bookDetails['Reading Format'] = 'Ebook'; 
-  } else if (
-    bookDetails["Edition Format"]?.toLowerCase().includes("audio") ||
-    bookDetails["Edition Format"]?.toLowerCase().includes("audible") ||
-    bookDetails["Edition Format"]?.toLowerCase().includes("mp3") ||
-    bookDetails["Edition Format"]?.toLowerCase().includes("cd")
-  ) {
-    bookDetails['Reading Format'] = 'Audiobook';
-  } else {
-    bookDetails['Reading Format'] = 'Physical Book';
-  }
-
-  // logMarian("bookDetails", bookDetails);
-
-  return {
-    ...bookDetails,
-  };
-}
+const nameRemap = remapKeys.bind(undefined, remapings);
 
 function getContributers(bookDetails) {
   const contributors = [];
 
   if ('Author' in bookDetails) {
-    contributors.push({ name: bookDetails['Author'], roles: ['Author'] })
+    addContributor(contributors, bookDetails['Author'], "Author");
     delete bookDetails['Author']
   }
   if ("Authors" in bookDetails) {
     bookDetails['Authors']
       .split(';')
-      .forEach(author => contributors.push({ name: author.trim(), roles: ['Author'] }));
+      .forEach(author => addContributor(contributors, author.trim(), "Author"));
     delete bookDetails['Authors']
   }
 
@@ -71,7 +58,7 @@ function getContributers(bookDetails) {
 
 function extractTable() {
   const container = document.querySelector('.bookinfo');
-  const Title = container.querySelector('h1').textContent.trim();
+  const Title = cleanText(container.querySelector('h1').textContent);
 
   const table = {};
   container.querySelectorAll('p').forEach((el) => {
@@ -87,8 +74,8 @@ function extractTable() {
       return;
     }
 
-    let key = children[0].textContent?.trim();
-    const value = children[1].textContent?.trim();
+    let key = cleanText(children[0].textContent);
+    const value = cleanText(children[1].textContent);
 
 
     if (!key) {
@@ -109,4 +96,4 @@ function extractTable() {
   }
 }
 
-export { getIsbnSearchDetails };
+export { isbnSearchScraper };

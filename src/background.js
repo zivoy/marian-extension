@@ -1,7 +1,8 @@
-import { isAllowedUrl } from "./shared/allowed-patterns";
-import { runtime } from "./shared/utils"
+import { isAllowedUrl } from "./extractors";
+import { getCurrentTab } from "./popup/utils";
+import { runtime, StorageBackedSet } from "./shared/utils"
 
-const activeSidebarWindows = new Set();
+const activeSidebarWindows = new StorageBackedSet("active_sidebar_windows");
 
 function updateIcon(tabId, isAllowed) {
   chrome.action.setIcon({
@@ -83,7 +84,7 @@ function sendWhenReady(msg, retries = 10, delay = 150) {
 }
 
 function hasActiveSidebar(windowId) {
-  return typeof windowId === "number" && activeSidebarWindows.has(windowId);
+  return typeof windowId === "number" && activeSidebarWindows.hasSync(windowId);
 }
 
 function showUnsupportedNotification(tab) {
@@ -106,18 +107,31 @@ function showUnsupportedNotification(tab) {
   }
 }
 
+const windowReady = {};
+
 chrome.action.onClicked.addListener((tab) => {
   if (!tab?.url) return;
 
   if (!isAllowedUrl(tab.url)) {
+    updateIcon(tab.id, false);
     showUnsupportedNotification(tab);
     return;
   }
 
   openSidebar(tab);
-  setTimeout(() => {
+
+  // wait for pane before requesting a refresh
+  new Promise((ready) => {
+    if (activeSidebarWindows.has(tab.windowId)) {
+      // exit early if already open
+      ready();
+      return;
+    }
+
+    windowReady[tab.windowId] = ready;
+  }).then(() => {
     sendWhenReady({ type: "REFRESH_SIDEBAR", url: tab.url, windowId: tab.windowId });
-  }, 300); // give the sidebar a moment to load
+  })
 });
 
 // when tab URL changes in the current active tab
@@ -129,17 +143,35 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 // when the active tab changes
 chrome.tabs.onActivated.addListener(() => {
-  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+  getCurrentTab().then((tab) => {
     if (!tab || !hasActiveSidebar(tab.windowId)) return;
     safeRuntimeSend({ type: "TAB_URL_CHANGED", url: tab.url || "", windowId: tab.windowId });
   });
 });
 
 // Listen for messages from the content script.
-runtime.onMessage.addListener((request, sender, sendResponse) => {
+runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+  if (request == undefined) return false;
+
+  if (request.type === "REFRESH_ICON" && request.tab != undefined) {
+    const tabId = request.tab.id;
+    const url = request.tab.url;
+    if (typeof tabId === "number") {
+      updateIcon(tabId, isAllowedUrl(url));
+      sendResponse({ success: true });
+    } else {
+      sendResponse({ success: false, error: "Invalid tab ID" });
+    }
+    return true;
+  }
   if (request?.type === "SIDEBAR_READY") {
+    if (request.windowId in windowReady) {
+      windowReady[request.windowId]();
+      delete windowReady[request.windowId];
+    }
+
     if (typeof request.windowId === "number") {
-      activeSidebarWindows.add(request.windowId);
+      await activeSidebarWindows.add(request.windowId);
     }
     if (typeof sendResponse === "function") sendResponse(true);
     return false;
@@ -147,7 +179,7 @@ runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (request?.type === "SIDEBAR_UNLOADED") {
     if (typeof request.windowId === "number") {
-      activeSidebarWindows.delete(request.windowId);
+      await activeSidebarWindows.delete(request.windowId);
     }
     if (typeof sendResponse === "function") sendResponse(true);
     return false;
@@ -160,8 +192,8 @@ runtime.onMessage.addListener((request, sender, sendResponse) => {
   return false;
 });
 
-chrome.windows.onRemoved.addListener((windowId) => {
-  activeSidebarWindows.delete(windowId);
+chrome.windows.onRemoved.addListener(async (windowId) => {
+  await activeSidebarWindows.delete(windowId);
 });
 
 async function handleFetchRequest(url) {

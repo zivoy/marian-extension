@@ -12,16 +12,32 @@ Marian the Librarian helps [Hardcover.app](https://hardcover.app/join?referrer_i
 Book pages on these sites are currently supported by Marian. To request support for another site, [create an issue](https://github.com/jacobtender/marian-extension/issues/new?template=site-support-request.md) or submit a pull request.
 
 - Amazon
+- Audible
 - Goodreads
 - Google Books
+- Classic Google Books
 - The StoryGraph
 - Rakuten Kobo
+- OverDrive
+- TeachingBooks
+- Libby
 - Libro.fm
+- The Internet Speculative Fiction Database (ISFDB)
 - ISBNdb
 - ISBN Search 
 - ISBN.de
 - German National Library
+- Barnes & Noble
+- Bookshop.org
+- Romance.io
 
+## Creating an extractor
+
+Creating an extractor requires adding any URL's the extractor has to support to the 
+[manifest.base.json](./src/manifest.base.json) file, and then create an extractor that goes into the [extractors](./src/extractors/) folder.
+
+Refer to the [extractors README](./src/extractors/README.md) 
+for more info on what a extractor consists of and requires
 
 ## Building from Source
 

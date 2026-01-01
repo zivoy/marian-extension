@@ -1,4 +1,9 @@
-import { getImageScore, logMarian, sendMessage, getFormattedText } from '../shared/utils.js';
+import { Extractor } from './AbstractExtractor.js';
+import {
+  logMarian, runtime, getFormattedText, getCoverData, remapKeys,
+  addContributor, cleanText,
+  collectObject
+} from '../shared/utils.js';
 
 const remapings = {
   'Ausgabe': 'Edition Information',
@@ -9,25 +14,36 @@ const remapings = {
   "Verfasser": "Author",
   "Mitwirkender": "Contributor",
 }
+const nameRemap = remapKeys.bind(undefined, remapings);
 const remappingKeys = Object.keys(remapings);
 
-async function getDnbDeDetails() {
-  logMarian('Extracting isbn.de details');
+class dnbdeScraper extends Extractor {
+  get _name() { return "Deutsche Nationalbibliothek Extractor"; }
+  _sitePatterns = [
+    /https:\/\/portal\.dnb\.de\/opac.*(simpleSearch|showFullRecord)/,
+  ];
 
-  const container = document.querySelector("#fullRecordTable");
-  if (!container) return null;
+  async getDetails() {
+    const container = document.querySelector("#fullRecordTable");
+    if (!container) return null;
 
-  const coverData = getCover(container);
+    const coverData = getCover(container);
 
-  const bookDetails = extractTable(container)
-  const bookDescription = getDescription(bookDetails);
+    const bookDetails = extractTable(container)
+    const bookDescription = getDescription(bookDetails);
 
-  // logMarian("bookDetails", bookDetails);
+    // logMarian("bookDetails", bookDetails);
 
-  return (await Promise.all([
-    coverData,
-    bookDescription,
-  ])).reduce((acc, currentVal) => ({ ...acc, ...currentVal }), bookDetails);
+    return collectObject([
+      bookDetails,
+      coverData,
+      bookDescription,
+    ]);
+  }
+
+  normalizeUrl(url) {
+    return super.normalizeUrl(url, ["currentResultId", "currentPosition", "method", "query"])
+  }
 }
 
 async function getCover(container) {
@@ -35,22 +51,7 @@ async function getCover(container) {
   const coverUrl = container.querySelector("img[title='Cover']")?.src || null;
   const largeUrl = coverUrl?.replace("size=", "sz="); // get large cover
 
-  // check large cover first
-  if (largeUrl) {
-    const largeScore = await getImageScore(largeUrl);
-    if (largeScore !== 0) {
-      return {
-        img: largeUrl,
-        imgScore: largeScore
-      }
-    }
-  }
-
-  // fallback to small
-  return {
-    img: coverUrl,
-    imgScore: coverUrl ? await getImageScore(coverUrl) : 0
-  }
+  return getCoverData([coverUrl, largeUrl]);
 }
 
 function extractTable(/**@type{HTMLTableElement}*/container) {
@@ -68,12 +69,16 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
       continue;
     }
 
-    const key = children[0].textContent?.trim();
-    let value = children[1].textContent?.trim();
+    const key = cleanText(children[0].textContent);
+    let value = cleanText(children[1].textContent);
     // exceptions
     if (key.includes("Datensatz")) { // db link
       // https://d-nb.info/XXXXXXXXXXX
-      table["Source ID"] = value.split("https://d-nb.info/")[1] || value;
+      table["Mappings"] = {
+        "Deutschen Nationalbibliothek": [
+          value.split("https://d-nb.info/")[1] || value
+        ]
+      };
       continue
     }
     if (key === "EAN" && !table["ISBN-13"]) {
@@ -104,8 +109,11 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
       const contributors = [];
       children[1].childNodes.forEach(el => {
         if (el.nodeName === "BR") return;
-        const authorTextRaw = el.textContent?.trim();
-        if (authorTextRaw) contributors.push(extactAuthor(authorTextRaw))
+        const authorTextRaw = cleanText(el.textContent);
+        if (authorTextRaw) {
+          const contributor = extactAuthor(authorTextRaw);
+          addContributor(contributors, contributor.name, contributor.roles)
+        }
       })
       table["Contributors"] = contributors;
       continue;
@@ -140,16 +148,7 @@ function extractTable(/**@type{HTMLTableElement}*/container) {
     table[key] = value
   }
 
-
-  for (let [key, value] of Object.entries(table)) {
-    if (remappingKeys.includes(key)) {
-      delete table[key];
-      key = remapings[key];
-    }
-    table[key] = value;
-  }
-
-  return table;
+  return nameRemap(table);
 }
 
 /**
@@ -184,7 +183,7 @@ async function getDescription(bookDetails) {
 
   const url = new URL(link);
   url.protocol = "https:"; // have to be done
-  const res = await sendMessage({
+  const res = await runtime.sendMessage({
     action: 'fetchDepositData',
     url: url.toString()
   });
@@ -239,4 +238,4 @@ function parseDate(dateString) {
   }
 }
 
-export { getDnbDeDetails };
+export { dnbdeScraper };
