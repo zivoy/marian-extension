@@ -194,6 +194,10 @@ function getFirstKey(obj) {
 }
 
 function parseDateLocal(dateStr) {
+  if (!dateStr.match(/^\d+(?:-\d+)?(?:-\d+)?/)) {
+    return new Date(dateStr);
+  }
+
   const [year, month, day] = dateStr.split('-').map(Number);
 
   return new Date(
