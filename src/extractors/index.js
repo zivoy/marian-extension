@@ -1,4 +1,6 @@
 // Auto-generated file. Do not edit manually.
+import { Extractor } from "./AbstractExtractor";
+
 import { amazonScraper } from "./amazon";
 import { audibleScraper } from "./audible";
 import { barnesAndNobleScraper } from "./barnesnoble";
@@ -11,10 +13,10 @@ import { isbndeScraper } from "./isbnde";
 import { koboScraper } from "./kobo";
 import { libbyScraper, overdriveScraper, teachingbooksScraper } from "./overdrive";
 import { librofmScraper } from "./librofm";
+import { romanceIoScraper } from "./romanceio";
 import { storygraphScraper } from "./storygraph";
 
-/** @import { Extractor } from "./AbstractExtractor";
- * @type{Extractor[]} */
+/** @type{Extractor[]} */
 const extractors = [
   new amazonScraper(),
   new audibleScraper(),
@@ -29,6 +31,7 @@ const extractors = [
   new libbyScraper(),
   new librofmScraper(),
   new overdriveScraper(),
+  new romanceIoScraper(),
   new storygraphScraper(),
   new teachingbooksScraper(),
 ];
@@ -43,4 +46,11 @@ function isAllowedUrl(url) {
   return getExtractor(url) != undefined;
 }
 
-export { extractors, getExtractor, isAllowedUrl };
+/** @param {string} url */
+function normalizeUrl(url) {
+  const extractor = getExtractor(url);
+  if (extractor) return extractor.normalizeUrl(url);
+  return Extractor.prototype.normalizeUrl.call(null, url);
+}
+
+export { extractors, getExtractor, isAllowedUrl, normalizeUrl };

@@ -53,10 +53,11 @@ async function generateExtractorsIndex() {
   instances.sort();
 
   const content = `// Auto-generated file. Do not edit manually.
+import { Extractor } from "./AbstractExtractor";
+
 ${imports.join("\n")}
 
-/** @import { Extractor } from "./AbstractExtractor";
- * @type{Extractor[]} */
+/** @type{Extractor[]} */
 const extractors = [
 ${instances.join("\n")}
 ];
@@ -71,7 +72,14 @@ function isAllowedUrl(url) {
   return getExtractor(url) != undefined;
 }
 
-export { extractors, getExtractor, isAllowedUrl };
+/** @param {string} url */
+function normalizeUrl(url) {
+  const extractor = getExtractor(url);
+  if (extractor) return extractor.normalizeUrl(url);
+  return Extractor.prototype.normalizeUrl.call(null, url);
+}
+
+export { extractors, getExtractor, isAllowedUrl, normalizeUrl };
 `;
 
   fs.writeFileSync(indexPath, content);
