@@ -340,3 +340,5 @@ export async function collectObject(items) {
 
   return obj;
 }
+
+export { StorageBackedSet } from "./StorageSet.js";
