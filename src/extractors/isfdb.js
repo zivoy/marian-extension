@@ -49,6 +49,26 @@ const remappings = remapKeys.bind(undefined, {
   // "Notes": undefined,
 });
 
+const novelTypes = {
+  "FANZINE": "Fan Magazine",
+  "ANTHOLOGY": "Anthology",
+  "CHAPBOOK": "Chapbook",
+  "COLLECTION": "Collection",
+  "MAGAZINE": "Magazine",
+  "NONFICTION": "Non-Fiction",
+  "NOVEL": "Novel",
+  "OMNIBUS": "Omnibus",
+
+  "SHORTFICTION": "Short Fiction",
+  "POEM": "Poem",
+  "ESSAY": "Essay",
+  "REVIEW": "Review",
+  "INTERVIEW": "Interview",
+  "SERIAL": "Serial",
+  "COVERART": "Cover Art",
+  "INTERIORART": "Interior Art",
+}
+
 function scrapeBook(doc = document) {
   const contentEl = doc.querySelector("#wrap div.ContentBox:has(.recordID)");
   if (contentEl == undefined) throw new Error("Failed to find book element");
@@ -156,6 +176,11 @@ async function scrapeEdition() {
       value = addContributor(details["Contributors"] ?? [], value, "Author");
       label = "Contributors";
     }
+    if (label === "Type") {
+      if (value in novelTypes) {
+        value = novelTypes[value];
+      }
+    }
     if (label === "Authors") {
       let contrbutors = details["Contributors"] ?? [];
       for (const author of container.querySelectorAll("a")) {
@@ -237,7 +262,7 @@ async function scrapeEdition() {
     ?? titleLinks[0]
   )?.href;
   // if there is more then one book then don't fetch details for only one
-  if (details["Type"] === "OMNIBUS") titleLink = undefined;
+  if (details["Type"]?.toUpperCase() === "OMNIBUS") titleLink = undefined;
 
   const bookDetailsPromise = new Promise((resolve, reject) => {
     if (titleLink == undefined) {
