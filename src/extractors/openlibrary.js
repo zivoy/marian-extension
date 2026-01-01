@@ -1,5 +1,5 @@
 import { Extractor } from "./AbstractExtractor.js"
-import { collectObject } from "../shared/utils.js";
+import { addContributor, collectObject, getCoverData, normalizeReadingFormat, remapKeys } from "../shared/utils.js";
 
 // references:
 //  https://openlibrary.org/dev/docs/api/books
@@ -23,13 +23,194 @@ class openlibraryScraper extends Extractor {
     if (idMatch == undefined) throw new Error("Invalid id");
     const id = idMatch[1];
 
-    let details = {};
+    return getDetails(id);
+  }
+}
 
-    details["Mappings"] = { "Open Library": [idOnly ? id.match(/OL\d+\w/)[0] : id] };
+const mappingDict = {
+  "goodreads": "Goodreads",
 
-    return collectObject([
-      details
-    ]);
+  "paperback": "Paperback",
+  "hardcover": "Hardcover",
+}
+function remappings(text) {
+  if (text in mappingDict) return mappingDict[text];
+  return text;
+}
+
+async function getDetails(idUrl) {
+  const data = await fetchJson(idUrl);
+  const isEdition = getFirstKey(data["type"])?.includes("edition");
+  console.log("data", data);
+
+  let detailsList = [];
+  let mappings = {};
+
+  if (isEdition) {
+    addMapping(mappings, "Open Liberary Edition", data["key"]);
+
+    const work = getFirstKey(data["works"]);
+    if (work) {
+      detailsList.push(getDetails(work));
+    }
+  } else {
+    addMapping(mappings, "Open Liberary Work", data["key"]);
+  }
+  if ("covers" in data) {
+    const covers = data["covers"].filter((i) => i > 0);
+    if (covers.length > 0) {
+      const coverId = covers[0];
+      detailsList.push(getCoverData(`https://covers.openlibrary.org/b/id/${coverId}-L.jpg`));
+    }
+  }
+
+  if ("physical_format" in data) {
+    detailsList.push({
+      "Edition Format": remappings(data["physical_format"]),
+      "Reading Format": normalizeReadingFormat(data["physical_format"])
+    });
+  }
+  if ("number_of_pages" in data) {
+    detailsList.push({ "Pages": data["number_of_pages"] });
+  }
+  if ("pagination" in data) {
+    detailsList.push({ "Pagination": data["pagination"] });
+  }
+  if ("title" in data) {
+    detailsList.push({ "Title": data["title"] });
+  }
+  if ("description" in data) {
+    detailsList.push({ "Description": data["description"] });
+  }
+  if ("identifiers" in data) {
+    Object.entries(data["identifiers"]).forEach(([k, v]) => {
+      k = remappings(k);
+      v.forEach(i => addMapping(mappings, k, i));
+    });
+  }
+
+  if ("publish_places" in data) {
+    const location = data["publish_places"][0];
+    if (location) {
+      detailsList.push({ "Country": location });
+    }
+  }
+
+  if ("isbn_13" in data) {
+    const isbn = data["isbn_13"][0];
+    if (isbn) {
+      detailsList.push({ "ISBN-13": isbn });
+    }
+  }
+  if ("isbn_10" in data) {
+    const isbn = data["isbn_10"][0];
+    if (isbn) {
+      detailsList.push({ "ISBN-10": isbn });
+    }
+  }
+
+  if ("edition_name" in data) {
+    detailsList.push({ "Edition Information": data["edition_name"] });
+  }
+  if ("publish_date" in data) {
+    detailsList.push({ "Publication date": parseDateLocal(data["publish_date"]) });
+  }
+  if ("publishers" in data) {
+    detailsList.push({ "Publisher": data["publishers"][0] });
+  }
+
+  if ("languages" in data) {
+    detailsList.push(new Promise(async (r) => {
+      const languageId = getFirstKey(data["languages"]);
+      const langData = await fetchJson(languageId);
+      const name = langData["name"];
+      if (name) {
+        return r({ "Language": name });
+      }
+      r({});
+    }));
+  }
+
+  if ("translated_from" in data) {
+    detailsList.push(new Promise(async (r) => {
+      const languageId = getFirstKey(data["translated_from"]);
+      const langData = await fetchJson(languageId);
+      const name = langData["name"];
+      if (name) {
+        return r({ "Original Language": name });
+      }
+      r({});
+    }));
+  }
+
+  if ("authors" in data) {
+    detailsList.push(new Promise(async (r) => {
+      const authors = data["authors"];
+      let contributors = [];
+      for (const author of authors) {
+        if (author.key == undefined) continue;
+        const authorData = await fetchJson(author.key);
+        const name = authorData["name"];
+        if (name) {
+          addContributor(contributors, name, "Author");
+        }
+      }
+      r(contributors.length > 0 ? { "Contributors": contributors } : {});
+    }));
+  }
+
+  let details = await collectObject(detailsList);
+
+  if (details["Mappings"]) Object.entries(details["Mappings"]).forEach(([k, v]) => {
+    v.forEach(i => {
+      addMapping(mappings, k, i);
+    })
+  });
+  details["Mappings"] = mappings;
+  return details;
+}
+
+function addMapping(mappings, name, idUrl) {
+  let map = mappings[name] ?? [];
+  map.push(idOnly ? idUrl.match(/OL\d+\w/)[0] : idUrl);
+  mappings[name] = map;
+  return mappings;
+}
+
+function getFirstKey(obj) {
+  if (Array.isArray(obj)) {
+    obj = obj[0];
+    if (obj == undefined) return;
+  }
+  return obj?.key;
+}
+
+function parseDateLocal(dateStr) {
+  const [year, month, day] = dateStr.split('-').map(Number);
+
+  return new Date(
+    year,
+    (month - 1) || 0,
+    day || 1
+  );
+}
+
+/**
+ * fetch JSON endpoint for OpenLibrary api
+ * @param {string} idUrl - the id / path for the endpoint
+ */
+async function fetchJson(idUrl) {
+  if (!idUrl.startsWith("/")) idUrl = `/${idUrl}`;
+  try {
+    const response = await fetch(`https://openlibrary.org${idUrl}.json`);
+    if (!response.ok) {
+      throw new Error(`API error! status: ${response.status}`);
+    }
+    const json = await response.json();
+
+    return json;
+  } catch (error) {
+    console.error('Error fetching data:', error);
   }
 }
 
