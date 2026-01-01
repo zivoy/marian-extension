@@ -153,21 +153,41 @@ async function getDetails(idUrl) {
 
   if ("authors" in data) {
     detailsList.push(new Promise(async (r) => {
-      const authors = data["authors"];
       let contributors = [];
-      for (const author of authors) {
-        if (author.key == undefined) continue;
-        const authorData = await fetchJson(author.key);
+
+      for (const author of data["authors"]) {
+        let role = "Author"
+        let authorKey = author.key;
+        if (authorKey == undefined) {
+          if (!("type" in author)) continue;
+          const typeKey = author.type.key;
+          if (typeKey !== "/type/author_role") {
+            // TODO: get role name from endpoint
+            role = typeKey.split("/").splice(-1)[0] || typeKey;
+          }
+          authorKey = author?.author?.key;
+        }
+
+        if (authorKey == undefined) continue;
+
+        const authorData = await fetchJson(authorKey);
         const name = authorData["name"];
         if (name) {
-          addContributor(contributors, name, "Author");
+          addContributor(contributors, name, role);
         }
       }
-      r(contributors.length > 0 ? { "Contributors": contributors } : {});
+      r(contributors.length > 0 ? { "contributors": contributors } : {});
     }));
   }
 
   let result = await collectObject(detailsList);
+
+  let contributors = result["contributors"] ?? [];
+  if (result["Contributors"]) result["Contributors"].forEach(({ name, roles }) => {
+    addContributor(contributors, name, roles);
+  });
+  delete result["contributors"];
+  result["Contributors"] = contributors;
 
   if (result["Mappings"]) Object.entries(result["Mappings"]).forEach(([k, v]) => {
     v.forEach(i => {
