@@ -28,6 +28,7 @@ Book pages on these sites are currently supported by Marian. To request support 
 - ISBN.de
 - German National Library
 - Barnes & Noble
+- Bookshop.org
 - Romance.io
 - IndieBookstores.ca
 
