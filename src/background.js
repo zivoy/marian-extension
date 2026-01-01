@@ -150,7 +150,7 @@ chrome.tabs.onActivated.addListener(() => {
 });
 
 // Listen for messages from the content script.
-runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request == undefined) return false;
 
   if (request.type === "REFRESH_ICON" && request.tab != undefined) {
@@ -170,19 +170,23 @@ runtime.onMessage.addListener(async (request, sender, sendResponse) => {
       delete windowReady[request.windowId];
     }
 
-    if (typeof request.windowId === "number") {
-      await activeSidebarWindows.add(request.windowId);
-    }
-    if (typeof sendResponse === "function") sendResponse(true);
-    return false;
+    (async () => {
+      if (typeof request.windowId === "number") {
+        await activeSidebarWindows.add(request.windowId);
+      }
+      if (typeof sendResponse === "function") sendResponse(true);
+    })();
+    return true;
   }
 
   if (request?.type === "SIDEBAR_UNLOADED") {
-    if (typeof request.windowId === "number") {
-      await activeSidebarWindows.delete(request.windowId);
-    }
-    if (typeof sendResponse === "function") sendResponse(true);
-    return false;
+    (async () => {
+      if (typeof request.windowId === "number") {
+        await activeSidebarWindows.delete(request.windowId);
+      }
+      if (typeof sendResponse === "function") sendResponse(true);
+    })();
+    return true;
   }
 
   if (request.action === 'fetchDepositData') {
