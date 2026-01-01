@@ -78,7 +78,7 @@ export function hyphenate(isbn) {
 function getPrefix(isbn) {
   isbn = isbn.replaceAll("-", ""); // remove dashes
   if (isbn.length !== 13 && isbn.length !== 10) {
-    throw "Unsupported isbn";
+    throw new Error("Unsupported isbn");
   }
   let is10 = false;
   if (isbn.length === 10) {
