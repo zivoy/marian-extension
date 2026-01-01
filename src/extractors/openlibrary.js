@@ -67,23 +67,24 @@ async function getDetails(idUrl) {
     }
   }
 
+  let details = {};
+  detailsList.push(details);
+
   if ("physical_format" in data) {
-    detailsList.push({
-      "Edition Format": remappings(data["physical_format"]),
-      "Reading Format": normalizeReadingFormat(data["physical_format"])
-    });
+    details["Edition Format"] = remappings(data["physical_format"]);
+    details["Reading Format"] = normalizeReadingFormat(data["physical_format"]);
   }
   if ("number_of_pages" in data) {
-    detailsList.push({ "Pages": data["number_of_pages"] });
+    details["Pages"] = data["number_of_pages"];
   }
   if ("pagination" in data) {
-    detailsList.push({ "Pagination": data["pagination"] });
+    details["Pagination"] = data["pagination"];
   }
   if ("title" in data) {
-    detailsList.push({ "Title": data["title"] });
+    details["Title"] = data["title"];
   }
   if ("description" in data) {
-    detailsList.push({ "Description": data["description"] });
+    details["Description"] = data["description"];
   }
   if ("identifiers" in data) {
     Object.entries(data["identifiers"]).forEach(([k, v]) => {
@@ -99,31 +100,31 @@ async function getDetails(idUrl) {
   if ("publish_places" in data) {
     const location = data["publish_places"][0];
     if (location) {
-      detailsList.push({ "Country": location });
+      details["Country"] = location;
     }
   }
 
   if ("isbn_13" in data) {
     const isbn = data["isbn_13"][0];
     if (isbn) {
-      detailsList.push({ "ISBN-13": isbn });
+      details["ISBN-13"] = isbn;
     }
   }
   if ("isbn_10" in data) {
     const isbn = data["isbn_10"][0];
     if (isbn) {
-      detailsList.push({ "ISBN-10": isbn });
+      details["ISBN-10"] = isbn;
     }
   }
 
   if ("edition_name" in data) {
-    detailsList.push({ "Edition Information": data["edition_name"] });
+    details["Edition Information"] = data["edition_name"];
   }
   if ("publish_date" in data) {
-    detailsList.push({ "Publication date": parseDateLocal(data["publish_date"]) });
+    details["Publication date"] = parseDateLocal(data["publish_date"]);
   }
   if ("publishers" in data) {
-    detailsList.push({ "Publisher": data["publishers"][0] });
+    details["Publisher"] = data["publishers"][0];
   }
 
   if ("languages" in data) {
@@ -166,15 +167,15 @@ async function getDetails(idUrl) {
     }));
   }
 
-  let details = await collectObject(detailsList);
+  let result = await collectObject(detailsList);
 
-  if (details["Mappings"]) Object.entries(details["Mappings"]).forEach(([k, v]) => {
+  if (result["Mappings"]) Object.entries(result["Mappings"]).forEach(([k, v]) => {
     v.forEach(i => {
       addMapping(mappings, k, i);
     })
   });
-  details["Mappings"] = mappings;
-  return details;
+  result["Mappings"] = mappings;
+  return result;
 }
 
 function addMapping(mappings, name, idUrl) {
