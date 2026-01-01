@@ -56,6 +56,8 @@ function getProductDetails(details) {
             details["Reading Format"] = normalizeReadingFormat(
               detailChildren[i].nextSibling.textContent.trim()
             );
+            details["Edition Format"] =
+              detailChildren[i].nextSibling.textContent.trim();
             break;
           case "Pages:":
             details["Pages"] = detailChildren[i].nextSibling.textContent.trim();
