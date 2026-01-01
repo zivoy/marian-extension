@@ -8,6 +8,7 @@ import { bookshopScraper } from "./bookshopOrg";
 import { dnbdeScraper } from "./dnbde";
 import { goodreadsScraper } from "./goodreads";
 import { googleBooksScraper } from "./googlebooks";
+import { indieBookstoreScraper } from "./indiebookstore";
 import { isbnSearchScraper } from "./isbnsearch";
 import { isbndbScraper } from "./isbndb";
 import { isbndeScraper } from "./isbnde";
@@ -18,7 +19,6 @@ import { librofmScraper } from "./librofm";
 import { openlibraryScraper } from "./openlibrary";
 import { romanceIoScraper } from "./romanceio";
 import { storygraphScraper } from "./storygraph";
-import { indieBookstoreScraper } from "./indiebookstore";
 
 /** @type{Extractor[]} */
 const extractors = [
