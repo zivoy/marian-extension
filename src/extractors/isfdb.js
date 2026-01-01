@@ -111,8 +111,8 @@ function scrapeBook(doc = document) {
         value = new Date(valSplit[0], Math.max(0, valSplit[1] - 1), valSplit[2]);
       }
     }
-    if (label === "Author") {
-      value = addContributor(details["Contributors"] ?? [], value, "Author");
+    if (label === "Author" || label === "Editor") {
+      value = addContributor(details["Contributors"] ?? [], value, label);
       label = "Contributors";
     }
     if (label === "Authors") {
@@ -172,21 +172,21 @@ async function scrapeEdition() {
         value = new Date(valSplit[0], Math.max(0, valSplit[1] - 1), valSplit[2]);
       }
     }
-    if (label === "Author") {
-      value = addContributor(details["Contributors"] ?? [], value, "Author");
-      label = "Contributors";
-    }
     if (label === "Type") {
       if (value in novelTypes) {
         value = novelTypes[value];
       }
     }
+    if (label === "Author" || label === "Editor") {
+      value = addContributor(details["contributors"] ?? [], value, label);
+      label = "contributors";
+    }
     if (label === "Authors") {
-      let contrbutors = details["Contributors"] ?? [];
+      let contrbutors = details["contributors"] ?? [];
       for (const author of container.querySelectorAll("a")) {
         value = addContributor(contrbutors, cleanText(author.textContent), "Author");
       }
-      label = "Contributors";
+      label = "contributors";
     }
     if (label === "ISBN") {
       const isbns = value.split(" ");
@@ -293,6 +293,15 @@ async function scrapeEdition() {
     details["Mappings"],
     mappings,
   ]);
+
+  if ("contributors" in details) {
+    let contrbutors = details["Contributors"] ?? [];
+    for (const { name, roles } of details["contributors"]) {
+      addContributor(contrbutors, name, roles);
+    }
+    details["Contributors"] = contrbutors;
+    delete details["contributors"];
+  }
 
   return details;
 }
