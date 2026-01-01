@@ -1,26 +1,41 @@
 import { tryGetDetails } from "./messaging.js";
 import { isAllowedUrl, normalizeUrl } from "../extractors";
-import { setLastFetchedUrl, getLastFetchedUrl, getCurrentTab, SetupSettings } from "./utils.js";
+import { setLastFetchedUrl, getLastFetchedUrl, getCurrentTab, SetupSettings, getISBN10CheckDigit, getISBN13CheckDigit } from "./utils.js";
 import { hyphenate, searchIsbn } from "../shared/getGroup.js";
 
 const settingsManager = SetupSettings(document.querySelector("#settings"), {
-  hyphenateIsbn: { type: "selection", label: "Hyphenate ISBNs", options: { yes: "Yes", no: "No (Hardcover)", none: "Leave Alone" }, default: "yes" },
+  hyphenateIsbn: {
+    type: "selection", label: "Hyphenate ISBNs", options: {
+      yes: "Yes",
+      no: "No (Hardcover)", none: "Leave Alone"
+    }, default: "yes"
+  },
+  dateFormat: {
+    type: "selection", label: "Format date", default: "local",
+    options: {
+      local: `Local format (${getLocalDateFormat()})`,
+      ymd: "yyyy-mm-dd",
+      dmy: "dd/mm/yyyy",
+      mdy: "mm/dd/yyyy"
+    }
+  },
   filterNonHardcover: { type: "toggle", label: "Filter out non hardcover fields", default: false },
-  dateFormat: { type: "selection", label: "Format date", default: "local", options: { local: `Local format (${getLocalDateFormat()})`, ymd: "yyyy-mm-dd", dmy: "dd/mm/yyyy", mdy: "mm/dd/yyyy" } },
-  keepFields: { type: "selection", label: "Always display non present hardcover fields", options: { yes: "Yes", no: "No", none: "Leave Alone" }, default: "none" },
+  keepFields: { type: "toggle", label: "Always display non present hardcover fields", default: false },
 });
 
 const orderedKeys = [
   'ISBN-10',
   'ISBN-13',
   'ASIN',
-  'Source ID',
+  'Mappings',
   'Contributors',
   'Publisher',
   'Reading Format',
   'Listening Length',
+  'Listening Length Seconds',
   'Pages',
   'Edition Format',
+  'Edition Information',
   'Publication date',
   'Language',
   'Country'
@@ -49,10 +64,6 @@ function copyToClipboard(text, labelEl) {
     labelEl.appendChild(feedback);
     setTimeout(() => feedback.remove(), 2000);
   });
-}
-
-function getHighResImageUrl(src) {
-  return src.replace(/\._[^.]+(?=\.)/, '');
 }
 
 function formatDate(dateStr, format = "local") {
@@ -211,6 +222,52 @@ function normalizeDetails(details, settings, inplace = true) {
 
   // normalize
 
+  // Validate the ISBNs validity
+  if (details["ISBN-10"]) {
+    const isbn = details["ISBN-10"];
+    const checksum = getISBN10CheckDigit(isbn);
+    details["ISBN-10-valid"] = checksum == isbn[isbn.length - 1]
+  }
+  if (details["ISBN-13"]) {
+    const isbn = details["ISBN-13"];
+    const checksum = getISBN13CheckDigit(isbn);
+    details["ISBN-13-valid"] = checksum == isbn[isbn.length - 1]
+  }
+
+  // Regenerate missing ISBN using other one
+  if (!details["ISBN-13"] && !!details["ISBN-10"] && details["ISBN-10-valid"]) {
+    // make isbn13 from isbn10
+    let isbn = details["ISBN-10"].replaceAll("-", "");
+    if (isbn.length == 10) {
+      isbn = "978" + isbn; // add prefix
+      const checksum = getISBN13CheckDigit(isbn);
+      if (checksum != null) {
+        isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
+        isbn = isbn + checksum; // add new check digit
+        details["ISBN-13"] = isbn;
+      }
+    }
+  }
+  if (!!details["ISBN-13"] && !details["ISBN-10"] && details["ISBN-13"].startsWith("978") && details["ISBN-13-valid"]) {
+    // make isbn10 from isbn13
+    let isbn = details["ISBN-13"].replaceAll("-", "");
+    if (isbn.length == 13) {
+      isbn = isbn.slice(3); // remove prefix
+      const checksum = getISBN10CheckDigit(isbn);
+      if (checksum != null) {
+        isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
+        isbn = isbn + checksum; // add new check digit
+        details["ISBN-10"] = isbn;
+      }
+    }
+  }
+
+  // Set ASIN for physical books
+  if (details["Reading Format"] === "Physical Book" && !details["ASIN"] && !!details["ISBN-10"] && details["ISBN-10-valid"]) {
+    // for physical books the ASIN is the isbn-10
+    details["ASIN"] = details["ISBN-10"];
+  }
+
   // Insert country (or language) from ISBN if not present
   const isbn = details["ISBN-13"] || details["ISBN-10"];
   if (isbn != undefined) {
@@ -225,6 +282,36 @@ function normalizeDetails(details, settings, inplace = true) {
         }
       }
     } catch { }
+  }
+
+  // Add listening length in seconds
+  if (details["Listening Length"] && details["Listening Length"].length >= 1) {
+    if (!Array.isArray(details["Listening Length"])) {
+      details["Listening Length"] = [details["Listening Length"]];
+    }
+
+    let valid = true;
+    let lengthSeconds = 0;
+    details["Listening Length"].forEach((item) => {
+      if (!valid) return; // don't bother going over the rest
+      const timeLower = item.toLowerCase();
+      const timeAmount = parseInt(item); // ignores text after number
+
+      if (timeLower.includes("hours")) {
+        lengthSeconds += timeAmount * 60 * 60;
+      } else if (timeLower.includes("minutes")) {
+        lengthSeconds += timeAmount * 60;
+      } else if (timeLower.includes("seconds")) {
+        lengthSeconds += timeAmount;
+      } else {
+        valid = false; // encountered unknown unit
+        return;
+      }
+    });
+
+    if (valid) {
+      details["Listening Length Seconds"] = lengthSeconds;
+    }
   }
 
   // apply settings
@@ -257,7 +344,7 @@ function normalizeDetails(details, settings, inplace = true) {
   }
 
   // add or remove fields even if they are not set
-  if (settings.keepFields === "no") {
+  if (!settings.keepFields) {
     Object.keys(details).forEach((key) => {
       // ignore non hardcover fields
       if (!hardcoverKeys.includes(key)) return;
@@ -266,12 +353,13 @@ function normalizeDetails(details, settings, inplace = true) {
         delete details[key];
       }
     });
-  } else if (settings.keepFields === "yes") {
+  } else {
     // fill in non present fields
     hardcoverKeys.forEach((key) => {
       if (details["Reading Format"] != "Audiobook") {
         // book don't add audiobook fields
         if (key === "Listening Length") return;
+        if (key === "Listening Length Seconds") return;
       } else {
         // audiobook, don't add book fields 
         if (key === "Pages") return;
@@ -434,77 +522,8 @@ function renderDetailsWithSettings(details, settings = {}) {
     container.appendChild(metaTop);
   }
 
-  // Normalization
-
-  if (details["Publication date"]) {
-    details["Publication date"] = formatDate(details["Publication date"]);
-  }
-
-  // Insert country (or language) from ISBN if not present
-  const isbn = details["ISBN-13"] || details["ISBN-10"];
-  if (isbn != undefined) {
-    try {
-      const groupName = searchIsbn(isbn);
-      if (groupName != undefined) {
-        if (groupName.toLowerCase().endsWith("language")) {
-          const language = groupName.split("language")[0].trim();
-          details["Language"] = details["Language"] || language
-        } else {
-          details["Country"] = details["Country"] || groupName
-        }
-      }
-    } catch { }
-  }
-
-  if (details["Listening Length"] && details["Listening Length"].length >= 1) {
-    if (!Array.isArray(details["Listening Length"])) {
-      details["Listening Length"] = [details["Listening Length"]];
-    }
-
-    let valid = true;
-    let lengthSeconds = 0;
-    details["Listening Length"].forEach((item) => {
-      if (!valid) return; // don't bother going over the rest
-      const timeLower = item.toLowerCase();
-      const timeAmount = parseInt(item); // ignores text after number
-
-      if (timeLower.includes("hours")) {
-        lengthSeconds += timeAmount * 60 * 60;
-      } else if (timeLower.includes("minutes")) {
-        lengthSeconds += timeAmount * 60;
-      } else if (timeLower.includes("seconds")) {
-        lengthSeconds += timeAmount;
-      } else {
-        valid = false; // encountered unknown unit
-        return;
-      }
-    });
-
-    if (valid) {
-      details["Listening Length Seconds"] = lengthSeconds;
-    }
-  }
-
   const hr = document.createElement('hr');
   container.appendChild(hr);
-
-  const orderedKeys = [
-    'ISBN-10',
-    'ISBN-13',
-    'ASIN',
-    'Mappings',
-    'Contributors',
-    'Publisher',
-    'Reading Format',
-    'Listening Length',
-    'Listening Length Seconds',
-    'Pages',
-    'Edition Format',
-    'Edition Information',
-    'Publication date',
-    'Language',
-    'Country'
-  ];
 
   const rendered = new Set(['Series', 'Series Place']);
   orderedKeys.forEach(key => {
@@ -512,9 +531,22 @@ function renderDetailsWithSettings(details, settings = {}) {
       renderRow(container, key, details[key]);
       rendered.add(key);
     }
+
+    // show warnings
+    if (["ISBN-10", "ISBN-13"].includes(key)) {
+      const valid = details[`${key}-valid`];
+      if (!valid && valid != undefined) {
+        const div = document.createElement('div');
+        div.className = 'row warning';
+        div.appendChild(document.createTextNode(
+          "WARNING: The ISBN above is invalid!"
+        ));
+        container.appendChild(div);
+      }
+    }
   });
 
-  const filteredKeys = ['img', 'imgScore', 'Title', 'Description'];
+  const filteredKeys = ['img', 'imgScore', 'Title', 'Description', "ISBN-10-valid", "ISBN-13-valid"];
   Object.entries(details).forEach(([key, value]) => {
     if (filteredKeys.includes(key) || rendered.has(key)) return;
     renderRow(container, key, value);

@@ -105,8 +105,11 @@ export function SetupSettings(settingsContainer, settingOptions) {
             settingsObj.set(setting, e.target.checked);
           });
 
+          const textSpan = document.createElement('span');
+          textSpan.textContent = info.label;
+
+          label.appendChild(textSpan);
           label.appendChild(checkbox);
-          label.appendChild(document.createTextNode(' ' + info.label));
           break;
 
         case "selection":
@@ -146,4 +149,44 @@ export function SetupSettings(settingsContainer, settingOptions) {
 export async function getCurrentTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   return tab;
+}
+
+/**
+ * Calculates and returns the check digit for an isbn10
+ * Returns the check digit or undefined if the isbn is invalid
+ *
+ * @param {String} isbn - a 9 or 10 digit long isbn, if 10 long the present check digit is ignored 
+ * @returns {String|null}
+ */
+export function getISBN10CheckDigit(isbn) {
+  isbn = isbn.replaceAll("-", "");
+
+  // remove original check digit
+  if (isbn.length === 10) isbn = isbn.slice(0, isbn.length - 1);
+
+  if (isbn.length !== 9) return null;
+  if (/[^0-9]/.exec(isbn) != null) return null; // check for non digits
+
+  const checksum = [...isbn].reduce((acc, d, i) => acc + d * (i + 1), 0) % 11;
+  return checksum === 10 ? "X" : checksum.toString();
+}
+
+/**
+ * Calculates and returns the check digit for an isbn13
+ * Returns the check digit or undefined if the isbn is invalid
+ *
+ * @param {String} isbn - a 12 or 13 digit long isbn, if 13 long the present check digit is ignored 
+ * @returns {String|null}
+ */
+export function getISBN13CheckDigit(isbn) {
+  isbn = isbn.replaceAll("-", "");
+
+  // remove original check digit
+  if (isbn.length === 13) isbn = isbn.slice(0, isbn.length - 1);
+
+  if (isbn.length !== 12) return null;
+  if (/[^0-9]/.exec(isbn) != null) return null; // check for non digits
+
+  const checksum = (10 - ([...isbn].reduce((acc, d, i) => acc + d * (i % 2 ? 3 : 1), 0) % 10)) % 10;
+  return checksum.toString();
 }
