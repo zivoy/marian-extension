@@ -32,7 +32,7 @@ class isfdbScraper extends Extractor {
 }
 
 
-const remapings = remapKeys.bind(undefined, {
+const remappings = remapKeys.bind(undefined, {
   "Series Number": "Series Place",
   "Date": "Publication date",
   "Synopsis": "Description",
@@ -105,7 +105,7 @@ function scrapeBook(doc = document) {
     details[label] = value;
   }
 
-  details = remapings(details);
+  details = remappings(details);
 
   return details;
 }
@@ -218,7 +218,7 @@ async function scrapeEdition() {
     details[label] = value;
   }
 
-  details = remapings(details);
+  details = remappings(details);
 
   details["Reading Format"] = normalizeReadingFormat(details["Edition Format"]);
 
@@ -262,6 +262,10 @@ async function scrapeEdition() {
     details["Mappings"],
     mappings,
   ]);
+
+  delete details["Type"];
+  delete details["Price"];
+  delete details["Notes"];
 
   return details;
 }

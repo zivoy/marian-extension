@@ -104,7 +104,7 @@ function extractEditionDetails(bookDetails) {
 
     if (!label || !content) return;
 
-    if (label === 'Published') {
+    if (label === 'Published' || label === "Expected publication") {
       const [datePart, publisherPart] = content.split(' by ');
       bookDetails['Publication date'] = datePart?.trim();
       bookDetails['Publisher'] = publisherPart?.trim();

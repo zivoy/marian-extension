@@ -15,6 +15,7 @@ Book pages on these sites are currently supported by Marian. To request support 
 - Audible
 - Goodreads
 - Google Books
+- Open Library
 - Classic Google Books
 - The StoryGraph
 - Rakuten Kobo
@@ -30,6 +31,7 @@ Book pages on these sites are currently supported by Marian. To request support 
 - Barnes & Noble
 - Bookshop.org
 - Romance.io
+- IndieBookstores.ca
 
 ## Creating an extractor
 

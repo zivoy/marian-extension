@@ -228,6 +228,21 @@ export function remapKeys(mapping, object) {
 }
 
 /**
+ * Normalizes Description fields from various formats into a plain string.
+ * @param {object} description
+ * @returns {string} Normalized description text
+ */
+export function normalizeDescription(description) {
+  if (typeof description === "string") return description;
+  if (Array.isArray(description)) return normalizeDescription(description[0]);
+  if (description && typeof description === "object") {
+    if (typeof description.value === "string") return description.value;
+    if (typeof description.text === "string") return description.text;
+  }
+  return "";
+}
+
+/**
  * @typedef {{name: string, roles: string[]}} contributor
  */
 

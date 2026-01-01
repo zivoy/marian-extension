@@ -8,6 +8,7 @@ import { bookshopScraper } from "./bookshopOrg";
 import { dnbdeScraper } from "./dnbde";
 import { goodreadsScraper } from "./goodreads";
 import { googleBooksScraper } from "./googlebooks";
+import { indieBookstoreScraper } from "./indiebookstore";
 import { isbnSearchScraper } from "./isbnsearch";
 import { isbndbScraper } from "./isbndb";
 import { isbndeScraper } from "./isbnde";
@@ -15,6 +16,7 @@ import { isfdbScraper } from "./isfdb";
 import { koboScraper } from "./kobo";
 import { libbyScraper, overdriveScraper, teachingbooksScraper } from "./overdrive";
 import { librofmScraper } from "./librofm";
+import { openlibraryScraper } from "./openlibrary";
 import { romanceIoScraper } from "./romanceio";
 import { storygraphScraper } from "./storygraph";
 
@@ -27,6 +29,7 @@ const extractors = [
   new dnbdeScraper(),
   new goodreadsScraper(),
   new googleBooksScraper(),
+  new indieBookstoreScraper(),
   new isbnSearchScraper(),
   new isbndbScraper(),
   new isbndeScraper(),
@@ -34,6 +37,7 @@ const extractors = [
   new koboScraper(),
   new libbyScraper(),
   new librofmScraper(),
+  new openlibraryScraper(),
   new overdriveScraper(),
   new romanceIoScraper(),
   new storygraphScraper(),
