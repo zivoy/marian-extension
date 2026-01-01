@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg?.type === "SIDEBAR_PING") {
     if (isForThisSidebar(msg.windowId)) {
       sendResponse("pong");
@@ -71,25 +71,27 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
   }
 
   if (msg.type === "REFRESH_SIDEBAR" && isForThisSidebar(msg.windowId) && msg.url && isAllowedUrl(msg.url)) {
-    showStatus("Loading details...");
-    let tab = await getCurrentTab();
-    try {
-      const details = await tryGetDetails(tab);
-      showDetails();
-      const detailsEl = document.getElementById('details');
-      if (detailsEl) detailsEl.innerHTML = "";
-      renderDetails(details);
+    (async () => {
+      showStatus("Loading details...");
+      let tab = await getCurrentTab();
+      try {
+        const details = await tryGetDetails(tab);
+        showDetails();
+        const detailsEl = document.getElementById('details');
+        if (detailsEl) detailsEl.innerHTML = "";
+        renderDetails(details);
 
-      setLastFetchedUrl(tab?.url || "");
-      getCurrentTab().then((activeTab) => {
-        updateRefreshButtonForUrl(activeTab?.url || "");
-      });
+        setLastFetchedUrl(tab?.url || "");
+        getCurrentTab().then((activeTab) => {
+          updateRefreshButtonForUrl(activeTab?.url || "");
+        });
 
-    } catch (err) {
-      console.log("err", err);
-      showStatus(err);
-      notifyBackground("REFRESH_ICON", { tab });
-    };
+      } catch (err) {
+        console.log("err", err);
+        showStatus(err);
+        notifyBackground("REFRESH_ICON", { tab });
+      };
+    })();
   }
 
   if (msg.type === "TAB_URL_CHANGED" && isForThisSidebar(msg.windowId)) {
