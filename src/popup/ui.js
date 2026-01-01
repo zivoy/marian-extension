@@ -254,6 +254,12 @@ function normalizeDetails(details, settings, inplace = true) {
     }
   }
 
+  // Set ASIN for physical books
+  if (details["Reading Format"] === "Physical Book" && !details["ASIN"] && !!details["ISBN-10"] && details["ISBN-10-valid"]) {
+    // for physical books the ASIN is the isbn-10
+    details["ASIN"] = details["ISBN-10"];
+  }
+
   // Insert country (or language) from ISBN if not present
   // See pr #70
 
