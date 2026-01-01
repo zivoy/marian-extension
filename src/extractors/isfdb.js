@@ -44,8 +44,8 @@ const remappings = remapKeys.bind(undefined, {
   "Webpages": undefined,
   "User Rating": undefined,
   "Price": undefined,
+  "Catalog ID": undefined,
 
-  // "Type": undefined,
   // "Notes": undefined,
 });
 
