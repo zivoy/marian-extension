@@ -1,5 +1,5 @@
 import { Extractor } from "./AbstractExtractor.js"
-import { addContributor, collectObject, getCoverData, normalizeReadingFormat, remapKeys } from "../shared/utils.js";
+import { addContributor, collectObject, getCoverData, normalizeDescription, normalizeReadingFormat, remapKeys } from "../shared/utils.js";
 
 // references:
 //  https://openlibrary.org/dev/docs/api/books
@@ -83,7 +83,10 @@ async function getDetails(idUrl) {
     details["Title"] = data["title"];
   }
   if ("description" in data) {
-    details["Description"] = data["description"];
+    const description = normalizeDescription(data["description"]);
+    if (description) {
+      details["Description"] = description;
+    }
   }
   if ("identifiers" in data) {
     Object.entries(data["identifiers"]).forEach(([k, v]) => {
