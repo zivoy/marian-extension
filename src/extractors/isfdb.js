@@ -241,6 +241,8 @@ async function scrapeEdition() {
         value = "Trade Paperback";
       } else if (value.startsWith("pb")) {
         value = "Paperback";
+      } else if (value.startsWith("digest") && value.includes("magazine")) {
+        value = "Magazine";
       }
     }
 
