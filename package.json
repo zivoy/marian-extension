@@ -1,11 +1,13 @@
 {
   "name": "marian-extension",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Extracts book details from Amazon product pages. Created for the fine librarian corps of Hardcover.app.",
   "main": "background.js",
   "type": "module",
   "scripts": {
-    "build": "node build.js"
+    "build": "npm run generate && npm run build:all",
+    "build:all": "node build.js",
+    "generate": "node generate-extractor.js"
   },
   "repository": {
     "type": "git",
@@ -22,3 +24,4 @@
     "esbuild": "^0.25.8"
   }
 }
+

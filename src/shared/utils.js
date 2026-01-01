@@ -25,6 +25,12 @@ export function logMarian(message, object = null) {
   }
 }
 
+/**
+ * Returns a promise waiting a timeout in milliseconds
+ *
+ * @param {number} ms - time to wait in milliseconds
+ * @returns {Promise<None>}
+ */
 export function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -202,7 +208,9 @@ export async function getCoverData(covers) {
  * Returns a new object with keys renamed according to the mapping.
  * Keys not in the mapping are preserved as-is.
  *
- * @param {Record<string, string>} mapping - Map of old keys to new keys
+ * setting the target name of the key to undefined will delete it from the new object
+ *
+ * @param {Record<string, string|undefined>} mapping - Map of old keys to new keys
  * @param {Record<string,any>} object - Source object
  * @returns {Record<string, any>} New object with mapped keys
  */
@@ -212,6 +220,7 @@ export function remapKeys(mapping, object) {
   for (const key of Object.keys(object)) {
     // If the key exists in mapping, use the new name, otherwise keep original
     const finalKey = Object.hasOwn(mapping, key) ? mapping[key] : key;
+    if (finalKey == undefined) continue;
     newObj[finalKey] = object[key];
   }
 
@@ -228,6 +237,7 @@ export function remapKeys(mapping, object) {
  * @param {contributor[]} contributors - list of contributors
  * @param {string} name - name of the contributor 
  * @param {string | string[]} roles - a role or list of roles to add to a contributor
+ * @returns {contributor[]}
  */
 export function addContributor(contributors, name, roles) {
   if (!Array.isArray(roles)) {
@@ -330,3 +340,5 @@ export async function collectObject(items) {
 
   return obj;
 }
+
+export { StorageBackedSet } from "./StorageSet.js";
