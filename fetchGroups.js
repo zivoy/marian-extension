@@ -1,7 +1,9 @@
 import xml2js from "xml2js";
 import fs from "fs/promises";
 
-const parseString = (str) => new Promise((resolve, reject) => xml2js.parseString(str, (err, result) => err != null ? reject(err) : resolve(result)));
+const parseString = (str) => new Promise((resolve, reject) =>
+  xml2js.parseString(str, (err, result) => err != null ? reject(err) : resolve(result))
+);
 
 // Get the Range Message xml file from https://www.isbn-international.org/range_file_generation
 async function getFileUrl() {
@@ -25,7 +27,8 @@ async function getFileUrl() {
   return `${domain}/download_range/${value}/${filename}`;
 }
 
-function stringify(/**@type{{[prefix:string]: {name:string, ranges: [string,string][]}}}*/object) {
+/** @param {{[prefix:string]: {name:string, ranges: [string,string][]}}} object */
+function stringify(object) {
   let output = "{\n";
   const entries = Object.entries(object);
   entries.forEach(([key, value], i) => {
