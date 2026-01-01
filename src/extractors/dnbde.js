@@ -40,6 +40,10 @@ class dnbdeScraper extends Extractor {
       bookDescription,
     ]);
   }
+
+  normalizeUrl(url) {
+    return super.normalizeUrl(url, ["currentResultId", "currentPosition", "method", "query"])
+  }
 }
 
 async function getCover(container) {
