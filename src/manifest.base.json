@@ -106,7 +106,7 @@
 		"https://isbn.de/*",
 
 		"https://www.isfdb.org/cgi-bin/*",
-
+		"https://www.romance.io/books/*",
 		"https://www.barnesandnoble.com/*"
 	],
 	"icons": {

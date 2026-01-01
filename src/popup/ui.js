@@ -1,6 +1,6 @@
 import { tryGetDetails } from "./messaging.js";
-import { isAllowedUrl } from "../extractors";
-import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl, getCurrentTab } from "./utils.js";
+import { isAllowedUrl, normalizeUrl } from "../extractors";
+import { setLastFetchedUrl, getLastFetchedUrl, getCurrentTab } from "./utils.js";
 
 // DOM refs (looked up when functions are called)
 function statusBox() { return document.getElementById('status'); }
