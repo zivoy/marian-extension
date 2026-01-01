@@ -15,6 +15,7 @@ import { isfdbScraper } from "./isfdb";
 import { koboScraper } from "./kobo";
 import { libbyScraper, overdriveScraper, teachingbooksScraper } from "./overdrive";
 import { librofmScraper } from "./librofm";
+import { openlibraryScraper } from "./openlibrary";
 import { romanceIoScraper } from "./romanceio";
 import { storygraphScraper } from "./storygraph";
 
@@ -34,6 +35,7 @@ const extractors = [
   new koboScraper(),
   new libbyScraper(),
   new librofmScraper(),
+  new openlibraryScraper(),
   new overdriveScraper(),
   new romanceIoScraper(),
   new storygraphScraper(),
