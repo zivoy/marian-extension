@@ -14,7 +14,7 @@ compareList = compareList.map(item => [item[0].replace("-", ""), item[1]]); // t
 export function searchIsbn(isbn) {
   isbn = isbn.replaceAll("-", ""); // remove dashes
   if (isbn.length !== 13 && isbn.length !== 10) {
-    throw "Unsupported isbn";
+    throw new Error("Unsupported isbn");
   }
   if (isbn.length === 10) {
     isbn = "978" + isbn;

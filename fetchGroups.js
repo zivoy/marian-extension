@@ -18,7 +18,7 @@ async function getFileUrl() {
   const json = await resp.json();
   if (json["status"] !== "success") {
     console.error("Error generating url", json["messages"]);
-    throw "Couldn't make url";
+    throw new Error("Couldn't make url");
   }
 
   const { filename, value } = json.result;
