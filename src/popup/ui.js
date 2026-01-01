@@ -174,6 +174,8 @@ function renderRow(container, key, value) {
       }
     });
 
+    flatList.sort((a, b) => a.source.localeCompare(b.source) || a.id.localeCompare(b.id));
+
     flatList.forEach((item, i) => {
       addSpan(item.id, 'value mapping-id');
       addText(" (");
