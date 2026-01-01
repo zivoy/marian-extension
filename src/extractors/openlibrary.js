@@ -44,7 +44,6 @@ function remappings(text) {
 async function getDetails(idUrl) {
   const data = await fetchJson(idUrl);
   const isEdition = getFirstKey(data["type"])?.includes("edition");
-  console.log("data", data);
 
   let detailsList = [];
   let mappings = {};
