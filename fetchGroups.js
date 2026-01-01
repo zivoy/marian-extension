@@ -1,5 +1,5 @@
-const xml2js = require("xml2js");
-const fs = require("fs/promises");
+import xml2js from "xml2js";
+import fs from "fs/promises";
 
 const parseString = (str) => new Promise((resolve, reject) => xml2js.parseString(str, (err, result) => err != null ? reject(err) : resolve(result)));
 
