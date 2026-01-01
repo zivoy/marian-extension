@@ -108,6 +108,7 @@
 		"https://bookshop.org/p/books/*",
 		"https://www.isfdb.org/cgi-bin/*",
 		"https://www.romance.io/books/*",
+		"https://openlibrary.org/*",
 		"https://www.barnesandnoble.com/*"
 	],
 	"icons": {
