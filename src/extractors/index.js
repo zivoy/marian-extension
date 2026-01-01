@@ -4,6 +4,7 @@ import { Extractor } from "./AbstractExtractor";
 import { amazonScraper } from "./amazon";
 import { audibleScraper } from "./audible";
 import { barnesAndNobleScraper } from "./barnesnoble";
+import { bookshopScraper } from "./bookshopOrg";
 import { dnbdeScraper } from "./dnbde";
 import { goodreadsScraper } from "./goodreads";
 import { googleBooksScraper } from "./googlebooks";
@@ -22,6 +23,7 @@ const extractors = [
   new amazonScraper(),
   new audibleScraper(),
   new barnesAndNobleScraper(),
+  new bookshopScraper(),
   new dnbdeScraper(),
   new goodreadsScraper(),
   new googleBooksScraper(),
