@@ -1,41 +1,47 @@
-import { getImageScore, logMarian } from "../shared/utils.js";
+import { Extractor } from "./AbstractExtractor.js";
+import { addContributor, getCoverData, logMarian, cleanText, normalizeReadingFormat, collectObject } from "../shared/utils.js";
 
-async function getKoboDetails() {
-    logMarian("Extracting Kobo details");
-    const bookDetails = {};
+class koboScraper extends Extractor {
+    get _name() { return "Kobo Extractor"; }
+    _sitePatterns = [
+        /^https?:\/\/(www\.)?kobo\.[a-z]{2,10}\/[a-z]{2,5}\/[a-z]{2,5}\/[a-z]{1,5}book\/[0-9a-z\-]+/,
+    ];
 
-    // image and imageScore
-    const imggrab = document.querySelector('.item-image .image-actions img.cover-image');
-    bookDetails["img"] = imggrab.src ? getHighResImageUrl(imggrab.src) : null;
-    bookDetails["imgScore"] = imggrab?.src ? await getImageScore(imggrab.src) : 0;
+    async getDetails() {
+        const bookDetails = {};
 
-    // Source ID
-    // const sourceId = getKoboIdFromUrl(window.location.href);
-    // if (sourceId) bookDetails["Source ID"] = sourceId;
+        // image and imageScore
+        const imggrab = document.querySelector('.item-image .image-actions img.cover-image');
+        const coverData = getCoverData(imggrab?.src); //, getHighResImageUrl(imggrab?.src)]) -- this function is not doing anything -- skipping
 
-    // Title
-    getKoboBookTitle(bookDetails);
+        // Source ID
+        // const sourceId = getKoboIdFromUrl(window.location.href);
+        // if (sourceId) bookDetails["Mappings"] = { "Kobo": [sourceId] };
 
-    // Series name and number
-    getKoboSeries(bookDetails);
+        // Title
+        getKoboBookTitle(bookDetails);
 
-    // Contributors
-    extractKoboContributors(bookDetails);
+        // Series name and number
+        getKoboSeries(bookDetails);
 
-    //get format and length
-    getKoboFormatInfo(bookDetails, window.location.href)
+        // Contributors
+        extractKoboContributors(bookDetails);
 
-    // get extra block of info - isbn, language, etc.
-    extraKoboInfo(bookDetails);
+        //get format and length
+        getKoboFormatInfo(bookDetails, window.location.href)
 
-    // Description
-    extractKoboDescription(bookDetails);
+        // get extra block of info - isbn, language, etc.
+        extraKoboInfo(bookDetails);
 
-    logMarian("Kobo extraction complete:", bookDetails);
-    return {
-        ...bookDetails,
-    };
+        // Description
+        extractKoboDescription(bookDetails);
 
+        // logMarian("Kobo extraction complete:", bookDetails);
+        return collectObject([
+            coverData,
+            bookDetails
+        ]);
+    }
 }
 
 // seems like a thing we do
@@ -51,39 +57,24 @@ function getKoboIdFromUrl(url) {
 }
 
 function extractKoboContributors(bookDetails) {
-    // TODO this is so ugly. save me ferris beuller, you're my only hope
-    const contributor = [];
-    const authorole = [];
-    const narrole = [];
-    const finallist = [];
+    const contributors = [];
+
     const authorray = document.querySelectorAll('.about .authors .visible-contributors a');
     if (authorray) {
         for (let c = 0; c < authorray.length; c++) {
-            let authorline = authorray[c].textContent;
-            authorole[authorline] = true;
-            contributor[authorline] = true;
+            let authorName = authorray[c].textContent;
+            addContributor(contributors, authorName, "Author");
         }
     }
     const narratoray = document.querySelectorAll('.about .narrators .visible-contributors a');
     if (narratoray) {
         for (let c = 0; c < narratoray.length; c++) {
-            let narline = narratoray[c].textContent;
-            contributor[narline] = true;
-            narrole[narline] = true;
+            let narName = narratoray[c].textContent;
+            addContributor(contributors, narName, "Narrator");
         }
     }
-    for (let name in contributor) {
-        let roles = [];
-        if (narrole[name]) {
-            roles.push('Narrator');
-        }
-        if (authorole[name]) {
-            roles.push('Author');
-        }
-        finallist.push({ name, roles: [roles] });
-    }
-    if (finallist.length) {
-        bookDetails["Contributors"] = finallist;
+    if (contributors.length) {
+        bookDetails["Contributors"] = contributors;
     }
 }
 
@@ -103,7 +94,7 @@ function getKoboSeries(bookDetails) {
 
 function getKoboBookTitle(bookDetails) {
     const h1 = document.querySelector('.title-widget h1');
-    const rawTitle = h1?.childNodes[0]?.textContent.trim();
+    const rawTitle = cleanText(h1?.childNodes[0]?.textContent);
     rawTitle ? bookDetails["Title"] = rawTitle : null;
 }
 
@@ -128,10 +119,13 @@ function getKoboFormatInfo(bookDetails, url) {
         }
     }
 
+    // Normalize reading format just in case
+    bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails['Reading Format']);
+    // TODO: see if edition format can be extracted (see download options)
 }
 
 function joinContent(elements) {
-    return Array.from(elements).map(item => item.textContent.trim()).join("\n");
+    return Array.from(elements).map(item => cleanText(item.textContent)).join("\n");
 }
 
 function extractKoboDescription(bookDetails) {
@@ -189,4 +183,4 @@ function extraKoboInfo(bookDetails) {
     }
 }
 
-export { getKoboDetails };
+export { koboScraper };

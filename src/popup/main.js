@@ -1,83 +1,98 @@
-import { isAllowedUrl } from "../shared/allowed-patterns.js";
+import { isAllowedUrl } from "../extractors";
 import { tryGetDetails } from "./messaging.js";
-import { showStatus, showDetails, renderDetails, initSidebarLogger, 
-  addRefreshButton, updateRefreshButtonForUrl } from "./ui.js";
-import { setLastFetchedUrl } from "./utils.js";
+import {
+  showStatus, showDetails, renderDetails, initSidebarLogger,
+  addRefreshButton, updateRefreshButtonForUrl
+} from "./ui.js";
+import { setLastFetchedUrl, getCurrentTab } from "./utils.js";
 
 const DEBUG = false;
+let sidebarWindowId = null;
+
+function rememberWindowId(windowInfo) {
+  if (windowInfo && typeof windowInfo.id === "number") {
+    sidebarWindowId = windowInfo.id;
+  }
+}
+
+function notifyBackground(type, params = {}) {
+  if (type === "SIDEBAR_UNLOADED" && typeof sidebarWindowId === "number") {
+    chrome.runtime.sendMessage({ type, windowId: sidebarWindowId }, () => {
+      void chrome.runtime.lastError;
+    });
+    return;
+  }
+
+  chrome.windows.getCurrent((windowInfo) => {
+    rememberWindowId(windowInfo);
+    const windowId = typeof sidebarWindowId === "number" ? sidebarWindowId : windowInfo?.id;
+    chrome.runtime.sendMessage({ type, windowId, ...params }, () => {
+      // ignore missing listeners; background may be sleeping in some contexts
+      void chrome.runtime.lastError;
+    });
+  });
+}
+
+function isForThisSidebar(messageWindowId) {
+  if (typeof messageWindowId !== "number") return true;
+  if (typeof sidebarWindowId !== "number") return false;
+  return messageWindowId === sidebarWindowId;
+}
 
 document.addEventListener("DOMContentLoaded", () => {
+  notifyBackground("SIDEBAR_READY");
+  window.addEventListener("pagehide", () => notifyBackground("SIDEBAR_UNLOADED"));
+
+  chrome.windows.getCurrent(rememberWindowId);
+
   if (DEBUG) initSidebarLogger(); // DEBUG: Initialize sidebar logger
 
-  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+  getCurrentTab().then((tab) => {
     const url = tab?.url || "";
 
+    showStatus("DOM Loaded, fetching details...");
+
+    addRefreshButton();
     updateRefreshButtonForUrl(url);
 
     if (!isAllowedUrl(url)) {
       showStatus("This extension only works on supported product pages.");
       return;
     }
-
-    showStatus("DOM Loaded, fetching details...");
-    tryGetDetails()
-      .then(async (details) => {
-        showDetails();
-        const detailsEl = document.getElementById('details');
-        if (detailsEl) detailsEl.innerHTML = "";
-        await renderDetails(details);
-
-        addRefreshButton(() => {
-          showStatus("Refreshing...");
-          tryGetDetails()
-            .then(async (details) => {
-              showDetails();
-              await renderDetails(details);
-            })
-            .catch(err => showStatus(err));
-        });
-
-        chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-          const currentUrl = tab?.url || '';
-          setLastFetchedUrl(currentUrl);
-          updateRefreshButtonForUrl(currentUrl);
-        });
-      })
-      .catch(err => {
-        showStatus(err);
-      });
   });
 });
 
-// Keep your sidebar listener behavior exactly the same
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type === "ping") {
-    sendResponse("pong");
+chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
+  if (msg?.type === "SIDEBAR_PING") {
+    if (isForThisSidebar(msg.windowId)) {
+      sendResponse("pong");
+    }
     return;
   }
 
-  if (msg.type === "REFRESH_SIDEBAR" && msg.url && isAllowedUrl(msg.url)) {
+  if (msg.type === "REFRESH_SIDEBAR" && isForThisSidebar(msg.windowId) && msg.url && isAllowedUrl(msg.url)) {
     showStatus("Loading details...");
-    tryGetDetails()
-      .then(async (details) => {
-        showDetails();
-        // clear previous content (matches your original)
-        const detailsEl = document.getElementById('details');
-        if (detailsEl) detailsEl.innerHTML = "";
-        await renderDetails(details);
+    let tab = await getCurrentTab();
+    try {
+      const details = await tryGetDetails(tab);
+      showDetails();
+      const detailsEl = document.getElementById('details');
+      if (detailsEl) detailsEl.innerHTML = "";
+      await renderDetails(details);
 
-        chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-          const currentUrl = tab?.url || '';
-          setLastFetchedUrl(currentUrl);
-          updateRefreshButtonForUrl(currentUrl);
-        });
-      })
-      .catch(err => {
-        showStatus(err);
+      setLastFetchedUrl(tab?.url || "");
+      getCurrentTab().then((activeTab) => {
+        updateRefreshButtonForUrl(activeTab?.url || "");
       });
+
+    } catch (err) {
+      console.log("err", err);
+      showStatus(err);
+      notifyBackground("REFRESH_ICON", { tab });
+    };
   }
 
-  if (msg.type === "TAB_URL_CHANGED") {
+  if (msg.type === "TAB_URL_CHANGED" && isForThisSidebar(msg.windowId)) {
     updateRefreshButtonForUrl(msg.url);
   }
 });

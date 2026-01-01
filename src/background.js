@@ -1,5 +1,8 @@
-import { isAllowedUrl } from "./shared/allowed-patterns";
-import { runtime } from "./shared/utils"
+import { isAllowedUrl } from "./extractors";
+import { getCurrentTab } from "./popup/utils";
+import { runtime, StorageBackedSet } from "./shared/utils"
+
+const activeSidebarWindows = new StorageBackedSet("active_sidebar_windows");
 
 function updateIcon(tabId, isAllowed) {
   chrome.action.setIcon({
@@ -34,17 +37,54 @@ function openSidebar(tab) {
   }
 }
 
+const IGNORED_RUNTIME_ERRORS = new Set([
+  "Could not establish connection. Receiving end does not exist.",
+  "The message port closed before a response was received."
+]);
+
+function safeRuntimeSend(message) {
+  const maybePromise = chrome.runtime.sendMessage(message, () => {
+    const error = chrome.runtime.lastError;
+    if (error && !IGNORED_RUNTIME_ERRORS.has(error.message)) {
+      console.warn("Runtime message failed:", error);
+    }
+  });
+
+  // MV3 promises if no callback listener exists; catch to avoid unhandled rejections.
+  if (maybePromise && typeof maybePromise.then === "function") {
+    maybePromise.catch((error) => {
+      if (!error || IGNORED_RUNTIME_ERRORS.has(error.message)) return;
+      console.warn("Runtime message failed:", error);
+    });
+  }
+}
+
 function sendWhenReady(msg, retries = 10, delay = 150) {
   function attempt(remaining) {
-    chrome.runtime.sendMessage({ type: "ping" }, (response) => {
-      if (response === "pong") {
-        chrome.runtime.sendMessage(msg);
-      } else if (remaining > 0) {
+    if (msg?.windowId && !hasActiveSidebar(msg.windowId)) {
+      if (remaining > 0) {
         setTimeout(() => attempt(remaining - 1), delay);
       }
+      return;
+    }
+
+    chrome.runtime.sendMessage({ type: "SIDEBAR_PING", windowId: msg?.windowId }, (response) => {
+      const error = chrome.runtime.lastError;
+      if (error || response !== "pong") {
+        if (remaining > 0) {
+          setTimeout(() => attempt(remaining - 1), delay);
+        }
+        return;
+      }
+
+      safeRuntimeSend(msg);
     });
   }
   attempt(retries);
+}
+
+function hasActiveSidebar(windowId) {
+  return typeof windowId === "number" && activeSidebarWindows.hasSync(windowId);
 }
 
 function showUnsupportedNotification(tab) {
@@ -67,43 +107,93 @@ function showUnsupportedNotification(tab) {
   }
 }
 
+const windowReady = {};
+
 chrome.action.onClicked.addListener((tab) => {
   if (!tab?.url) return;
 
   if (!isAllowedUrl(tab.url)) {
+    updateIcon(tab.id, false);
     showUnsupportedNotification(tab);
     return;
   }
 
   openSidebar(tab);
-  setTimeout(() => {
-    sendWhenReady({ type: "REFRESH_SIDEBAR", url: tab.url });
-  }, 300); // give the sidebar a moment to load
+
+  // wait for pane before requesting a refresh
+  new Promise((ready) => {
+    if (activeSidebarWindows.has(tab.windowId)) {
+      // exit early if already open
+      ready();
+      return;
+    }
+
+    windowReady[tab.windowId] = ready;
+  }).then(() => {
+    sendWhenReady({ type: "REFRESH_SIDEBAR", url: tab.url, windowId: tab.windowId });
+  })
 });
 
 // when tab URL changes in the current active tab
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (tab.active && changeInfo.url) {
-    chrome.runtime.sendMessage({ type: "TAB_URL_CHANGED", url: changeInfo.url });
+  if (tab.active && changeInfo.url && hasActiveSidebar(tab.windowId)) {
+    safeRuntimeSend({ type: "TAB_URL_CHANGED", url: changeInfo.url, windowId: tab.windowId });
   }
 });
 
 // when the active tab changes
 chrome.tabs.onActivated.addListener(() => {
-  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-    chrome.runtime.sendMessage({ type: "TAB_URL_CHANGED", url: tab?.url || "" });
+  getCurrentTab().then((tab) => {
+    if (!tab || !hasActiveSidebar(tab.windowId)) return;
+    safeRuntimeSend({ type: "TAB_URL_CHANGED", url: tab.url || "", windowId: tab.windowId });
   });
 });
 
 // Listen for messages from the content script.
-runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log("got message", request);
+runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+  if (request == undefined) return false;
+
+  if (request.type === "REFRESH_ICON" && request.tab != undefined) {
+    const tabId = request.tab.id;
+    const url = request.tab.url;
+    if (typeof tabId === "number") {
+      updateIcon(tabId, isAllowedUrl(url));
+      sendResponse({ success: true });
+    } else {
+      sendResponse({ success: false, error: "Invalid tab ID" });
+    }
+    return true;
+  }
+  if (request?.type === "SIDEBAR_READY") {
+    if (request.windowId in windowReady) {
+      windowReady[request.windowId]();
+      delete windowReady[request.windowId];
+    }
+
+    if (typeof request.windowId === "number") {
+      await activeSidebarWindows.add(request.windowId);
+    }
+    if (typeof sendResponse === "function") sendResponse(true);
+    return false;
+  }
+
+  if (request?.type === "SIDEBAR_UNLOADED") {
+    if (typeof request.windowId === "number") {
+      await activeSidebarWindows.delete(request.windowId);
+    }
+    if (typeof sendResponse === "function") sendResponse(true);
+    return false;
+  }
 
   if (request.action === 'fetchDepositData') {
     handleFetchRequest(request.url).then(sendResponse);
     return true;
   }
   return false;
+});
+
+chrome.windows.onRemoved.addListener(async (windowId) => {
+  await activeSidebarWindows.delete(windowId);
 });
 
 async function handleFetchRequest(url) {

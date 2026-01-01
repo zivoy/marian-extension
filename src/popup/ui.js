@@ -1,6 +1,6 @@
 import { tryGetDetails } from "./messaging.js";
-import { isAllowedUrl } from "../shared/allowed-patterns.js";
-import { normalizeUrl, setLastFetchedUrl, getLastFetchedUrl, SetupSettings } from "./utils.js";
+import { isAllowedUrl, normalizeUrl } from "../extractors";
+import { setLastFetchedUrl, getLastFetchedUrl, getCurrentTab, SetupSettings } from "./utils.js";
 import { hyphenate, searchIsbn } from "../shared/getGroup.js";
 
 const settingsManager = SetupSettings(document.querySelector("#settings"), {
@@ -97,90 +97,108 @@ function getLocalDateFormat() {
 }
 
 function downloadImage(url, bookId) {
-  const highResUrl = url.replace(/\._[^.]+(?=\.)/, '');
-  fetch(highResUrl)
-    .then(res => res.blob())
-    .then(blob => {
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      const safeId = String(bookId || '').replace(/[^a-z0-9]/gi, '');
-      a.download = `${safeId}_cover.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(blobUrl);
-    })
-    .catch(err => console.error('Image download failed:', err));
+  const safeId = String(bookId || '').replace(/[^a-z0-9]/gi, '');
+  const filename = `${safeId}_cover.jpg`;
+
+  chrome.downloads.download({
+    url: url,
+    filename: filename,
+    saveAs: false,
+    conflictAction: 'uniquify'
+  }, (downloadId) => {
+    if (chrome.runtime.lastError) {
+      console.error('Image download failed:', chrome.runtime.lastError);
+      showStatus(`Download failed: ${chrome.runtime.lastError.message}`);
+    } else {
+      console.log('Image download started, ID:', downloadId);
+    }
+  });
+}
+
+
+function createSpan(parent, text, className, copyValue) {
+  const span = document.createElement('span');
+  span.className = className;
+  span.textContent = text;
+  span.title = 'Click to copy';
+  span.style.cursor = 'pointer';
+
+  span.addEventListener('click', () => copyToClipboard(copyValue || text, parent));
+
+  parent.appendChild(span);
 }
 
 function renderRow(container, key, value) {
   const div = document.createElement('div');
   div.className = 'row';
 
+  const addText = (text) => div.appendChild(document.createTextNode(text));
+  const addSpan = (text, className, copyValue) => createSpan(div, text, className, copyValue);
+
+  // Label
   const label = document.createElement('span');
   label.className = 'label';
   label.textContent = (key === 'title') ? 'Title:' : `${key}:`;
-
   div.appendChild(label);
-  div.appendChild(document.createTextNode(' '));
+  addText(' ');
 
-  if (Array.isArray(value)) {
-    if (key === 'Contributors' && value.length && typeof value[0] === 'object' && Array.isArray(value[0].roles)) {
-      value.forEach((contributor, idx) => {
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'value contributor-name';
-        nameSpan.textContent = contributor.name;
-        nameSpan.title = 'Click to copy name';
-        nameSpan.style.cursor = 'pointer';
-        nameSpan.addEventListener('click', () => copyToClipboard(contributor.name, div));
-        div.appendChild(nameSpan);
+  // Data
+  const isContributors = key === 'Contributors' && Array.isArray(value) && value[0]?.roles;
+  const isMappings = key === "Mappings" && value && typeof value === 'object';
 
-        div.appendChild(document.createTextNode(' ('));
+  if (isContributors) {
+    value.forEach((contributor, i) => {
+      addSpan(contributor.name, 'value contributor-name');
 
-        contributor.roles.forEach((role, roleIdx) => {
-          const roleSpan = document.createElement('span');
-          roleSpan.className = 'value contributor-role';
-          roleSpan.textContent = role;
-          roleSpan.title = 'Click to copy role';
-          roleSpan.style.cursor = 'pointer';
-          roleSpan.addEventListener('click', () => copyToClipboard(role, div));
-          div.appendChild(roleSpan);
-          if (roleIdx !== contributor.roles.length - 1) div.appendChild(document.createTextNode(', '));
+      if (contributor.roles?.length) {
+        addText(' (');
+        contributor.roles.forEach((role, rI) => {
+          addSpan(role, 'value contributor-role');
+          if (rI !== contributor.roles.length - 1) addText(', ');
         });
+        addText(')');
+      }
 
-        div.appendChild(document.createTextNode(')'));
-        if (idx !== value.length - 1) div.appendChild(document.createTextNode(', '));
-      });
-    } else {
-      value.forEach(item => {
-        const itemSpan = document.createElement('span');
-        itemSpan.className = 'value';
-        itemSpan.textContent = item;
-        itemSpan.title = 'Click to copy';
-        itemSpan.style.cursor = 'pointer';
-        if (key === 'Listening Length') {
-          const numberMatch = item.match(/\d+/);
-          const numberOnly = numberMatch ? numberMatch[0] : item;
-          itemSpan.addEventListener('click', () => copyToClipboard(numberOnly, div));
-        } else {
-          itemSpan.addEventListener('click', () => copyToClipboard(item, div));
-        }
-        div.appendChild(itemSpan);
-        if (item !== value[value.length - 1]) {
-          if (key === 'Author' || key === 'Narrator') div.appendChild(document.createTextNode(', '));
-          else div.appendChild(document.createTextNode(' '));
-        }
-      });
-    }
+      if (i !== value.length - 1) addText(', ');
+    });
+  } else if (isMappings) {
+    const flatList = [];
+    Object.entries(value).forEach(([source, ids]) => {
+      if (Array.isArray(ids)) {
+        ids.forEach(id => flatList.push({ id, source }));
+      } else {
+        flatList.push({ id, source });
+      }
+    });
+
+    flatList.forEach((item, i) => {
+      addSpan(item.id, 'value mapping-id');
+      addText(" (");
+      addSpan(item.source, 'value mapping-name');
+      addText(")");
+      if (i !== flatList.length - 1) addText(', ');
+    });
+  } else if (Array.isArray(value)) {
+    // Check for Standard Arrays
+    value.forEach((item, i) => {
+      let copyVal = item;
+
+      // Special handling for Listening Length (copy digits only)
+      if (key === 'Listening Length') {
+        const match = item.match(/\d+/);
+        if (match) copyVal = match[0];
+      }
+
+      addSpan(item, 'value', copyVal);
+
+      if (i !== value.length - 1) {
+        const separator = (key === 'Author' || key === 'Narrator') ? ', ' : ' ';
+        addText(separator);
+      }
+    });
   } else {
-    const val = document.createElement('span');
-    val.className = 'value';
-    val.textContent = value;
-    val.title = 'Click to copy';
-    if (key === 'Description') val.classList.add('description');
-    val.addEventListener('click', () => copyToClipboard(value, div));
-    div.appendChild(val);
+    const className = (key === 'Description') ? 'value description' : 'value';
+    addSpan(value, className);
   }
 
   container.appendChild(div);
@@ -306,110 +324,107 @@ function renderDetailsWithSettings(details, settings = {}) {
   if (!container) return;
   container.innerHTML = ""; // safety clear 
 
-  if (details.img) {
-    const sideBySideWrapper = document.createElement('div');
-    sideBySideWrapper.style.display = 'flex';
-    sideBySideWrapper.style.alignItems = 'flex-start';
-    sideBySideWrapper.style.gap = '1rem';
+  const isEmpty = Object.keys(details).length === 0;
+  if (isEmpty) return;
 
-    const img = document.createElement('img');
-    img.src = getHighResImageUrl(details.img);
-    img.alt = 'Cover Image';
+  const sideBySideWrapper = document.createElement('div');
+  sideBySideWrapper.style.display = 'flex';
+  sideBySideWrapper.style.alignItems = 'flex-start';
+  sideBySideWrapper.style.gap = '1rem';
+
+  const img = document.createElement('img');
+  img.alt = 'Cover Image';
+  img.style.maxWidth = '100px';
+  img.style.minHeight = '100px';
+  img.loading = 'lazy'; // lazy load for performance
+  img.style.userSelect = "none";
+  img.draggable = false;
+
+  if (details.img) {
+    img.src = details.img;
     img.title = 'Click to download';
-    img.style.maxWidth = '100px';
-    img.style.minHeight = '100px';
     img.style.cursor = 'pointer';
-    img.loading = 'lazy'; // lazy load for performance
     img.addEventListener('click', () => {
       const fallbackId =
         details['ISBN-13'] ||
         details['ISBN-10'] ||
         details['ASIN'] ||
-        details['Source ID'] ||
+        Object.values(details['Mappings'] || {})[0] ||
         details['Title'] ||
         Date.now();
       downloadImage(details.img, fallbackId);
     });
-
-    const imgWrapper = document.createElement('div');
-    imgWrapper.style.display = 'flex';
-    imgWrapper.style.flexDirection = 'column';
-    imgWrapper.style.alignItems = 'center';
-    imgWrapper.style.position = 'relative';
-    imgWrapper.style.maxWidth = '100px';
-
-    imgWrapper.appendChild(img);
-
-    if (details.imgScore && typeof details.imgScore === 'number') {
-      const label = document.createElement('span');
-      label.className = 'img-score-label';
-      label.textContent = details.imgScore.toLocaleString();
-
-      if (details.imgScore < 33000) {
-        label.style.background = '#c0392b';
-        label.title = 'Low resolution (ex: 133 x 200)';
-        label.textContent = 'Poor';
-      } else if (details.imgScore < 100000) {
-        label.style.background = '#f39c12';
-        label.title = 'Medium resolution (ex: 200 x 300)';
-        label.textContent = 'Medium';
-      } else {
-        label.style.background = '#27ae60';
-        label.title = 'High resolution (ex: 300 x 450)';
-        label.textContent = 'High';
-      }
-
-      imgWrapper.appendChild(label);
-    }
-
-    sideBySideWrapper.appendChild(imgWrapper);
-
-    const textWrapper = document.createElement('div');
-    textWrapper.style.flex = '1';
-
-    if (details.Title) {
-      const titleDiv = document.createElement('div');
-      titleDiv.className = 'row';
-
-      const titleLabel = document.createElement('span');
-      titleLabel.className = 'label';
-      titleLabel.textContent = 'Title:';
-
-      const titleVal = document.createElement('span');
-      titleVal.className = 'value title';
-      titleVal.textContent = details.Title;
-      titleVal.title = 'Click to copy';
-      titleVal.style.cursor = 'pointer';
-      titleVal.addEventListener('click', () => copyToClipboard(details.Title, titleDiv));
-
-      titleDiv.appendChild(document.createTextNode(' '));
-      titleDiv.appendChild(titleVal);
-      textWrapper.appendChild(titleDiv);
-    }
-
-    if (details.Description) {
-      const descDiv = document.createElement('div');
-      descDiv.className = 'row';
-
-      const descLabel = document.createElement('span');
-      descLabel.className = 'label';
-      descLabel.textContent = 'Description:';
-
-      const descVal = document.createElement('span');
-      descVal.className = 'value description';
-      descVal.textContent = details.Description;
-      descVal.title = 'Click to copy';
-      descVal.style.cursor = 'pointer';
-      descVal.addEventListener('click', () => copyToClipboard(details.Description, descDiv));
-
-      descDiv.appendChild(document.createTextNode(' '));
-      descDiv.appendChild(descVal);
-      textWrapper.appendChild(descDiv);
-    }
-
-    sideBySideWrapper.appendChild(textWrapper);
-    container.appendChild(sideBySideWrapper);
+  } else {
+    img.src = "icons/third-party/hardcover.svg";
+    img.style.cursor = "auto";
   }
+
+  const imgWrapper = document.createElement('div');
+  imgWrapper.style.display = 'flex';
+  imgWrapper.style.flexDirection = 'column';
+  imgWrapper.style.alignItems = 'center';
+  imgWrapper.style.position = 'relative';
+  imgWrapper.style.maxWidth = '100px';
+
+  imgWrapper.appendChild(img);
+
+  if (details.imgScore && typeof details.imgScore === 'number') {
+    const label = document.createElement('span');
+    label.className = 'img-score-label';
+    label.textContent = details.imgScore.toLocaleString();
+
+    if (details.imgScore < 33000) {
+      label.style.background = '#c0392b';
+      label.title = 'Low resolution (ex: 133 x 200)';
+      label.textContent = 'Poor';
+    } else if (details.imgScore < 100000) {
+      label.style.background = '#f39c12';
+      label.title = 'Medium resolution (ex: 200 x 300)';
+      label.textContent = 'Medium';
+    } else {
+      label.style.background = '#27ae60';
+      label.title = 'High resolution (ex: 300 x 450)';
+      label.textContent = 'High';
+    }
+
+    imgWrapper.appendChild(label);
+  }
+
+  sideBySideWrapper.appendChild(imgWrapper);
+
+  const textWrapper = document.createElement('div');
+  textWrapper.style.flex = '1';
+
+  if (details.Title) {
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'row';
+
+    const titleLabel = document.createElement('span');
+    titleLabel.className = 'label';
+    titleLabel.textContent = 'Title:';
+
+    titleDiv.appendChild(document.createTextNode(' '));
+    createSpan(titleDiv, details.Title, "value title");
+
+    textWrapper.appendChild(titleDiv);
+  }
+
+  if (details.Description) {
+    const descDiv = document.createElement('div');
+    descDiv.className = 'row';
+
+    const descLabel = document.createElement('span');
+    descLabel.className = 'label';
+    descLabel.textContent = 'Description:';
+
+    descDiv.appendChild(document.createTextNode(' '));
+    createSpan(descDiv, details.Description, "value description");
+
+    textWrapper.appendChild(descDiv);
+  }
+
+  sideBySideWrapper.appendChild(textWrapper);
+  container.appendChild(sideBySideWrapper);
 
   if (details.Series || details['Series Place']) {
     const metaTop = document.createElement('div');
@@ -419,8 +434,101 @@ function renderDetailsWithSettings(details, settings = {}) {
     container.appendChild(metaTop);
   }
 
+  // Normalization
+
+  if (details["Publication date"]) {
+    details["Publication date"] = formatDate(details["Publication date"]);
+  }
+
+  // Regenerate missing ISBN using other one
+  if (!details["ISBN-13"] && !!details["ISBN-10"]) {
+    // make isbn13 from isbn10
+    let isbn = details["ISBN-10"].replace("-", "");
+    if (isbn.length == 10) {
+      isbn = "978" + isbn; // add prefix
+      isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
+      const checksum = 10 - Array.from(isbn).reduce((acc, digit, i) => (i % 2 == 0 ? 1 : 3) * parseInt(digit) + acc, 0) % 10;
+      isbn = isbn + checksum.toString(); // add new check digit
+      details["ISBN-13"] = isbn;
+    }
+  }
+  if (!!details["ISBN-13"] && !details["ISBN-10"] && details["ISBN-13"].startsWith("978")) {
+    // make isbn10 from isbn13
+    let isbn = details["ISBN-13"].replace("-", "");
+    if (isbn.length == 13) {
+      isbn = isbn.slice(3); // remove prefix
+      isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
+      const checksum = Array.from(isbn).reduce((acc, digit, i) => (i + 1) * parseInt(digit) + acc, 0) % 11
+      isbn = isbn + checksum.toString(); // add new check digit
+      details["ISBN-10"] = isbn;
+    }
+  }
+
+  // Insert country (or language) from ISBN if not present
+  const isbn = details["ISBN-13"] || details["ISBN-10"];
+  if (isbn != undefined) {
+    try {
+      const groupName = searchIsbn(isbn);
+      if (groupName != undefined) {
+        if (groupName.toLowerCase().endsWith("language")) {
+          const language = groupName.split("language")[0].trim();
+          details["Language"] = details["Language"] || language
+        } else {
+          details["Country"] = details["Country"] || groupName
+        }
+      }
+    } catch { }
+  }
+
+  if (details["Listening Length"] && details["Listening Length"].length >= 1) {
+    if (!Array.isArray(details["Listening Length"])) {
+      details["Listening Length"] = [details["Listening Length"]];
+    }
+
+    let valid = true;
+    let lengthSeconds = 0;
+    details["Listening Length"].forEach((item) => {
+      if (!valid) return; // don't bother going over the rest
+      const timeLower = item.toLowerCase();
+      const timeAmount = parseInt(item); // ignores text after number
+
+      if (timeLower.includes("hours")) {
+        lengthSeconds += timeAmount * 60 * 60;
+      } else if (timeLower.includes("minutes")) {
+        lengthSeconds += timeAmount * 60;
+      } else if (timeLower.includes("seconds")) {
+        lengthSeconds += timeAmount;
+      } else {
+        valid = false; // encountered unknown unit
+        return;
+      }
+    });
+
+    if (valid) {
+      details["Listening Length Seconds"] = lengthSeconds;
+    }
+  }
+
   const hr = document.createElement('hr');
   container.appendChild(hr);
+
+  const orderedKeys = [
+    'ISBN-10',
+    'ISBN-13',
+    'ASIN',
+    'Mappings',
+    'Contributors',
+    'Publisher',
+    'Reading Format',
+    'Listening Length',
+    'Listening Length Seconds',
+    'Pages',
+    'Edition Format',
+    'Edition Information',
+    'Publication date',
+    'Language',
+    'Country'
+  ];
 
   const rendered = new Set(['Series', 'Series Place']);
   orderedKeys.forEach(key => {
@@ -437,7 +545,7 @@ function renderDetailsWithSettings(details, settings = {}) {
   });
 }
 
-export function showStatus(message) {
+export function showStatus(message, options = {}) {
   const statusEl = statusBox();
   const detailsEl = detailsBox();
   if (!statusEl || !detailsEl) return;
@@ -448,8 +556,10 @@ export function showStatus(message) {
 
 export function showDetails() {
   const detailsEl = detailsBox();
+  const statusEl = statusBox();
   if (!detailsEl) return;
   detailsEl.style.display = 'block';
+  if (statusEl) statusEl.style.display = 'none';
 }
 
 // DEBUG: Sidebar logger: mirrors console.* into a sidebar status area
@@ -484,7 +594,7 @@ export function initSidebarLogger() {
   console.debug('Sidebar logger initialized');
 }
 
-export function addRefreshButton(onClick) {
+export function addRefreshButton() {
   const container = document.getElementById('content') || document.body;
 
   if (document.getElementById('refresh-button')) return;
@@ -494,23 +604,25 @@ export function addRefreshButton(onClick) {
   btn.textContent = 'Refresh details from current tab';
   btn.style.display = 'none';
 
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', async () => {
     if (btn.disabled) return; // bail if not allowed
     showStatus("Refreshing...");
 
-    tryGetDetails()
-      .then(async (details) => {
-        showDetails();
-        await renderDetails(details);
+    const tab = await getCurrentTab();
+    try {
+      const details = await tryGetDetails(tab)
+      showDetails();
+      await renderDetails(details);
 
-        // 👇 After refreshing, set last fetched & disable if same tab
-        chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-          const currentUrl = tab?.url || '';
-          setLastFetchedUrl(currentUrl);
-          updateRefreshButtonForUrl(currentUrl);
-        });
-      })
-      .catch(err => showStatus(err));
+      // 👇 After refreshing, set last fetched & disable if same tab
+      setLastFetchedUrl(tab?.url || "");
+      getCurrentTab().then((activeTab) => {
+        updateRefreshButtonForUrl(activeTab?.url || "");
+      });
+    } catch (err) {
+      showStatus(err);
+      notifyBackground("REFRESH_ICON", { tab });
+    }
   });
 
   container.prepend(btn);
@@ -550,7 +662,7 @@ export function updateRefreshButtonForUrl(url) {
 }
 
 export function checkActiveTabAndUpdateButton() {
-  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+  getCurrentTab().then((tab) => {
     updateRefreshButtonForUrl(tab?.url || "");
   });
 }
