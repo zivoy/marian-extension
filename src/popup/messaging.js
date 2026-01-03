@@ -82,6 +82,7 @@ export async function tryGetDetails(tab, retries = 8, delay = 300) {
           try {
             console.log("injecting new script");
             hasInjected = true;
+            // FIXME: on firefox, this is broken if the page was just reloaded
             await chrome.scripting.executeScript({
               target: { tabId: tab.id },
               files: ['content.js']
