@@ -397,6 +397,7 @@ export function addRefreshButton() {
       });
     } catch (err) {
       showStatus(err);
+      // FIXME: implement or import this function
       notifyBackground("REFRESH_ICON", { tab });
     }
   });
