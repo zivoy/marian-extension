@@ -79,16 +79,18 @@ export async function tryGetDetails(tab, retries = 8, delay = 300) {
         }
 
         if (!hasInjected) {
-          console.log("injecting new script");
-          hasInjected = true;
-          await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            files: ['content.js']
-          }).catch(() => { });
-          const error = chrome.runtime.lastError;
-
-          if (error) {
-            console.error("Script injection failed: ", error.message);
+          try {
+            console.log("injecting new script");
+            hasInjected = true;
+            await chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              files: ['content.js']
+            });
+          } catch (e) {
+            console.error("error injecting script", e);
+            if (chrome.runtime.lastError) {
+              console.error("chrome.runtime.lastError:", chrome.runtime.lastError.message);
+            }
             showStatus("Cannot access this page.");
             return;
           }
