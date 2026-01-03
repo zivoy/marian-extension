@@ -64,7 +64,7 @@ export async function tryGetDetails(tab, retries = 8, delay = 300) {
 
         if (wantsReload && !hasReloaded) {
           hasReloaded = true;
-          chrome.tabs.reload(tab.id, { bypassCache: true });
+          chrome.tabs.reload(tab.id, { bypassCache: false });
           showStatus("Tab reloaded, fetching details...");
 
           const onUpdated = (updatedTabId, info) => {
