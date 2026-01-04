@@ -42,11 +42,16 @@ jobs:
           echo "REPO_NAME=$(basename ${{ github.repository }})" >> $GITHUB_ENV
           echo "RELEASE_TAG=${{ github.event.inputs.release_tag }}" >> $GITHUB_ENV
 
+      - name: Set environment variables (push)
+        if: github.event_name == 'push'
+        run: |
+          echo "REPO_NAME=$(basename ${{ github.repository }})" >> $GITHUB_ENV
+          echo "RELEASE_TAG=dev-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
       - name: Build extension
         run: npm run build
 
-      - name: Zip and rename browser builds (only for release)
-        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+      - name: Zip and rename browser builds
         run: |
           cd distro
           (cd chrome && zip -r ../chrome.zip .)
@@ -55,6 +60,13 @@ jobs:
           mkdir -p packaged
           mv distro/chrome.zip "packaged/${REPO_NAME}-chrome.${RELEASE_TAG}.zip"
           mv distro/firefox.zip "packaged/${REPO_NAME}-firefox.${RELEASE_TAG}.zip"
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: marian-extension-builds
+          path: packaged/*.zip
+          retention-days: 90
 
       - name: Upload zips to release
         if: github.event_name == 'release'

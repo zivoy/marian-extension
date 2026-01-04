@@ -128,3 +128,14 @@ You can also download prebuilt versions from the [latest GitHub Release](https:/
 
 1. Download and extract the `.zip` file for your browser.
 2. Follow the same steps as **Option 1**, but select the extracted folder instead of `distro/`.
+
+#### Option 3: From GitHub Actions (Latest Development Builds)
+
+To test the absolute latest changes before they are released:
+
+1. Go to the [Actions tab](https://github.com/jacobtender/marian-extension/actions) in the repository.
+2. Click on the latest workflow run (usually named "Build and Release").
+3. Scroll down to the **Artifacts** section.
+4. Download the `marian-extension-builds` artifact.
+5. Extract the zip file to find the Chrome and Firefox builds.
+6. Follow **Option 1**, selecting the extracted folder.
