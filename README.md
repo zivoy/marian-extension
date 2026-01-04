@@ -137,5 +137,8 @@ To test the absolute latest changes before they are released:
 2. Click on the latest workflow run (usually named "Build and Release").
 3. Scroll down to the **Artifacts** section.
 4. Download the artifact starting with `marian-extension-chrome.(VERSION)` or `marian-extension-firefox.(VERSION)`.
-5. Extract the zip file.
-6. Follow **Option 1**, selecting the extracted folder.
+5. To use either: 
+ - Extract the zip file to a folder and follow **Option 1**, selecting the extracted folder.
+ - Use directly
+   - **On Chrome:** Enable Developer mode and drag the zip file onto the window (if you just enabled it refresh first)
+   - **On Firefox:** Go to Debugging Add-ons ([about:debugging#/runtime/this-firefox](about:debugging#/runtime/this-firefox)) and click Load Temporary Add-on and select the zip file
