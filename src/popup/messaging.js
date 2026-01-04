@@ -82,15 +82,45 @@ export async function tryGetDetails(tab, retries = 8, delay = 300) {
           try {
             console.log("injecting new script");
             hasInjected = true;
-            // FIXME: on firefox, this is broken if the page was just reloaded
             await chrome.scripting.executeScript({
               target: { tabId: tab.id },
               files: ['content.js']
             });
           } catch (e) {
-            console.error("error injecting script", e);
-            if (chrome.runtime.lastError) {
-              console.error("chrome.runtime.lastError:", chrome.runtime.lastError.message);
+            const error = chrome.runtime.lastError || e;
+            const errorMessage = error.message ?? error.toString();
+
+            console.error("error injecting script", error);
+            if (errorMessage.includes("Missing host permission")) {
+              console.log("Firefox permission error detected. Checking permissions...");
+              hasInjected = false;
+
+              try {
+                const hasPerms = await new Promise(r => chrome.permissions.contains({ origins: [tab.url] }, r));
+                console.log(`Permissions for ${tab.url}: ${hasPerms}`);
+
+                if (!hasPerms) {
+                  // Create a button for obtaining permission, the code has to run in ui, will restart the call afterwards
+                  const url = new URL(tab.url);
+                  const origin = `${url.protocol}//${url.host}/*`;
+                  showStatus(`Permissions lost after reload.<br/>
+<button 
+  id="permGrant" 
+  data-origin=${origin}
+  data-tab-id=${tab.id}
+>Grant Permissions</button>`);
+
+                  return;
+                }
+              } catch (err) {
+                console.error("Error checking permissions/tab:", err);
+              }
+
+              // If we think we have permissions (or check failed), retry with backoff
+              if (remaining > 0) {
+                setTimeout(() => attempt(remaining - 1), 1000);
+              }
+              return;
             }
             showStatus("Cannot access this page.");
             return;
