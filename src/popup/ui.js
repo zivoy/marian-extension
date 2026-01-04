@@ -1,6 +1,6 @@
 import { tryGetDetails } from "./messaging.js";
 import { isAllowedUrl, normalizeUrl } from "../extractors";
-import { setLastFetchedUrl, getLastFetchedUrl, getCurrentTab } from "./utils.js";
+import { setLastFetchedUrl, getLastFetchedUrl, getCurrentTab, notifyBackground } from "./utils.js";
 
 // DOM refs (looked up when functions are called)
 function statusBox() { return document.getElementById('status'); }
@@ -405,8 +405,7 @@ async function getDetailsForTab(tab) {
   } catch (err) {
     console.error("fetch details fail", err);
     showStatus("An issue occurred when fetching data");
-    // FIXME: implement or import this function
-    // notifyBackground("REFRESH_ICON", { tab });
+    notifyBackground("REFRESH_ICON", { tab });
   }
 }
 
