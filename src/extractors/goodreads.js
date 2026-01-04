@@ -10,7 +10,8 @@ class goodreadsScraper extends Extractor {
 
   async getDetails() {
     const imgEl = document.querySelector('.BookCover__image img');
-    const coverData = getCoverData(imgEl?.src);
+    const imgUrl = imgEl?.src;
+    const coverData = imgUrl.includes("no-cover.png") ? null : getCoverData(imgUrl);
 
     const bookDetails = getGoodreadsDetails();
 
