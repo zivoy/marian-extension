@@ -154,8 +154,6 @@ export function renderDetails(details) {
   img.style.maxWidth = '100px';
   img.style.minHeight = '100px';
   img.loading = 'lazy'; // lazy load for performance
-  img.style.userSelect = "none";
-  img.draggable = false;
 
   if (details.img) {
     img.src = details.img;
@@ -174,6 +172,8 @@ export function renderDetails(details) {
   } else {
     img.src = "icons/third-party/hardcover.svg";
     img.style.cursor = "auto";
+    img.style.userSelect = "none";
+    img.draggable = false;
   }
 
   const imgWrapper = document.createElement('div');
