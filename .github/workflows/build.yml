@@ -64,15 +64,15 @@ jobs:
       - name: Upload Chrome Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: marian-extension-chrome
-          path: packaged/*-chrome*.zip
+          name: ${{ env.REPO_NAME }}-chrome.${{ env.RELEASE_TAG }}
+          path: distro/chrome
           retention-days: 90
 
       - name: Upload Firefox Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: marian-extension-firefox
-          path: packaged/*-firefox*.zip
+          name: ${{ env.REPO_NAME }}-firefox.${{ env.RELEASE_TAG }}
+          path: distro/firefox
           retention-days: 90
 
       - name: Upload zips to release

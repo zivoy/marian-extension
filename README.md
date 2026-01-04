@@ -136,6 +136,6 @@ To test the absolute latest changes before they are released:
 1. Go to the [Actions tab](https://github.com/jacobtender/marian-extension/actions) in the repository.
 2. Click on the latest workflow run (usually named "Build and Release").
 3. Scroll down to the **Artifacts** section.
-4. Download the `marian-extension-chrome` or `marian-extension-firefox` artifact.
+4. Download the artifact starting with `marian-extension-chrome.(VERSION)` or `marian-extension-firefox.(VERSION)`.
 5. Extract the zip file.
 6. Follow **Option 1**, selecting the extracted folder.
