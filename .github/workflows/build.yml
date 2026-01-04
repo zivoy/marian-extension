@@ -51,7 +51,8 @@ jobs:
       - name: Build extension
         run: npm run build
 
-      - name: Zip and rename browser builds
+      - name: Zip and rename browser builds (only for release)
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         run: |
           cd distro
           (cd chrome && zip -r ../chrome.zip .)
