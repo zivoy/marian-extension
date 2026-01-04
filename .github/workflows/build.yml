@@ -61,11 +61,18 @@ jobs:
           mv distro/chrome.zip "packaged/${REPO_NAME}-chrome.${RELEASE_TAG}.zip"
           mv distro/firefox.zip "packaged/${REPO_NAME}-firefox.${RELEASE_TAG}.zip"
 
-      - name: Upload Build Artifacts
+      - name: Upload Chrome Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: marian-extension-builds
-          path: packaged/*.zip
+          name: marian-extension-chrome
+          path: packaged/*-chrome*.zip
+          retention-days: 90
+
+      - name: Upload Firefox Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: marian-extension-firefox
+          path: packaged/*-firefox*.zip
           retention-days: 90
 
       - name: Upload zips to release
