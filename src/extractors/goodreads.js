@@ -73,7 +73,7 @@ function getBookDetails(apolloData, bookDetails) {
   if (bookDataKey == undefined) throw new Error("failed to find book details id");
 
   const bookData = apolloData[bookDataKey];
-  console.log("marian, details", bookData);
+  // console.log("marian, details", bookData);
 
   // book details
   const details = bookData?.details;
