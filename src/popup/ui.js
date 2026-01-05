@@ -295,6 +295,11 @@ function normalizeDetails(details, settings, inplace = true) {
     }
   }
 
+  // remove edition from end of Edition name (Kindle Edition -> Kindle, Audible Edition -> Audible)
+  if (details["Edition Format"] && details["Edition Format"].toLowerCase().endsWith("edition")) {
+    const edition = details["Edition Format"];
+    details["Edition Format"] = edition.slice(0, edition.length - "edition".length).trim();
+  }
 
   // apply settings
 
