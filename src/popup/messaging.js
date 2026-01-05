@@ -92,7 +92,7 @@ export async function tryGetDetails(tab, retries = 8, delay = 300) {
 
             console.error("error injecting script", error);
             if (errorMessage.includes("Missing host permission")) {
-              console.log("Firefox permission error detected. Checking permissions...");
+              console.log("Missing permission error detected. Checking permissions...");
               hasInjected = false;
 
               try {
