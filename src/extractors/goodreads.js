@@ -30,6 +30,8 @@ class goodreadsScraper extends Extractor {
 
     bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails["Edition Format"]);
 
+    if (bookDetails["Edition Format"].toLowerCase() === "kindle edition") bookDetails["Edition Format"] = "Kindle";
+
     // logMarian("bookDetails", bookDetails);
 
     return collectObject([
