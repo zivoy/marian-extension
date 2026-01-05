@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { getCoverData, addContributor, cleanText, normalizeReadingFormat, collectObject, getFormattedText } from '../shared/utils.js';
+import { logMarian, getCoverData, addContributor, cleanText, normalizeReadingFormat, collectObject, getFormattedText } from '../shared/utils.js';
 
 class goodreadsScraper extends Extractor {
   get _name() { return "GoodReads Extractor"; }
@@ -13,36 +13,30 @@ class goodreadsScraper extends Extractor {
     const imgUrl = imgEl?.src;
     const coverData = imgUrl.includes("no-cover.png") ? null : getCoverData(imgUrl);
 
-    const bookDetails = getGoodreadsDetails();
+    const bookDetails = {};
+
+    const sourceId = getGoodreadsBookIdFromUrl(window.location.href);
+    if (!sourceId) throw new Error("Missing goodreads id");
+    bookDetails["Mappings"] = { "Goodreads": [sourceId] };
+
+    bookDetails["Title"] = cleanText(document.querySelector('[data-testid="bookTitle"]')?.innerText);
+
+    const bookData = getBookDataObject();
+    // logMarian("data: ", bookData);
+    getBookDetails(bookData, bookDetails);
+
+    const descriptionEl = document.querySelector('[data-testid="contentContainer"] .Formatted');
+    bookDetails["Description"] = descriptionEl ? getFormattedText(descriptionEl) : null;
+
+    bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails["Edition Format"]);
+
+    // logMarian("bookDetails", bookDetails);
 
     return collectObject([
       coverData,
       bookDetails,
     ]);
   }
-}
-
-async function getGoodreadsDetails() {
-  const bookDetails = {};
-
-  const sourceId = getGoodreadsBookIdFromUrl(window.location.href);
-  if (!sourceId) throw new Error("Missing goodreads id");
-  bookDetails["Mappings"] = { "Goodreads": [sourceId] };
-
-  bookDetails["Title"] = cleanText(document.querySelector('[data-testid="bookTitle"]')?.innerText);
-
-  const bookData = getBookDataObject();
-  // console.log("marian, data: ", bookData);
-  getBookDetails(bookData, bookDetails);
-
-  const descriptionEl = document.querySelector('[data-testid="contentContainer"] .Formatted');
-  bookDetails["Description"] = descriptionEl ? getFormattedText(descriptionEl) : null;
-
-  bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails["Edition Format"]);
-
-  // logMarian("bookDetails", bookDetails);
-
-  return bookDetails;
 }
 
 /**
@@ -73,7 +67,7 @@ function getBookDetails(apolloData, bookDetails) {
   if (bookDataKey == undefined) throw new Error("failed to find book details id");
 
   const bookData = apolloData[bookDataKey];
-  // console.log("marian, details", bookData);
+  // logMarian("details", bookData);
 
   // book details
   const details = bookData?.details;
