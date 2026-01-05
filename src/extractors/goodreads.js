@@ -106,7 +106,7 @@ function getBookDetails(apolloData, bookDetails) {
   [bookData.primaryContributorEdge, ...bookData.secondaryContributorEdges].forEach(contributor => {
     try {
       const { name, role } = getContributor(apolloData, bookData.primaryContributorEdge);
-      addContributor(contributors, name, role);
+      addContributor(contributors, cleanText(name), role);
     } catch (e) {
       console.error("Marian: Error fetching contributor", e, contributor);
     }
