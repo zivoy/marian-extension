@@ -3,6 +3,7 @@ import { logMarian, delay, getCoverData, addContributor, cleanText, normalizeRea
 
 class goodreadsScraper extends Extractor {
   get _name() { return "GoodReads Extractor"; }
+  needsReload = false;
   _sitePatterns = [
     /https:\/\/www\.goodreads\.[a-z.]+\/(?:\w+\/)?book\/show\/\d+(-[a-zA-Z0-9-]+)?/,
   ];
