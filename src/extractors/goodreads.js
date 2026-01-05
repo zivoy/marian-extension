@@ -1,5 +1,5 @@
 import { Extractor } from './AbstractExtractor.js';
-import { delay, getCoverData, addContributor, cleanText, normalizeReadingFormat, collectObject, getFormattedText } from '../shared/utils.js';
+import { getCoverData, addContributor, cleanText, normalizeReadingFormat, collectObject, getFormattedText } from '../shared/utils.js';
 
 class goodreadsScraper extends Extractor {
   get _name() { return "GoodReads Extractor"; }
