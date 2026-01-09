@@ -11,6 +11,9 @@ export function getLastFetchedUrl() {
   return __lastFetchedNorm;
 }
 
+/**
+ * Order of sections to show in UI
+ */
 export const orderedKeys = [
   'ISBN-10',
   'ISBN-13',
@@ -28,6 +31,9 @@ export const orderedKeys = [
   'Language',
   'Country'
 ];
+/**
+ * Keys for all the elements that are used by hardcover
+ */
 export const hardcoverKeys = [ // for filtering
   "Title",
   "Description",
@@ -38,6 +44,16 @@ export const hardcoverKeys = [ // for filtering
   ...orderedKeys,
 ]
 
+/**
+ * Takes in a details object and settings to apply to it
+ * Applies normalization to the object
+ *
+ * @param {Record<string,any>} details 
+ * @param {any} settings 
+ * @param {boolean} [inplace=true] edit the object in place or return a copy
+ *
+ * @returns {Record<string, any>}
+ */
 export function normalizeDetails(details, settings, inplace = true) {
   if (!inplace) {
     details = { ...details }; // shallow clone
@@ -183,6 +199,14 @@ export function normalizeDetails(details, settings, inplace = true) {
   return details;
 }
 
+/**
+ * Formats a string as a date given a specified format 
+ *
+ * @param {Date|string|number} dateStr 
+ * @param {"local"|"ymd"|"dmy"|"mdy"} [format="local"] 
+ *
+ * @returns {string}
+ */
 export function formatDate(dateStr, format = "local") {
   const date = new Date(dateStr);
 
@@ -208,6 +232,10 @@ export function formatDate(dateStr, format = "local") {
   }
 }
 
+/**
+ * Get the local format of dates on the system, for example
+ * m/d/yyyy
+ */
 export function getLocalDateFormat() {
   const date = new Date(2025, 3, 8); // 2025-04-08
   const formatted = new Intl.DateTimeFormat(navigator.language || "en-US").format(date);
