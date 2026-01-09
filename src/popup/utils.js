@@ -146,6 +146,11 @@ export function normalizeDetails(details, settings, inplace = true) {
     details["Edition Format"] = edition.slice(0, edition.length - "edition".length).trim();
   }
 
+  // Remove independently published publisher
+  if (details["Publisher"] && details["Publisher"].toLowerCase() === "independently published") {
+    delete details["Publisher"];
+  }
+
   // apply settings
 
   // format date
