@@ -1,6 +1,6 @@
 import { tryGetDetails } from "./messaging.js";
 import { isAllowedUrl, normalizeUrl } from "../extractors";
-import { setLastFetchedUrl, getLastFetchedUrl, getCurrentTab, SetupSettings, getISBN10CheckDigit, getISBN13CheckDigit } from "./utils.js";
+import { setLastFetchedUrl, getLastFetchedUrl, getCurrentTab, SetupSettings, getLocalDateFormat, orderedKeys, normalizeDetails } from "./utils.js";
 
 const settingsManager = SetupSettings(document.querySelector("#settings"), {
   hyphenateIsbn: {
@@ -13,33 +13,6 @@ const settingsManager = SetupSettings(document.querySelector("#settings"), {
   filterNonHardcover: { type: "toggle", label: "Filter out non hardcover fields", default: false },
   keepFields: { type: "toggle", label: "Always display non present hardcover fields", default: false },
 });
-
-const orderedKeys = [
-  'ISBN-10',
-  'ISBN-13',
-  'ASIN',
-  'Mappings',
-  'Contributors',
-  'Publisher',
-  'Reading Format',
-  'Listening Length',
-  'Listening Length Seconds',
-  'Pages',
-  'Edition Format',
-  'Edition Information',
-  'Publication date',
-  'Language',
-  'Country'
-];
-const hardcoverKeys = [ // for filtering
-  "Title",
-  "Description",
-  "Series",
-  "Series Place",
-  "img",
-  "imgScore",
-  ...orderedKeys,
-]
 
 // DOM refs (looked up when functions are called)
 function statusBox() { return document.getElementById('status'); }
@@ -55,48 +28,6 @@ function copyToClipboard(text, labelEl) {
     labelEl.appendChild(feedback);
     setTimeout(() => feedback.remove(), 2000);
   });
-}
-
-
-function formatDate(dateStr, format = "local") {
-  const date = new Date(dateStr);
-
-  if (isNaN(date)) {
-    return dateStr;
-  }
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-
-  switch (format) {
-    case 'ymd':
-      return `${year}-${month}-${day}`;
-    case 'dmy':
-      return `${day}/${month}/${year}`;
-    case 'mdy':
-      return `${month}/${day}/${year}`;
-    case 'local': // fall through
-    default:
-      // navigator.language should always be set, but adding a fallback just in case
-      return new Intl.DateTimeFormat(navigator.language || "en-US").format(date);
-  }
-}
-
-function getLocalDateFormat() {
-  const date = new Date(2025, 3, 8); // 2025-04-08
-  const formatted = new Intl.DateTimeFormat(navigator.language || "en-US").format(date);
-
-  // Replace the actual values with format placeholders
-  let pattern = formatted
-    .replace('2025', 'yyyy')
-    .replace('25', 'yy')
-    .replace('04', 'mm')
-    .replace('4', 'm')
-    .replace('08', 'dd')
-    .replace('8', 'd');
-
-  return pattern;
 }
 
 function downloadImage(url, bookId) {
@@ -207,151 +138,6 @@ function renderRow(container, key, value) {
   }
 
   container.appendChild(div);
-}
-
-function normalizeDetails(details, settings, inplace = true) {
-  if (!inplace) {
-    details = { ...details }; // shallow clone
-  }
-
-  // normalize
-
-  // Validate the ISBNs validity
-  if (details["ISBN-10"]) {
-    const isbn = details["ISBN-10"];
-    const checksum = getISBN10CheckDigit(isbn);
-    details["ISBN-10-valid"] = checksum == isbn[isbn.length - 1]
-  }
-  if (details["ISBN-13"]) {
-    const isbn = details["ISBN-13"];
-    const checksum = getISBN13CheckDigit(isbn);
-    details["ISBN-13-valid"] = checksum == isbn[isbn.length - 1]
-  }
-
-  // Regenerate missing ISBN using other one
-  if (!details["ISBN-13"] && !!details["ISBN-10"] && details["ISBN-10-valid"]) {
-    // make isbn13 from isbn10
-    let isbn = details["ISBN-10"].replaceAll("-", "");
-    if (isbn.length == 10) {
-      isbn = "978" + isbn; // add prefix
-      const checksum = getISBN13CheckDigit(isbn);
-      if (checksum != null) {
-        isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
-        isbn = isbn + checksum; // add new check digit
-        details["ISBN-13"] = isbn;
-      }
-    }
-  }
-  if (!!details["ISBN-13"] && !details["ISBN-10"] && details["ISBN-13"].startsWith("978") && details["ISBN-13-valid"]) {
-    // make isbn10 from isbn13
-    let isbn = details["ISBN-13"].replaceAll("-", "");
-    if (isbn.length == 13) {
-      isbn = isbn.slice(3); // remove prefix
-      const checksum = getISBN10CheckDigit(isbn);
-      if (checksum != null) {
-        isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
-        isbn = isbn + checksum; // add new check digit
-        details["ISBN-10"] = isbn;
-      }
-    }
-  }
-
-  // Set ASIN for physical books
-  if (details["Reading Format"] === "Physical Book" && !details["ASIN"] && !!details["ISBN-10"] && details["ISBN-10-valid"]) {
-    // for physical books the ASIN is the isbn-10
-    details["ASIN"] = details["ISBN-10"];
-  }
-
-  // Insert country (or language) from ISBN if not present
-  // See pr #70
-
-  // Add listening length in seconds
-  if (details["Listening Length"] && details["Listening Length"].length >= 1) {
-    if (!Array.isArray(details["Listening Length"])) {
-      details["Listening Length"] = [details["Listening Length"]];
-    }
-
-    let valid = true;
-    let lengthSeconds = 0;
-    details["Listening Length"].forEach((item) => {
-      if (!valid) return; // don't bother going over the rest
-      const timeLower = item.toLowerCase();
-      const timeAmount = parseInt(item); // ignores text after number
-
-      if (timeLower.includes("hours")) {
-        lengthSeconds += timeAmount * 60 * 60;
-      } else if (timeLower.includes("minutes")) {
-        lengthSeconds += timeAmount * 60;
-      } else if (timeLower.includes("seconds")) {
-        lengthSeconds += timeAmount;
-      } else {
-        valid = false; // encountered unknown unit
-        return;
-      }
-    });
-
-    if (valid) {
-      details["Listening Length Seconds"] = lengthSeconds;
-    }
-  }
-
-  // remove edition from end of Edition name (Kindle Edition -> Kindle, Audible Edition -> Audible)
-  if (details["Edition Format"] && details["Edition Format"].toLowerCase().endsWith("edition")) {
-    const edition = details["Edition Format"];
-    details["Edition Format"] = edition.slice(0, edition.length - "edition".length).trim();
-  }
-
-  // apply settings
-
-  // format date
-  if (details["Publication date"]) {
-    details["Publication date"] = formatDate(details["Publication date"], settings.dateFormat);
-  }
-
-  // Correct hyphenation on ISBNs according to settings
-  if (settings.hyphenateIsbn === "no") {
-    if (details["ISBN-10"]) details["ISBN-10"] = details["ISBN-10"].replaceAll("-", "");
-    if (details["ISBN-13"]) details["ISBN-13"] = details["ISBN-13"].replaceAll("-", "");
-  } else if (settings.hyphenateIsbn === "yes") {
-    throw "Not implemented";
-  }
-
-  // filter out non hardcover
-  if (settings.filterNonHardcover) {
-    Object.keys(details).forEach((key) => {
-      if (!hardcoverKeys.includes(key)) {
-        delete details[key];
-      }
-    });
-  }
-
-  // add or remove fields even if they are not set
-  if (!settings.keepFields) {
-    Object.keys(details).forEach((key) => {
-      // ignore non hardcover fields
-      if (!hardcoverKeys.includes(key)) return;
-
-      if (details[key] == undefined) {
-        delete details[key];
-      }
-    });
-  } else {
-    // fill in non present fields
-    hardcoverKeys.forEach((key) => {
-      if (details["Reading Format"] != "Audiobook") {
-        // book don't add audiobook fields
-        if (key === "Listening Length") return;
-        if (key === "Listening Length Seconds") return;
-      } else {
-        // audiobook, don't add book fields 
-        if (key === "Pages") return;
-      }
-
-      details[key] ??= null;
-    });
-  }
-
-  return details;
 }
 
 export async function renderDetails(details) {
