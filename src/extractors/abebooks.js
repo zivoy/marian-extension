@@ -58,7 +58,11 @@ function getMetadata() {
   }
 
   // author
-  // TODO:
+  let author = document.querySelector(`#book-author, #main-feature h2`)?.textContent;
+  if (author) {
+    const name = normalizeAuthorName(cleanText(author));
+    details["Contributors"] = addContributor([], name, "Author");
+  }
 
   // details
   let metadata = document.querySelector(`dl.listing-metadata`);
@@ -114,6 +118,7 @@ function getCover() {
     document.querySelector(`#feature-image img`)?.src,
     document.querySelector(`img#isbn-image`)?.src,
     document.querySelector(`img#img001`)?.src,
+    document.querySelector(`#viewLarger a`)?.href,
   ]);
 }
 
@@ -125,6 +130,12 @@ function getSeries() {
   if (match == undefined) return {};
 
   return { "Series": match.groups.series, "Series Place": match.groups.position };
+}
+
+function normalizeAuthorName(name) {
+  const commaIdx = name.indexOf(",");
+  if (commaIdx == -1) return name;
+  return `${name.slice(commaIdx + 1,)} ${name.slice(0, commaIdx)}`;
 }
 
 export { abeBooksScraper };
