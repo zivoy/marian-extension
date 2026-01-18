@@ -13,6 +13,7 @@ Book pages on these sites are currently supported by Marian. To request support 
 
 - Amazon
 - Audible
+- AbeBooks (ZVAB, IberLibro)
 - Goodreads
 - Google Books
 - Open Library
