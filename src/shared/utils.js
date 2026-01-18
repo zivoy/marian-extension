@@ -274,6 +274,33 @@ export function addContributor(contributors, name, roles) {
 }
 
 /**
+ * @typedef {{[name: string]: string[]}} mappings
+ */
+
+/**
+ * adds a mapping with one or more IDs 
+ *
+ * @param {mappings} mappings
+ * @param {string} name
+ * @param {string | string[]}
+ *
+ * @returns {mappings}
+ */
+export function addMapping(mappings, name, ids) {
+  if (!Array.isArray(ids)) {
+    ids = [ids];
+  }
+
+  let map = mappings[name] ?? [];
+  for (const id of ids) {
+    if (!map.includes(id)) map.push(id);
+  }
+  mappings[name] = map;
+  return mappings;
+}
+
+
+/**
  * Normalize arbitrary text by stripping invisible characters and squeezing whitespace.
  *
  * @param {string | null | undefined} text Raw text content to sanitize.

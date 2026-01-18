@@ -164,6 +164,12 @@ addContributor(contributors, "B", ["Editor", "Illustrator"]);
 addContributor(contributors, "A", "Narrator");
 ```
 
+### addMapping
+
+Similar to [addContributor](#addcontributor).
+Takes in a name of a mapping as well as one or more IDs.
+If a mapping is already present the IDs are appended to it if they are not present.
+
 ### normalizeReadingFormat
 
 Takes in a string and returns one of `Audiobook`, `Ebook`, `Physical Book`

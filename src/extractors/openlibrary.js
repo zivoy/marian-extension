@@ -1,5 +1,5 @@
 import { Extractor } from "./AbstractExtractor.js"
-import { addContributor, collectObject, getCoverData, normalizeDescription, normalizeReadingFormat, remapKeys } from "../shared/utils.js";
+import { addContributor, collectObject, getCoverData, normalizeDescription, normalizeReadingFormat, remapKeys, addMapping as addMappingFunc } from "../shared/utils.js";
 
 // references:
 //  https://openlibrary.org/dev/docs/api/books
@@ -201,10 +201,7 @@ async function getDetails(idUrl) {
 }
 
 function addMapping(mappings, name, idUrl) {
-  let map = mappings[name] ?? [];
-  map.push(idOnly ? idUrl.match(/OL\d+\w/)[0] : idUrl);
-  mappings[name] = map;
-  return mappings;
+  return addMappingFunc(mappings, name, idOnly ? idUrl.match(/OL\d+\w/)[0] : idUrl);
 }
 
 function getFirstKey(obj) {
