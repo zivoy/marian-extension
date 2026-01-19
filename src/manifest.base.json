@@ -113,6 +113,7 @@
 		"https://www.abebooks.de/",
 		"https://www.abebooks.co.uk/",
 
+		"https://www.librarything.com/work/*",
 		"https://bookshop.org/p/books/*",
 		"https://www.isfdb.org/cgi-bin/*",
 		"https://www.romance.io/books/*",

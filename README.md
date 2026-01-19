@@ -25,6 +25,7 @@ Book pages on these sites are currently supported by Marian. To request support 
 - Libby
 - Libro.fm
 - The Internet Speculative Fiction Database (ISFDB)
+- LibraryThing
 - ISBNdb
 - ISBN Search 
 - ISBN.de
