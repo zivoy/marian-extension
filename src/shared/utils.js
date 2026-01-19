@@ -383,4 +383,27 @@ export async function collectObject(items) {
   return obj;
 }
 
+/**
+  * preforms a http request and returns a dom
+  *
+  * @param {string} url 
+  * @returns {Promise<DOMParser|undefined>}
+  */
+export async function fetchHTML(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const html = await response.text();
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    return doc;
+  } catch (error) {
+    console.error('Error fetching HTML:', error);
+  }
+}
+
 export { StorageBackedSet } from "./StorageSet.js";

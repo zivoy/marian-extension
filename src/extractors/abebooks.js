@@ -1,11 +1,12 @@
 import { Extractor } from "./AbstractExtractor.js"
 import {
-  addMapping,
   addContributor,
+  addMapping,
   cleanText,
   collectObject,
-  getFormattedText,
+  fetchHTML,
   getCoverData,
+  getFormattedText,
   normalizeReadingFormat,
   remapKeys,
 } from '../shared/utils.js';
@@ -183,23 +184,6 @@ function normalizeAuthorName(name) {
   const commaIdx = name.indexOf(",");
   if (commaIdx == -1) return name;
   return `${name.slice(commaIdx + 1,)} ${name.slice(0, commaIdx)}`;
-}
-
-async function fetchHTML(url) {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const html = await response.text();
-
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-
-    return doc;
-  } catch (error) {
-    console.error('Error fetching HTML:', error);
-  }
 }
 
 export { abeBooksScraper };

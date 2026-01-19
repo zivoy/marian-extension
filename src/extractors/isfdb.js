@@ -1,4 +1,4 @@
-import { addContributor, cleanText, collectObject, getCoverData, getFormattedText, logMarian, normalizeReadingFormat, remapKeys } from "../shared/utils.js";
+import { addContributor, cleanText, collectObject, fetchHTML, getCoverData, getFormattedText, logMarian, normalizeReadingFormat, remapKeys } from "../shared/utils.js";
 import { Extractor } from "./AbstractExtractor.js"
 
 const editionRegex = /https:\/\/(?:www\.)?isfdb\.org\/cgi-bin\/pl\.cgi\?(\d+)/;
@@ -268,23 +268,6 @@ async function scrapeEdition() {
   delete details["Notes"];
 
   return details;
-}
-
-async function fetchHTML(url) {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const html = await response.text();
-
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-
-    return doc;
-  } catch (error) {
-    console.error('Error fetching HTML:', error);
-  }
 }
 
 export { isfdbScraper };

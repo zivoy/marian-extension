@@ -262,6 +262,11 @@ Example:
 const title = queryDeep('h1', ['product-header']);
 ```
 
+### fetchHTML
+
+Gets a DOM from a html request.
+If this is used in a scraper script, then it will only work for domains that the current page has CORS access to.
+
 ### runtime
 
 Exports the `browser.runtime` (Firefox) or `chrome.runtime` (Chrome) API,
