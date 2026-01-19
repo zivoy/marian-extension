@@ -38,6 +38,8 @@ const remapings = {
   "Seller catalogs": undefined,
   "Condition": undefined,
   "Dust Jacket Condition": undefined,
+  "Edition number": undefined,
+  "Weight": undefined,
 
   "ISBN 10": "ISBN-10",
   "ISBN 13": "ISBN-13",
