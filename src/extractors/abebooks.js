@@ -45,6 +45,41 @@ const remapings = {
   "Number of pages": "Pages",
   "Edition": "Edition Information",
   "Publication Date": "Publication date",
+
+  "Numero di pagine": "Pages",
+  "Redattore": undefined, // editor 
+  "Persona responsabile": undefined,
+  "Rilegatura": "Edition Format",
+  "Lingua": "Language",
+  "Data di pubblicazione": "Publication date",
+  "Editore": "Publisher",
+  "Contatto del produttore": undefined,
+
+  "Personne responsable": undefined,
+  "Coordonnées du fabricant": undefined,
+  // "Éditeur": undefined, // editor
+  "Nombre de pages": "Pages",
+  "Reliure": "Edition Format",
+  "Langue": "Language",
+  "Date d'édition": "Publication date",
+  // "Éditeur": "Publisher", // publisher
+
+  "Verlag": "Publisher",
+  "Erscheinungsdatum": "Publication date",
+  "Sprache": "Language",
+  "Einband": "Edition Format",
+  "Anzahl der Seiten": "Pages",
+  "Herausgeber": undefined, // editor
+  "Kontakt zum Hersteller": undefined,
+  "Verantwortliche Person": undefined,
+
+  "Persona responsable": undefined,
+  "Contacto del fabricante": undefined,
+  "Número de páginas": "Pages",
+  "Encuadernación": "Edition Format",
+  "Idioma": "Language",
+  "Año de publicación": "Publication date",
+  "Editorial": "Publisher"
 }
 const nameRemap = remapKeys.bind(undefined, remapings);
 
@@ -82,8 +117,10 @@ function getMetadata() {
     if (title.toLowerCase() == "editor") {
       title = "Contributors";
       value = addContributor(details["Contributors"] ?? [], value, "Editor");
-    } else if (title.toLowerCase() == "publication date" && value.match(/^\d+$/)) {
-      value = new Date(value, 0);
+    }
+
+    if (title in details) {
+      title = title + "-2";
     }
 
     details[title] = value;
@@ -91,6 +128,11 @@ function getMetadata() {
 
   details = nameRemap(details);
   details["Reading Format"] = normalizeReadingFormat(details["Edition Format"]);
+
+  if ("Publication date" in details && details["Publication date"].match(/^\d+$/)) {
+    details["Publication date"] = new Date(details["Publication date"], 0);
+  }
+
 
   // title
   if (details["Title"] == undefined) {
