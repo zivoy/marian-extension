@@ -93,7 +93,7 @@ const nameRemap = remapKeys.bind(undefined, {
   "Disambiguation notice": undefined,
   "Related movies": undefined,
 
-  "Alternate titles*": "Alt Title",
+  "Alternate titles": "Alt Title",
 });
 
 function getFacts() {
@@ -146,6 +146,7 @@ function getCommonKnowledge() {
 
     let title = cleanText(titleElm.textContent);
     let value = cleanText(valueElm.textContent);
+    title = title.replace(/\*$/, "");
     title = remappings(title)
 
     if (title === "Publication date" && value.match(/^\d+$/)) {
