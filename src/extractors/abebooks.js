@@ -27,6 +27,7 @@ class abeBooksScraper extends Extractor {
       getSeries(),
       getMetadata(),
       getCover(),
+      getDescription(),
     ]);
   }
 }
@@ -47,15 +48,17 @@ const remapings = {
 }
 const nameRemap = remapKeys.bind(undefined, remapings);
 
+async function getDescription() {
+  const doc = await fetchHTML(document.location.href);
+
+  const synopsis = doc.querySelector(`.synopsis-body`);
+  if (synopsis == undefined) return {};
+
+  return { "Description": getFormattedText(synopsis) };
+}
+
 function getMetadata() {
   let details = {};
-
-  // description
-  const synopsis = document.querySelector(`div[aria-labelledby="synopsis-heading"]`);
-  if (synopsis != undefined) {
-    // TODO: find full
-    details["Description"] = getFormattedText(synopsis);
-  }
 
   // author
   let author = document.querySelector(`#book-author, #main-feature h2`)?.textContent;
@@ -113,7 +116,7 @@ function getMetadata() {
   return details;
 }
 
-function getCover() {
+async function getCover() {
   return getCoverData([
     document.querySelector(`#feature-image img`)?.src,
     document.querySelector(`img#isbn-image`)?.src,
@@ -136,6 +139,23 @@ function normalizeAuthorName(name) {
   const commaIdx = name.indexOf(",");
   if (commaIdx == -1) return name;
   return `${name.slice(commaIdx + 1,)} ${name.slice(0, commaIdx)}`;
+}
+
+async function fetchHTML(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const html = await response.text();
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    return doc;
+  } catch (error) {
+    console.error('Error fetching HTML:', error);
+  }
 }
 
 export { abeBooksScraper };
