@@ -67,7 +67,7 @@ function extractMappings(claims, mappings) {
     "wdt:P227": "GND",
     "wdt:P268": "BnF",
     "wdt:P950": "BNE",
-    "wdt:P5331": "OCLC",
+    "wdt:P5331": "OCLC/WorldCat",
     "wdt:P1274": "ISFDB",
   };
 
@@ -161,6 +161,38 @@ async function getInventaireDetails(id) {
         }
         return {};
       }).catch(() => ({})));
+    }
+
+    // ASIN - Amazon Standard Identification Number
+    const asin = entity.claims?.["wdt:P5749"]?.[0];
+    if (asin) {
+      details["ASIN"] = asin;
+    }
+
+    // Place of publication (Country)
+    const placeUri = entity.claims?.["wdt:P291"]?.[0];
+    if (placeUri) {
+      detailsList.push(fetchEntity(placeUri).then(placeEntity => {
+        const placeName = getLabel(placeEntity?.labels);
+        return placeName ? { "Country": placeName } : {};
+      }).catch(() => ({})));
+    }
+
+    // Duration (for audiobooks) - convert to hours and minutes
+    const duration = entity.claims?.["wdt:P2047"]?.[0];
+    if (duration) {
+      // Duration is typically in minutes
+      const totalMinutes = parseInt(duration, 10);
+      if (!isNaN(totalMinutes) && totalMinutes > 0) {
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        const listeningLength = [];
+        if (hours > 0) listeningLength.push(`${hours} hours`);
+        if (minutes > 0) listeningLength.push(`${minutes} minutes`);
+        if (listeningLength.length > 0) {
+          details["Listening Length"] = listeningLength;
+        }
+      }
     }
 
     // Cover image
