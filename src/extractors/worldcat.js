@@ -16,18 +16,20 @@ class worldCatScraper extends Extractor {
     if (!idMatch) throw new Error("Invalid url");
     const oclc = idMatch.groups.oclc;
 
-    let nextData = getNextData();
+    const nextData = getNextData();
 
     // updated data
     const nextDataUrl = getDataApiUrl(nextData.buildId, oclc);
-    // TODO: get info from api, without needing to reload and extract from html
+    const response = await fetch(nextDataUrl);
+    if (!response.ok) {
+      throw new Error(`API error! status: ${response.status}`);
+    }
+    const json = await response.json();
 
-    const props = nextData?.props?.pageProps;
+    const props = json.pageProps;
     if (!props) throw new Error("Missing page properties");
-    const record = props?.record;
+    const record = props.record;
     if (!record) throw new Error("Missing page record");
-
-    if (nextData.page !== "/title/[...slug]") throw new Error("Wrong page, try refreshing");
 
     return collectObject([
       getCover(record),
