@@ -40,9 +40,7 @@ class worldCatScraper extends Extractor {
 }
 
 function getCover(pageRecord) {
-  // const base = `https://coverart.oclc.org/ImageWebSvc/oclc/+-+${pageRecord.oclcNumber}_140.jpg`
   // TODO: find better image
-
   const webPage = document.querySelector(`.tss-jeybmc-root-withPadding .MuiBox-root.mui-0 img`)?.src;
 
   return getCoverData([
