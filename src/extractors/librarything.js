@@ -10,7 +10,7 @@ class libraryThingScraper extends Extractor {
   ];
 
   async getDetails() {
-    return collectObject([
+    const details = await collectObject([
       getCover(),
       getFacts(),
       getCommonKnowledge(),
@@ -18,6 +18,12 @@ class libraryThingScraper extends Extractor {
       getDescription(),
       getAuthor(),
     ]);
+    const idMatch = document.location.href.match(this._sitePatterns[0]);
+    const libraryThingId = idMatch[1];
+    if (libraryThingId) {
+      details["Mappings"] = addMapping(details["Mappings"] ?? {}, "LibraryThing", libraryThingId);
+    }
+    return details;
   }
 }
 
@@ -188,7 +194,6 @@ async function getCover() {
   }
 
   covers.forEach(x => { if (x) covers.add(getHighResImageUrl(x)); });
-  console.log("covers", covers);
   return getCoverData([...covers]);
 }
 
