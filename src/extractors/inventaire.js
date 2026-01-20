@@ -3,7 +3,8 @@ import {
   addContributor,
   collectObject,
   getCoverData,
-  addMapping as addMappingFunc
+  addMapping,
+  normalizeReadingFormat
 } from "../shared/utils.js";
 
 class inventaireScraper extends Extractor {
@@ -73,7 +74,7 @@ function extractMappings(claims, mappings) {
   Object.entries(mappingProperties).forEach(([property, name]) => {
     const values = claims[property];
     if (values && values.length > 0) {
-      values.forEach(value => addMappingFunc(mappings, name, value));
+      values.forEach(value => addMapping(mappings, name, value));
     }
   });
 }
@@ -89,7 +90,7 @@ async function getInventaireDetails(id) {
   const mappings = {};
 
   // Add Inventaire mapping
-  addMappingFunc(mappings, "Inventaire", id);
+  addMapping(mappings, "Inventaire", id);
 
   if (entity.type === "edition") {
     // For editions, fetch the work data as well
@@ -120,9 +121,10 @@ async function getInventaireDetails(id) {
     }
 
     // Publication date
-    const pubDate = entity.claims?.["wdt:P577"]?.[0];
+    let pubDate = entity.claims?.["wdt:P577"]?.[0];
     if (pubDate) {
-      details["Publication date"] = new Date(pubDate);
+      if (pubDate.match(/^\d+$/)) pubDate = new Date(pubDate, 0);
+      details["Publication date"] = pubDate;
     }
 
     // Language - fetch language entity
@@ -136,6 +138,30 @@ async function getInventaireDetails(id) {
 
     // Extract all available mappings for editions
     extractMappings(entity.claims, mappings);
+
+    // Publisher - fetch publisher entity (edition-level)
+    const publisherUri = entity.claims?.["wdt:P123"]?.[0];
+    if (publisherUri) {
+      detailsList.push(fetchEntity(publisherUri).then(publisherEntity => {
+        const publisherName = getLabel(publisherEntity?.labels);
+        return publisherName ? { "Publisher": publisherName } : {};
+      }).catch(() => ({})));
+    }
+
+    // Form of creative work - fetch form entity (e.g., paperback, hardcover)
+    const formUri = entity.claims?.["wdt:P437"]?.[0];
+    if (formUri) {
+      detailsList.push(fetchEntity(formUri).then(formEntity => {
+        const formName = getLabel(formEntity?.labels);
+        if (formName) {
+          return {
+            "Edition Format": formName,
+            "Reading Format": normalizeReadingFormat(formName)
+          };
+        }
+        return {};
+      }).catch(() => ({})));
+    }
 
     // Cover image
     if (entity.image?.url) {
@@ -253,7 +279,7 @@ async function getInventaireDetails(id) {
   // Merge mappings
   if (result["Mappings"]) {
     Object.entries(result["Mappings"]).forEach(([k, v]) => {
-      v.forEach(i => addMappingFunc(mappings, k, i));
+      v.forEach(i => addMapping(mappings, k, i));
     });
   }
   result["Mappings"] = mappings;
