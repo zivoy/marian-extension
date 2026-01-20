@@ -10,6 +10,7 @@ import { dnbdeScraper } from "./dnbde";
 import { goodreadsScraper } from "./goodreads";
 import { googleBooksScraper } from "./googlebooks";
 import { indieBookstoreScraper } from "./indiebookstore";
+import { inventaireScraper } from "./inventaire";
 import { isbnSearchScraper } from "./isbnsearch";
 import { isbndbScraper } from "./isbndb";
 import { isbndeScraper } from "./isbnde";
@@ -34,6 +35,7 @@ const extractors = [
   new goodreadsScraper(),
   new googleBooksScraper(),
   new indieBookstoreScraper(),
+  new inventaireScraper(),
   new isbnSearchScraper(),
   new isbndbScraper(),
   new isbndeScraper(),

@@ -113,6 +113,7 @@
 		"https://www.abebooks.de/",
 		"https://www.abebooks.co.uk/",
 
+		"https://inventaire.io/entity/*",
 		"https://search.worldcat.org/*",
 		"https://www.librarything.com/work/*",
 		"https://bookshop.org/p/books/*",
