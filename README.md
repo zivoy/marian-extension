@@ -34,6 +34,7 @@ Book pages on these sites are currently supported by Marian. To request support 
 - Bookshop.org
 - Romance.io
 - IndieBookstores.ca
+- WorldCat
 
 ## Creating an extractor
 

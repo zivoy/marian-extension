@@ -21,6 +21,7 @@ import { librofmScraper } from "./librofm";
 import { openlibraryScraper } from "./openlibrary";
 import { romanceIoScraper } from "./romanceio";
 import { storygraphScraper } from "./storygraph";
+import { worldCatScraper } from "./worldcat";
 
 /** @type{Extractor[]} */
 const extractors = [
@@ -46,6 +47,7 @@ const extractors = [
   new romanceIoScraper(),
   new storygraphScraper(),
   new teachingbooksScraper(),
+  new worldCatScraper(),
 ];
 
 /** @param {string} url */
