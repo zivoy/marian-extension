@@ -233,7 +233,10 @@ export function formatDate(dateStr, format = "local") {
     case 'local': // fall through
     default:
       // navigator.language should always be set, but adding a fallback just in case
-      return new Intl.DateTimeFormat(navigator.language || "en-US").format(date);
+      // format in UTC timezone to prevent local timezone offset from shifting the date
+      return new Intl.DateTimeFormat(navigator.language || "en-US", {
+        timeZone: 'UTC'
+      }).format(date);
   }
 }
 
