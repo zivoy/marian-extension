@@ -61,6 +61,7 @@ export function withTimeout(promise, ms, fallback) {
  * @returns {string} Formatted text with preserved paragraph breaks
  */
 export function getFormattedText(element) {
+  if (!element) return "";
   let result = '';
 
   function processNode(/**@type {HTMLElement}*/node) {

@@ -113,6 +113,9 @@
 		"https://www.abebooks.de/",
 		"https://www.abebooks.co.uk/",
 
+		"https://booksamillion.com/p/*",
+		"https://www.booksamillion.com/p/*",
+
 		"https://torpublishinggroup.com/*",
 		"https://inventaire.io/entity/*",
 		"https://search.worldcat.org/*",

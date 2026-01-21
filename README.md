@@ -15,6 +15,7 @@ Book pages on these sites are currently supported by Marian. To request support 
 - Amazon
 - Audible
 - Barnes & Noble
+- Books-A-Million
 - Bookshop.org
 - German National Library
 - Goodreads
