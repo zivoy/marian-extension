@@ -40,6 +40,13 @@ class booksAMillionScraper extends Extractor {
 
     details = nameRemap(details);
 
+    const available = cleanText(document.querySelector(`.productAvailableText`)?.textContent ?? "");
+    const availableMatch = !available ? undefined : available
+      .match(/Preorder.*?(\w+ \d+, \d{4})/);
+    if (availableMatch) {
+      details["Publication date"] = availableMatch[1];
+    }
+
     return collectObject([
       getCoverData(document.querySelector(`#pdpImg>a>img`)?.src),
       details,
