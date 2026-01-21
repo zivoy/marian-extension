@@ -1,5 +1,5 @@
 import { Extractor } from "./AbstractExtractor.js";
-import { addContributor, cleanText, collectObject, getCoverData, getFormattedText, normalizeReadingFormat, remapKeys } from "../shared/utils.js";
+import { addContributor, addMapping, cleanText, collectObject, getCoverData, getFormattedText, normalizeReadingFormat, remapKeys } from "../shared/utils.js";
 
 const nameRemap = remapKeys.bind(undefined, {
   "Genre": undefined,
@@ -36,7 +36,7 @@ class torPublishingScraper extends Extractor {
     const formatSelect = bookMain.querySelector("select");
     details["Edition Format"] = cleanText(formatSelect.options[formatSelect.selectedIndex].textContent ?? "");
     details["Reading Format"] = normalizeReadingFormat(details["Edition Format"]);
-    details["Description"] = getFormattedText(document.querySelector(".prose"));
+    details["Description"] = getFormattedText(bookMain.querySelector(".prose"));
 
     const detailsList = bookDetails.querySelectorAll("li");
     for (const detail of detailsList) {
@@ -48,6 +48,13 @@ class torPublishingScraper extends Extractor {
       }
 
       details[title] = value
+    }
+
+    for (const buy of bookMain.querySelectorAll("a.buy-buttons")) {
+      const link = buy.href ?? "";
+      const amazonMatch = link.match(/amazon\..*?\/(?:dp|gp\/product)\/.*?(B[\dA-Z]{9}|\d{9}(?:X|\d))/);
+      if (amazonMatch) details["ASIN"] = amazonMatch[1];
+
     }
 
     details = nameRemap(details);
