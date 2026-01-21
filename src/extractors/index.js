@@ -22,6 +22,7 @@ import { librofmScraper } from "./librofm";
 import { openlibraryScraper } from "./openlibrary";
 import { romanceIoScraper } from "./romanceio";
 import { storygraphScraper } from "./storygraph";
+import { torPublishingScraper } from "./torpub";
 import { worldCatScraper } from "./worldcat";
 
 /** @type{Extractor[]} */
@@ -49,6 +50,7 @@ const extractors = [
   new romanceIoScraper(),
   new storygraphScraper(),
   new teachingbooksScraper(),
+  new torPublishingScraper(),
   new worldCatScraper(),
 ];
 
