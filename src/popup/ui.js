@@ -1,6 +1,7 @@
 import { tryGetDetails } from "./messaging.js";
 import { isAllowedUrl, normalizeUrl } from "../extractors";
-import { setLastFetchedUrl, getLastFetchedUrl, getCurrentTab, SetupSettings, getLocalDateFormat, orderedKeys, normalizeDetails } from "./utils.js";
+import { setLastFetchedUrl, getLastFetchedUrl, getCurrentTab, SetupSettings, getLocalDateFormat, orderedKeys, normalizeDetails, notifyBackground } from "./utils.js";
+import { } from "./utils.js";
 
 const settingsManager = SetupSettings(document.querySelector("#settings"), {
   hyphenateIsbn: {
@@ -193,8 +194,6 @@ function renderDetailsWithSettings(details, settings = {}) {
   img.style.maxWidth = '100px';
   img.style.minHeight = '100px';
   img.loading = 'lazy'; // lazy load for performance
-  img.style.userSelect = "none";
-  img.draggable = false;
 
   if (details.img) {
     img.src = details.img;
@@ -213,6 +212,8 @@ function renderDetailsWithSettings(details, settings = {}) {
   } else {
     img.src = "icons/third-party/hardcover.svg";
     img.style.cursor = "auto";
+    img.style.userSelect = "none";
+    img.draggable = false;
   }
 
   const imgWrapper = document.createElement('div');
@@ -385,23 +386,28 @@ export function addRefreshButton() {
     showStatus("Refreshing...");
 
     const tab = await getCurrentTab();
-    try {
-      const details = await tryGetDetails(tab)
-      showDetails();
-      await renderDetails(details);
-
-      // 👇 After refreshing, set last fetched & disable if same tab
-      setLastFetchedUrl(tab?.url || "");
-      getCurrentTab().then((activeTab) => {
-        updateRefreshButtonForUrl(activeTab?.url || "");
-      });
-    } catch (err) {
-      showStatus(err);
-      notifyBackground("REFRESH_ICON", { tab });
-    }
+    await getDetailsForTab(tab);
   });
 
   container.prepend(btn);
+}
+
+async function getDetailsForTab(tab) {
+  try {
+    const details = await tryGetDetails(tab)
+    showDetails();
+    await renderDetails(details);
+
+    // 👇 After refreshing, set last fetched & disable if same tab
+    setLastFetchedUrl(tab?.url || "");
+    getCurrentTab().then((activeTab) => {
+      updateRefreshButtonForUrl(activeTab?.url || "");
+    });
+  } catch (err) {
+    console.error("fetch details fail", err);
+    showStatus("An issue occurred when fetching data");
+    notifyBackground("REFRESH_ICON", { tab });
+  }
 }
 
 export function updateRefreshButtonForUrl(url) {
@@ -442,3 +448,28 @@ export function checkActiveTabAndUpdateButton() {
     updateRefreshButtonForUrl(tab?.url || "");
   });
 }
+
+// Listener for request permissions button
+document.addEventListener("click", function(event) {
+  const btn = event.target.closest("button");
+  if (!btn) return;
+
+  if (btn.id === "permGrant" && btn.dataset.origin && btn.dataset.tabId) {
+    const origin = btn.dataset.origin;
+    const tabId = Number(btn.dataset.tabId);
+    if (Number.isNaN(tabId) || btn.dataset.tabId.trim() === "") return // invalid id
+
+    chrome.permissions.request({ origins: [origin] }, (granted) => {
+      if (!granted) {
+        showStatus("Permissions denied. Cannot proceed.");
+        return;
+      }
+
+      // Retry immediately
+      showStatus("Permissions granted. Reloading...");
+      chrome.tabs.get(tabId, async (tab) => {
+        await getDetailsForTab(tab);
+      });
+    });
+  }
+});
