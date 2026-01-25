@@ -12,7 +12,7 @@ const settingsManager = SetupSettings(document.querySelector("#settings"), {
   },
   dateFormat: { type: "selection", label: "Format date", default: "local", options: { local: `Local format (${getLocalDateFormat()})`, ymd: "yyyy-mm-dd", dmy: "dd/mm/yyyy", mdy: "mm/dd/yyyy" } },
   filterNonHardcover: { type: "toggle", label: "Filter out non hardcover fields", default: false },
-  keepFields: { type: "toggle", label: "Always display non present hardcover fields", default: false },
+  keepFields: { type: "toggle", label: "Always display non-present hardcover fields", default: false },
 });
 
 // DOM refs (looked up when functions are called)
