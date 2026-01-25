@@ -61,6 +61,7 @@ export function withTimeout(promise, ms, fallback) {
  * @returns {string} Formatted text with preserved paragraph breaks
  */
 export function getFormattedText(element) {
+  if (!element) return "";
   let result = '';
 
   function processNode(/**@type {HTMLElement}*/node) {
@@ -228,6 +229,21 @@ export function remapKeys(mapping, object) {
 }
 
 /**
+ * Normalizes Description fields from various formats into a plain string.
+ * @param {object} description
+ * @returns {string} Normalized description text
+ */
+export function normalizeDescription(description) {
+  if (typeof description === "string") return description;
+  if (Array.isArray(description)) return normalizeDescription(description[0]);
+  if (description && typeof description === "object") {
+    if (typeof description.value === "string") return description.value;
+    if (typeof description.text === "string") return description.text;
+  }
+  return "";
+}
+
+/**
  * @typedef {{name: string, roles: string[]}} contributor
  */
 
@@ -257,6 +273,33 @@ export function addContributor(contributors, name, roles) {
 
   return contributors;
 }
+
+/**
+ * @typedef {{[name: string]: string[]}} mappings
+ */
+
+/**
+ * adds a mapping with one or more IDs 
+ *
+ * @param {mappings} mappings
+ * @param {string} name
+ * @param {string | string[]}
+ *
+ * @returns {mappings}
+ */
+export function addMapping(mappings, name, ids) {
+  if (!Array.isArray(ids)) {
+    ids = [ids];
+  }
+
+  let map = mappings[name] ?? [];
+  for (const id of ids) {
+    if (!map.includes(id)) map.push(id);
+  }
+  mappings[name] = map;
+  return mappings;
+}
+
 
 /**
  * Normalize arbitrary text by stripping invisible characters and squeezing whitespace.
@@ -339,6 +382,29 @@ export async function collectObject(items) {
   }
 
   return obj;
+}
+
+/**
+  * preforms a http request and returns a dom
+  *
+  * @param {string} url 
+  * @returns {Promise<DOMParser|undefined>}
+  */
+export async function fetchHTML(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const html = await response.text();
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    return doc;
+  } catch (error) {
+    console.error('Error fetching HTML:', error);
+  }
 }
 
 export { StorageBackedSet } from "./StorageSet.js";

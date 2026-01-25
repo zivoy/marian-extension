@@ -1,4 +1,4 @@
-import { addContributor, cleanText, collectObject, getCoverData, getFormattedText, logMarian, normalizeReadingFormat, remapKeys } from "../shared/utils.js";
+import { addContributor, cleanText, collectObject, fetchHTML, getCoverData, getFormattedText, logMarian, normalizeReadingFormat, remapKeys } from "../shared/utils.js";
 import { Extractor } from "./AbstractExtractor.js"
 
 const editionRegex = /https:\/\/(?:www\.)?isfdb\.org\/cgi-bin\/pl\.cgi\?(\d+)/;
@@ -32,7 +32,7 @@ class isfdbScraper extends Extractor {
 }
 
 
-const remapings = remapKeys.bind(undefined, {
+const remappings = remapKeys.bind(undefined, {
   "Series Number": "Series Place",
   "Date": "Publication date",
   "Synopsis": "Description",
@@ -105,7 +105,7 @@ function scrapeBook(doc = document) {
     details[label] = value;
   }
 
-  details = remapings(details);
+  details = remappings(details);
 
   return details;
 }
@@ -218,7 +218,7 @@ async function scrapeEdition() {
     details[label] = value;
   }
 
-  details = remapings(details);
+  details = remappings(details);
 
   details["Reading Format"] = normalizeReadingFormat(details["Edition Format"]);
 
@@ -263,24 +263,11 @@ async function scrapeEdition() {
     mappings,
   ]);
 
+  delete details["Type"];
+  delete details["Price"];
+  delete details["Notes"];
+
   return details;
-}
-
-async function fetchHTML(url) {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const html = await response.text();
-
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-
-    return doc;
-  } catch (error) {
-    console.error('Error fetching HTML:', error);
-  }
 }
 
 export { isfdbScraper };
