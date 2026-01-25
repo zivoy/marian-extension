@@ -164,6 +164,12 @@ addContributor(contributors, "B", ["Editor", "Illustrator"]);
 addContributor(contributors, "A", "Narrator");
 ```
 
+### addMapping
+
+Similar to [addContributor](#addcontributor).
+Takes in a name of a mapping as well as one or more IDs.
+If a mapping is already present the IDs are appended to it if they are not present.
+
 ### normalizeReadingFormat
 
 Takes in a string and returns one of `Audiobook`, `Ebook`, `Physical Book`
@@ -255,6 +261,11 @@ Example:
 ```javascript
 const title = queryDeep('h1', ['product-header']);
 ```
+
+### fetchHTML
+
+Gets a DOM from a html request.
+If this is used in a scraper script, then it will only work for domains that the current page has CORS access to.
 
 ### runtime
 

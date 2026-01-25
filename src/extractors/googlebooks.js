@@ -177,8 +177,12 @@ function getClassicGoogleBooksDetails() {
  */
 function getGoogleBookTitle() {
     try {
-        const titleEl = queryDeep('div.zNLTKd[aria-level="1"][role="heading"]', KNOWN_HOSTS);
-        return cleanText(titleEl?.textContent);
+        const titleEl = queryDeep('div.zNLTKd[aria-level="1"][role="heading"], div.qVk57b[aria-level="1"][role="heading"]', KNOWN_HOSTS);
+        let title = cleanText(titleEl?.textContent ?? "");
+        const subtitleEl = queryDeep('div.cFGBCb div.wwNwqf', KNOWN_HOSTS);
+        if (subtitleEl) title = `${title}: ${cleanText(subtitleEl.textContent ?? "")}`
+        return title;
+
     } catch (error) {
         console.error("Error extracting Google Book title:", error);
         return "";

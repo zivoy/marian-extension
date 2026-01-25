@@ -11,28 +11,34 @@ Marian the Librarian helps [Hardcover.app](https://hardcover.app/join?referrer_i
 ### Supported Sites
 Book pages on these sites are currently supported by Marian. To request support for another site, [create an issue](https://github.com/jacobtender/marian-extension/issues/new?template=site-support-request.md) or submit a pull request.
 
+- AbeBooks (ZVAB, IberLibro)
 - Amazon
 - Audible
+- Barnes & Noble
+- Books-A-Million
+- Bookshop.org
+- German National Library
 - Goodreads
 - Google Books
-- Open Library
-- Classic Google Books
-- The StoryGraph
-- Rakuten Kobo
-- OverDrive
-- TeachingBooks
-- Libby
-- Libro.fm
-- The Internet Speculative Fiction Database (ISFDB)
-- ISBNdb
-- ISBN Search 
+- Google Books Classic
+- ISBN Search
 - ISBN.de
-- German National Library
-- Barnes & Noble
-- Bookshop.org
-- Romance.io
+- ISBNdb
 - IndieBookstores.ca
+- The Internet Speculative Fiction Database (ISFDB)
+- Libby
+- LibraryThing
+- Libro.fm
+- Open Library
+- OverDrive
 - Penguin Random House
+- Rakuten Kobo
+- Romance.io
+- The StoryGraph
+- TeachingBooks
+- Tor Publishing Group
+- WorldCat
+- inventaire
 
 ## Creating an extractor
 

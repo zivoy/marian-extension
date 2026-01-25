@@ -105,6 +105,21 @@
 		"https://www.isbn.de/*",
 		"https://isbn.de/*",
 
+		"https://www.abebooks.com/*",
+		"https://www.zvab.com/*",
+		"https://www.iberlibro.com/*",
+		"https://www.abebooks.it/*",
+		"https://www.abebooks.fr/",
+		"https://www.abebooks.de/",
+		"https://www.abebooks.co.uk/",
+
+		"https://booksamillion.com/p/*",
+		"https://www.booksamillion.com/p/*",
+
+		"https://torpublishinggroup.com/*",
+		"https://inventaire.io/entity/*",
+		"https://search.worldcat.org/*",
+		"https://www.librarything.com/work/*",
 		"https://bookshop.org/p/books/*",
 		"https://www.isfdb.org/cgi-bin/*",
 		"https://www.romance.io/books/*",
