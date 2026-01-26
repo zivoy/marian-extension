@@ -50,7 +50,7 @@ const remappings = remapKeys.bind(undefined, {
 });
 
 const novelTypes = {
-  "FANZINE": "Fan Magazine",
+  "FANZINE": "Fanzine",
   "ANTHOLOGY": "Anthology",
   "CHAPBOOK": "Chapbook",
   "COLLECTION": "Collection",
