@@ -83,7 +83,7 @@ function getBookDetails(apolloData, bookDetails) {
     if ("publicationTime" in details && details.publicationTime) bookDetails['Publication date'] = new Date(details.publicationTime);
     if ("publisher" in details) bookDetails['Publisher'] = details.publisher;
     if ("format" in details) bookDetails["Edition Format"] = details.format;
-    if ("numPages" in details) bookDetails["Pages"] = details.numPages;
+    if ("numPages" in details && details.numPages > 0) bookDetails["Pages"] = details.numPages;
   }
 
   // series
