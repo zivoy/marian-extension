@@ -30,8 +30,8 @@ class goodreadsScraper extends Extractor {
 
     bookDetails['Reading Format'] = normalizeReadingFormat(bookDetails["Edition Format"]);
 
-    if (bookDetails["Edition Format"].toLowerCase() === "kindle edition") bookDetails["Edition Format"] = "Kindle";
-    if (bookDetails["Edition Format"].toLowerCase() === "audible audio") bookDetails["Edition Format"] = "Audible";
+    if (bookDetails["Edition Format"]?.toLowerCase() === "kindle edition") bookDetails["Edition Format"] = "Kindle";
+    if (bookDetails["Edition Format"]?.toLowerCase() === "audible audio") bookDetails["Edition Format"] = "Audible";
 
     // logMarian("bookDetails", bookDetails);
 
@@ -74,7 +74,6 @@ function getBookDetails(apolloData, bookDetails) {
 
   // book details
   const details = bookData?.details;
-  console.log("marian", details)
   if (details) {
     if ("asin" in details) bookDetails["ASIN"] = details.asin;
     if ("language" in details && details.language) bookDetails["Language"] = details.language.name;
