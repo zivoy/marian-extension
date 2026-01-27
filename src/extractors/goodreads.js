@@ -76,7 +76,7 @@ function getBookDetails(apolloData, bookDetails) {
   const details = bookData?.details;
   if (details) {
     if ("asin" in details) bookDetails["ASIN"] = details.asin;
-    if ("language" in details) bookDetails["Language"] = details.language?.name ?? details.language;
+    if ("language" in details && details.language) bookDetails["Language"] = details.language.name;
     if ("isbn" in details) bookDetails["ISBN-10"] = details.isbn;
     if ("isbn13" in details) bookDetails["ISBN-13"] = details.isbn13;
     if ("publicationTime" in details) bookDetails['Publication date'] = new Date(details.publicationTime);
