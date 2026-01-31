@@ -61,6 +61,8 @@ export function normalizeDetails(details, settings, inplace = true) {
 
   // normalize
 
+  // TODO: make a function that detects if the provided isbn is a isbn13 with the prefix missing
+
   // Validate the ISBNs validity
   if (details["ISBN-10"]) {
     const isbn = details["ISBN-10"];
