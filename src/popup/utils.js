@@ -101,6 +101,25 @@ export function normalizeDetails(details, settings, inplace = true) {
     }
   }
 
+  // validate that it is the same isbn
+  if (details["ISBN-13"] && details["ISBN-10"] && details["ISBN-10-valid"] && details["ISBN-13-valid"]) {
+    // make isbn13 from isbn10
+    const isbn10 = details["ISBN-10"].replaceAll("-", "");
+    const isbn13 = details["ISBN-13"].replaceAll("-", "");
+    if (isbn10.length === 10 && isbn13.length === 13) {
+      let isbn = "978" + isbn10; // add prefix
+      const checksum = getISBN13CheckDigit(isbn);
+      if (checksum != null) {
+        isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
+        isbn = isbn + checksum; // add new check digit
+
+        if (isbn !== isbn13) {
+          details["ISBN-mismatch"] = true;
+        }
+      }
+    }
+  }
+
   // Set ASIN for physical books
   if (details["Reading Format"] === "Physical Book" && !details["ASIN"] && !!details["ISBN-10"] && details["ISBN-10-valid"]) {
     // for physical books the ASIN is the isbn-10

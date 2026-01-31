@@ -313,9 +313,19 @@ function renderDetailsWithSettings(details, settings = {}) {
         container.appendChild(div);
       }
     }
+    if ("ISBN-13" === key) {
+      if ("ISBN-mismatch" in details && details["ISBN-mismatch"]) {
+        const div = document.createElement('div');
+        div.className = 'row warning';
+        div.appendChild(document.createTextNode(
+          "WARNING: The ISBN-10 and ISBN-13 do not belong to the same book"
+        ));
+        container.appendChild(div);
+      }
+    }
   });
 
-  const filteredKeys = ['img', 'imgScore', 'Title', 'Description', "ISBN-10-valid", "ISBN-13-valid"];
+  const filteredKeys = ['img', 'imgScore', 'Title', 'Description', "ISBN-10-valid", "ISBN-13-valid", "ISBN-mismatch"];
   Object.entries(details).forEach(([key, value]) => {
     if (filteredKeys.includes(key) || rendered.has(key)) return;
     renderRow(container, key, value);
