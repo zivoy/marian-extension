@@ -75,47 +75,27 @@ export function normalizeDetails(details, settings, inplace = true) {
 
   // Regenerate missing ISBN using other one
   if (!details["ISBN-13"] && !!details["ISBN-10"] && details["ISBN-10-valid"]) {
-    // make isbn13 from isbn10
-    let isbn = details["ISBN-10"].replaceAll("-", "");
-    if (isbn.length === 10) {
-      isbn = "978" + isbn; // add prefix
-      const checksum = getISBN13CheckDigit(isbn);
-      if (checksum != null) {
-        isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
-        isbn = isbn + checksum; // add new check digit
-        details["ISBN-13"] = isbn;
-      }
+    const isbn = getISBN13From10(details["ISBN-10"]);
+    if (isbn) {
+      details["ISBN-13"] = isbn;
     }
   }
   if (!!details["ISBN-13"] && !details["ISBN-10"] && details["ISBN-13"].startsWith("978") && details["ISBN-13-valid"]) {
-    // make isbn10 from isbn13
-    let isbn = details["ISBN-13"].replaceAll("-", "");
-    if (isbn.length === 13) {
-      isbn = isbn.slice(3); // remove prefix
-      const checksum = getISBN10CheckDigit(isbn);
-      if (checksum !== null) {
-        isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
-        isbn = isbn + checksum; // add new check digit
-        details["ISBN-10"] = isbn;
-      }
+    const isbn = getISBN10From13(details["ISBN-13"]);
+    if (isbn) {
+      details["ISBN-10"] = isbn;
     }
   }
 
+
   // validate that it is the same isbn
   if (details["ISBN-13"] && details["ISBN-10"] && details["ISBN-10-valid"] && details["ISBN-13-valid"]) {
-    // make isbn13 from isbn10
     const isbn10 = details["ISBN-10"].replaceAll("-", "");
     const isbn13 = details["ISBN-13"].replaceAll("-", "");
     if (isbn10.length === 10 && isbn13.length === 13) {
-      let isbn = "978" + isbn10; // add prefix
-      const checksum = getISBN13CheckDigit(isbn);
-      if (checksum != null) {
-        isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
-        isbn = isbn + checksum; // add new check digit
-
-        if (isbn !== isbn13) {
-          details["ISBN-mismatch"] = true;
-        }
+      const isbn = getISBN13From10(isbn10);
+      if (isbn) {
+        details["ISBN-mismatch"] = isbn !== isbn13;
       }
     }
   }
@@ -490,4 +470,52 @@ export function getISBN13CheckDigit(isbn) {
 
   const checksum = (10 - ([...isbn].reduce((acc, d, i) => acc + d * (i % 2 ? 3 : 1), 0) % 10)) % 10;
   return checksum.toString();
+}
+
+/**
+ * Calculate the isbn 13 from an isbn 10
+ * Returns null if an issue happened (provided isbn is of wrong length)
+ *
+ * @param {string} isbn
+ * @returns {string|null}
+ */
+export function getISBN13From10(isbn) {
+  isbn = isbn.replaceAll("-", "");
+  if (isbn.length !== 10) {
+    return null;
+  }
+
+  isbn = "978" + isbn; // add prefix
+  const checksum = getISBN13CheckDigit(isbn);
+  if (checksum == null) {
+    return null;
+  }
+
+  isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
+  isbn = isbn + checksum; // add new check digit
+  return isbn;
+}
+
+/**
+ * Calculate the isbn 10 from an isbn 13
+ * Returns null if an issue happened (provided isbn is of wrong length, or wrong prefix)
+ *
+ * @param {string} isbn
+ * @returns {string|null}
+ */
+export function getISBN10From13(isbn) {
+  isbn = isbn.replaceAll("-", "");
+  if (isbn.length !== 13) {
+    return null;
+  }
+
+  isbn = isbn.slice(3); // remove prefix
+  const checksum = getISBN10CheckDigit(isbn);
+  if (checksum === null) {
+    return null;
+  }
+
+  isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
+  isbn = isbn + checksum; // add new check digit
+  return isbn;
 }
