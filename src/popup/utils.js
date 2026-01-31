@@ -89,7 +89,6 @@ export function normalizeDetails(details, settings, inplace = true) {
     }
   }
 
-
   // validate that it is the same isbn
   if (details["ISBN-13"] && details["ISBN-10"] && details["ISBN-10-valid"] && details["ISBN-13-valid"]) {
     const isbn10 = details["ISBN-10"].replaceAll("-", "");
@@ -507,7 +506,7 @@ export function getISBN13From10(isbn) {
  */
 export function getISBN10From13(isbn) {
   isbn = isbn.replaceAll("-", "");
-  if (isbn.length !== 13) {
+  if (isbn.length !== 13 || !isbn.startsWith("978")) {
     return null;
   }
 
