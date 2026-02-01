@@ -117,9 +117,9 @@ function extractEditionInfo(bookDetails) {
     });
 
     const durationEl = document.querySelector('p.text-sm.font-light');
-    if (document.querySelector('p.text-sm.font-light')) {
+    if (durationEl) {
         const value = durationEl.innerText.trim();
-        const timeMatch = value.match(/(\d+)\s*hours?\s*(?:,|and)?\s*(\d+)?\s*minutes?/i);
+        const timeMatch = value.match(/(\d+)\s*h(?:ours?)?\s*(?:,|and)?\s*(\d+)?\s*m(?:inutes?)?/i);
         const pagesMatch = value.match(/(\d+)\s*pages?/i);
 
         if (timeMatch) {
