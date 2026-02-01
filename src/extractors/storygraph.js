@@ -3,6 +3,7 @@ import { logMarian, delay, getCoverData, addContributor, cleanText, normalizeRea
 
 class storygraphScraper extends Extractor {
     get _name() { return "StoryGraph Extractor"; }
+    needsReload = false;
     _sitePatterns = [
         /^https:\/\/(?:app|beta)\.thestorygraph\.[a-z.]+\/books\/[0-9a-fA-F-]+$/,
     ];
