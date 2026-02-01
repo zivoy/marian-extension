@@ -89,6 +89,7 @@
 
 		"https://www.goodreads.com/*",
 		"https://app.thestorygraph.com/*",
+		"https://beta.thestorygraph.com/*",
 		"https://isbnsearch.org/*",
 		"https://isbndb.com/*",
 

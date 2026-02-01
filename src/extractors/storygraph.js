@@ -4,7 +4,7 @@ import { logMarian, delay, getCoverData, addContributor, cleanText, normalizeRea
 class storygraphScraper extends Extractor {
     get _name() { return "StoryGraph Extractor"; }
     _sitePatterns = [
-        /^https:\/\/app\.thestorygraph\.[a-z.]+\/books\/[0-9a-fA-F-]+$/,
+        /^https:\/\/(?:app|beta)\.thestorygraph\.[a-z.]+\/books\/[0-9a-fA-F-]+$/,
     ];
 
     async getDetails() {
