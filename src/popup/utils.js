@@ -61,18 +61,38 @@ export function normalizeDetails(details, settings, inplace = true) {
 
   // normalize
 
-  // TODO: make a function that detects if the provided isbn is a isbn13 with the prefix missing
-
   // Validate the ISBNs validity
   if (details["ISBN-10"]) {
-    const isbn = details["ISBN-10"];
-    const checksum = getISBN10CheckDigit(isbn);
-    details["ISBN-10-valid"] = checksum === isbn[isbn.length - 1]
+    details["ISBN-10-valid"] = validateIsbn10(details["ISBN-10"])
   }
   if (details["ISBN-13"]) {
-    const isbn = details["ISBN-13"];
-    const checksum = getISBN13CheckDigit(isbn);
-    details["ISBN-13-valid"] = checksum === isbn[isbn.length - 1]
+    details["ISBN-13-valid"] = validateIsbn13(details["ISBN-13"])
+  }
+
+  // check if the isbn is only missing the prefix
+  if (details["ISBN-10"] && !details["ISBN-10-valid"]) {
+    const isbn13 = details["ISBN-13"]?.replaceAll("-", "") ?? "";
+    for (const prefix of ["978", "979"]) {
+      const isbn = `${prefix}${details["ISBN-10"]}`.replaceAll("-", "");
+      if (isbn === isbn13 || validateIsbn13(isbn)) {
+        delete details["ISBN-10"];
+        delete details["ISBN-10-valid"]
+        details["ISBN-13"] = isbn;
+        details["ISBN-13-valid"] = validateIsbn13(isbn);
+        break;
+      }
+    };
+  }
+
+  if (details["ISBN-13"] && !details["ISBN-13-valid"]) {
+    for (const prefix of ["978", "979"]) {
+      const isbn = `${prefix}${details["ISBN-13"]}`.replaceAll("-", "");
+      if (validateIsbn13(isbn)) {
+        details["ISBN-13"] = isbn;
+        details["ISBN-13-valid"] = validateIsbn13(isbn);
+        break;
+      }
+    };
   }
 
   // Regenerate missing ISBN using other one
@@ -80,12 +100,14 @@ export function normalizeDetails(details, settings, inplace = true) {
     const isbn = getISBN13From10(details["ISBN-10"]);
     if (isbn) {
       details["ISBN-13"] = isbn;
+      details["ISBN-13-valid"] = validateIsbn13(details["ISBN-13"])
     }
   }
   if (!!details["ISBN-13"] && !details["ISBN-10"] && details["ISBN-13"].startsWith("978") && details["ISBN-13-valid"]) {
     const isbn = getISBN10From13(details["ISBN-13"]);
     if (isbn) {
       details["ISBN-10"] = isbn;
+      details["ISBN-10-valid"] = validateIsbn10(details["ISBN-10"])
     }
   }
 
@@ -519,4 +541,13 @@ export function getISBN10From13(isbn) {
   isbn = isbn.slice(0, isbn.length - 1); // remove original check digit
   isbn = isbn + checksum; // add new check digit
   return isbn;
+}
+
+function validateIsbn10(isbn) {
+  const checksum = getISBN10CheckDigit(isbn);
+  return checksum === isbn[isbn.length - 1]
+}
+function validateIsbn13(isbn) {
+  const checksum = getISBN13CheckDigit(isbn);
+  return checksum === isbn[isbn.length - 1]
 }
