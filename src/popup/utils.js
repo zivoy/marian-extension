@@ -61,6 +61,14 @@ export function normalizeDetails(details, settings, inplace = true) {
 
   // normalize
 
+  // check for SBN
+  if (details["ISBN-10"] && details["ISBN-10"].replaceAll("-", "").length === 9) {
+    const isbn = `0${details["ISBN-10"]}`;
+    if (validateIsbn10(isbn)) {
+      details["ISBN-10"] = isbn;
+    }
+  }
+
   // Validate the ISBNs validity
   if (details["ISBN-10"]) {
     details["ISBN-10-valid"] = validateIsbn10(details["ISBN-10"]);
