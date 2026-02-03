@@ -63,10 +63,10 @@ export function normalizeDetails(details, settings, inplace = true) {
 
   // Validate the ISBNs validity
   if (details["ISBN-10"]) {
-    details["ISBN-10-valid"] = validateIsbn10(details["ISBN-10"])
+    details["ISBN-10-valid"] = validateIsbn10(details["ISBN-10"]);
   }
   if (details["ISBN-13"]) {
-    details["ISBN-13-valid"] = validateIsbn13(details["ISBN-13"])
+    details["ISBN-13-valid"] = validateIsbn13(details["ISBN-13"]);
   }
 
   // check if the isbn is only missing the prefix
@@ -76,7 +76,7 @@ export function normalizeDetails(details, settings, inplace = true) {
       const isbn = `${prefix}${details["ISBN-10"]}`.replaceAll("-", "");
       if (isbn === isbn13 || validateIsbn13(isbn)) {
         delete details["ISBN-10"];
-        delete details["ISBN-10-valid"]
+        delete details["ISBN-10-valid"];
         details["ISBN-13"] = isbn;
         details["ISBN-13-valid"] = validateIsbn13(isbn);
         break;
@@ -100,14 +100,14 @@ export function normalizeDetails(details, settings, inplace = true) {
     const isbn = getISBN13From10(details["ISBN-10"]);
     if (isbn) {
       details["ISBN-13"] = isbn;
-      details["ISBN-13-valid"] = validateIsbn13(details["ISBN-13"])
+      details["ISBN-13-valid"] = validateIsbn13(details["ISBN-13"]);
     }
   }
   if (!!details["ISBN-13"] && !details["ISBN-10"] && details["ISBN-13"].startsWith("978") && details["ISBN-13-valid"]) {
     const isbn = getISBN10From13(details["ISBN-13"]);
     if (isbn) {
       details["ISBN-10"] = isbn;
-      details["ISBN-10-valid"] = validateIsbn10(details["ISBN-10"])
+      details["ISBN-10-valid"] = validateIsbn10(details["ISBN-10"]);
     }
   }
 
@@ -545,9 +545,9 @@ export function getISBN10From13(isbn) {
 
 function validateIsbn10(isbn) {
   const checksum = getISBN10CheckDigit(isbn);
-  return checksum === isbn[isbn.length - 1]
+  return checksum === isbn[isbn.length - 1];
 }
 function validateIsbn13(isbn) {
   const checksum = getISBN13CheckDigit(isbn);
-  return checksum === isbn[isbn.length - 1]
+  return checksum === isbn[isbn.length - 1];
 }
