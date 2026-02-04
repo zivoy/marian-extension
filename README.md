@@ -27,6 +27,7 @@ Book pages on these sites are currently supported by Marian. To request support 
 
 - Goodreads
 - LibraryThing
+- MangaUpdates
 - Novel Updates
 - Romance.io
 - The StoryGraph
