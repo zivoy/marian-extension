@@ -221,7 +221,11 @@ function getFirstKey(obj) {
 }
 
 function parseDateLocal(dateStr) {
-  if (!dateStr.match(/^\d+(?:-\d+)?(?:-\d+)?/)) {
+  if (dateStr.match(/^[a-z]+ \d+$/i)) {
+    dateStr = `1 ${dateStr}`;
+  }
+
+  if (!dateStr.match(/^\d+(?:-\d+)?(?:-\d+)?$/)) {
     return new Date(dateStr);
   }
 
