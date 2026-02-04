@@ -336,6 +336,7 @@ export function normalizeReadingFormat(rawFormat) {
   ) return "Audiobook";
 
   if (
+    format.includes("web") ||
     format.includes("ebook") ||
     format.includes("e-book") ||
     format.includes("digital") ||

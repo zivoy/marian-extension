@@ -116,6 +116,8 @@
 		"https://booksamillion.com/p/*",
 		"https://www.booksamillion.com/p/*",
 
+		"https://www.novelupdates.com/series/*",
+
 		"https://torpublishinggroup.com/*",
 		"https://inventaire.io/entity/*",
 		"https://search.worldcat.org/*",
