@@ -61,9 +61,6 @@ function getMetadata() {
   // val = [...document.querySelectorAll(`div[data-cy="info-box-categories"] ul a`)].map(i => cleanText(i.textContent));
   // if (val && val.length > 0) details["Tags"] = val;
 
-  // val = document.querySelector(`#showlang`)?.textContent;
-  // if (val) details["Language"] = cleanText(val);
-
   val = [...document.querySelectorAll(`div[data-cy="info-box-authors"] a`)].map(i => cleanText(i.textContent));
   if (val && val.length > 0) {
     const contributors = [];
