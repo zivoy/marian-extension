@@ -56,23 +56,31 @@ async function gatherBookDetails() {
 function extractContributors(bookDetails) {
     const contributors = [];
 
-    const h3 = document.querySelector('.book-title-author-and-series h3');
-    if (!h3) return;
+    const container = document.querySelector('.book-title-author-and-series p.font-body');
+    if (!container) return;
 
-    const contributorParagraph = h3.querySelector('p:nth-of-type(2)');
-    if (contributorParagraph) {
-        contributorParagraph.querySelectorAll('a').forEach(a => {
-            const name = a.textContent.trim();
-            if (!name) return;
+    const links = container.querySelectorAll('a');
 
-            // Check the next sibling for role (e.g. (Narrator))
-            const nextText = a.nextSibling?.textContent?.trim();
-            const roleMatch = nextText?.match(/\(([^)]+)\)/);
-            const role = roleMatch ? roleMatch[1] : "Author";
+    links.forEach(link => {
+        const name = link.textContent.trim();
 
-            addContributor(contributors, name, role);
-        });
-    }
+        // Get the link's position in the parent
+        const linkHTML = link.outerHTML;
+        const linkIndex = container.innerHTML.indexOf(linkHTML);
+
+        // Get text after this link until the next link (or end)
+        const afterLink = container.innerHTML.substring(linkIndex + linkHTML.length);
+        const nextLinkIndex = afterLink.indexOf('<a');
+        const relevantText = nextLinkIndex !== -1
+            ? afterLink.substring(0, nextLinkIndex)
+            : afterLink;
+
+        // Extract role from parentheses
+        const roleMatch = relevantText.match(/\(([^)]+)\)/);
+        const role = roleMatch ? roleMatch[1] : 'Author';
+
+        addContributor(contributors, name, role);
+    });
 
     if (contributors.length) {
         bookDetails["Contributors"] = contributors;
