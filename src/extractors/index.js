@@ -25,6 +25,7 @@ import { novelUpdatesScraper } from "./novelupdates";
 import { openlibraryScraper } from "./openlibrary";
 import { penguinRandomHouseScraper } from "./penguinrandomhouse";
 import { romanceIoScraper } from "./romanceio";
+import { scribbleHubScraper } from "./scribblehub";
 import { storygraphScraper } from "./storygraph";
 import { torPublishingScraper } from "./torpub";
 import { worldCatScraper } from "./worldcat";
@@ -56,6 +57,7 @@ const extractors = [
   new overdriveScraper(),
   new penguinRandomHouseScraper(),
   new romanceIoScraper(),
+  new scribbleHubScraper(),
   new storygraphScraper(),
   new teachingbooksScraper(),
   new torPublishingScraper(),

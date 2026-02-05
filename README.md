@@ -59,6 +59,10 @@ Book pages on these sites are currently supported by Marian. To request support 
 - Google Books
 - Open Library
 
+#### Self Publishing
+
+- Scribble Hub
+
 ## Creating an extractor
 
 Creating an extractor requires adding any URL's the extractor has to support to the 

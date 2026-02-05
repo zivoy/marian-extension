@@ -389,11 +389,12 @@ export async function collectObject(items) {
   * preforms a http request and returns a dom
   *
   * @param {string} url 
+  * @param {RequestInit?} args
   * @returns {Promise<DOMParser|undefined>}
   */
-export async function fetchHTML(url) {
+export async function fetchHTML(url, args = undefined) {
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, args);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
