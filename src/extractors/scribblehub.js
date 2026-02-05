@@ -32,6 +32,7 @@ class scribbleHubScraper extends Extractor {
 async function getCover() {
   const el = document.querySelector(`.novel-cover img`);
   if (!el) return {};
+  if (el.src.endsWith("noimagefound.jpg")) return {};
   return getCoverData(el.src);
 }
 
