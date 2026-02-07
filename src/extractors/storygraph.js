@@ -105,7 +105,10 @@ function extractEditionInfo(bookDetails) {
 
         switch (label) {
             case 'ISBN/UID':
-                bookDetails['ISBN-13'] = value;
+                if (value.match(/B[\dA-Z]{9}/)) bookDetails['ASIN'] = value;
+                else if (value.replaceAll("-", "").match(/\d{9}(?:X|\d)/)) bookDetails['ISBN-10'] = value;
+                else if (value.replaceAll("-", "").match(/\d{13}/)) bookDetails['ISBN-13'] = value;
+                else bookDetails['UID'] = value;
                 break;
             case 'Format':
                 bookDetails['Reading Format'] = normalizeReadingFormat(value);
