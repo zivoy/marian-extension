@@ -6,10 +6,18 @@ const settingsManager = SetupSettings(document.querySelector("#settings"), {
   hyphenateIsbn: {
     type: "selection", label: "Hyphenate ISBNs", options: {
       // yes: "Yes",
-      no: "No (Hardcover)", none: "Leave Alone"
+      no: "No (Hardcover)",
+      none: "Leave Alone",
     }, default: "none"
   },
-  dateFormat: { type: "selection", label: "Format date", default: "local", options: { local: `Local format (${getLocalDateFormat()})`, ymd: "yyyy-mm-dd", dmy: "dd/mm/yyyy", mdy: "mm/dd/yyyy" } },
+  dateFormat: {
+    type: "selection", label: "Format date", default: "local", options: {
+      local: `Local format (${getLocalDateFormat()})`,
+      ymd: "yyyy-mm-dd",
+      dmy: "dd/mm/yyyy",
+      mdy: "mm/dd/yyyy",
+    }
+  },
   filterNonHardcover: { type: "toggle", label: "Filter out non-Hardcover fields", default: false },
   keepFields: { type: "toggle", label: "Always display non-present Hardcover fields", default: false },
 });

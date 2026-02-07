@@ -207,6 +207,7 @@ export function normalizeDetails(details, settings, inplace = true) {
     if (details["ISBN-10"]) details["ISBN-10"] = details["ISBN-10"].replaceAll("-", "");
     if (details["ISBN-13"]) details["ISBN-13"] = details["ISBN-13"].replaceAll("-", "");
   } else if (settings.hyphenateIsbn === "yes") {
+    // see #104
     throw "Not implemented";
   }
 
