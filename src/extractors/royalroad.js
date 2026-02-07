@@ -103,8 +103,6 @@ function getDescription() {
 function getMetadata() {
   const details = {};
 
-  // TODO: get chapter count - per volume
-
   const contributors = details["Contributors"] ?? [];
   val = document.querySelector(`.fic-title h4 span:not(.collaborator-group) a`)?.textContent;
   if (val) addContributor(contributors, val, "Author");
