@@ -8,6 +8,7 @@ import { barnesAndNobleScraper } from "./barnesnoble";
 import { booksAMillionScraper } from "./booksamillion";
 import { bookshopScraper } from "./bookshopOrg";
 import { dnbdeScraper } from "./dnbde";
+import { fanFictionNetScraper } from "./fanfictionnet";
 import { goodreadsScraper } from "./goodreads";
 import { googleBooksScraper } from "./googlebooks";
 import { indieBookstoreScraper } from "./indiebookstore";
@@ -41,6 +42,7 @@ const extractors = [
   new booksAMillionScraper(),
   new bookshopScraper(),
   new dnbdeScraper(),
+  new fanFictionNetScraper(),
   new goodreadsScraper(),
   new googleBooksScraper(),
   new indieBookstoreScraper(),
