@@ -3,8 +3,9 @@ import { logMarian, delay, getCoverData, addContributor, cleanText, normalizeRea
 
 class storygraphScraper extends Extractor {
     get _name() { return "StoryGraph Extractor"; }
+    needsReload = false;
     _sitePatterns = [
-        /^https:\/\/app\.thestorygraph\.[a-z.]+\/books\/[0-9a-fA-F-]+$/,
+        /^https:\/\/(?:app|beta)\.thestorygraph\.[a-z.]+\/books\/[0-9a-fA-F-]+$/,
     ];
 
     async getDetails() {
@@ -55,23 +56,31 @@ async function gatherBookDetails() {
 function extractContributors(bookDetails) {
     const contributors = [];
 
-    const h3 = document.querySelector('.book-title-author-and-series h3');
-    if (!h3) return;
+    const container = document.querySelector('.book-title-author-and-series p.font-body');
+    if (!container) return;
 
-    const contributorParagraph = h3.querySelector('p:nth-of-type(2)');
-    if (contributorParagraph) {
-        contributorParagraph.querySelectorAll('a').forEach(a => {
-            const name = a.textContent.trim();
-            if (!name) return;
+    const links = container.querySelectorAll('a');
 
-            // Check the next sibling for role (e.g. (Narrator))
-            const nextText = a.nextSibling?.textContent?.trim();
-            const roleMatch = nextText?.match(/\(([^)]+)\)/);
-            const role = roleMatch ? roleMatch[1] : "Author";
+    links.forEach(link => {
+        const name = link.textContent.trim();
 
-            addContributor(contributors, name, role);
-        });
-    }
+        // Get the link's position in the parent
+        const linkHTML = link.outerHTML;
+        const linkIndex = container.innerHTML.indexOf(linkHTML);
+
+        // Get text after this link until the next link (or end)
+        const afterLink = container.innerHTML.substring(linkIndex + linkHTML.length);
+        const nextLinkIndex = afterLink.indexOf('<a');
+        const relevantText = nextLinkIndex !== -1
+            ? afterLink.substring(0, nextLinkIndex)
+            : afterLink;
+
+        // Extract role from parentheses
+        const roleMatch = relevantText.match(/\(([^)]+)\)/);
+        const role = roleMatch ? roleMatch[1] : 'Author';
+
+        addContributor(contributors, name, role);
+    });
 
     if (contributors.length) {
         bookDetails["Contributors"] = contributors;
@@ -96,7 +105,10 @@ function extractEditionInfo(bookDetails) {
 
         switch (label) {
             case 'ISBN/UID':
-                bookDetails['ISBN-13'] = value;
+                if (/B[\dA-Z]{9}/.test(value)) bookDetails['ASIN'] = value;
+                else if (/\d{9}(?:X|\d)/.test(value?.replaceAll("-", ""))) bookDetails['ISBN-10'] = value;
+                else if (/\d{13}/.test(value?.replaceAll("-", ""))) bookDetails['ISBN-13'] = value;
+                else bookDetails['UID'] = value;
                 break;
             case 'Format':
                 bookDetails['Reading Format'] = normalizeReadingFormat(value);
@@ -117,9 +129,9 @@ function extractEditionInfo(bookDetails) {
     });
 
     const durationEl = document.querySelector('p.text-sm.font-light');
-    if (document.querySelector('p.text-sm.font-light')) {
+    if (durationEl) {
         const value = durationEl.innerText.trim();
-        const timeMatch = value.match(/(\d+)\s*hours?\s*(?:,|and)?\s*(\d+)?\s*minutes?/i);
+        const timeMatch = value.match(/(\d+)\s*h(?:ours?)?\s*(?:,|and)?\s*(\d+)?\s*m(?:inutes?)?/i);
         const pagesMatch = value.match(/(\d+)\s*pages?/i);
 
         if (timeMatch) {
