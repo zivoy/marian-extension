@@ -337,6 +337,7 @@ export function normalizeReadingFormat(rawFormat) {
 
   if (
     format.includes("web") ||
+    format.includes("nook") ||
     format.includes("ebook") ||
     format.includes("e-book") ||
     format.includes("digital") ||
