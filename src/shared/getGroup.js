@@ -22,9 +22,11 @@ let searchList;       // search representation
 let rangeSearchList;
 
 /**
- *@param {{[prefix: string]: [string, [string, string][]]}} entries
+ *@param {{[prefix: string]: [string, [string, string][]]}} groups
  */
-function updateUtilityLists(entries) {
+function updateUtilityLists(groups) {
+  const entries = Object.entries((groups))
+
   compareList = entries.map(([key, [name]]) => [key.replace("-", ""), name]);
   searchList = entries.map(([key]) => parseFloat(key.replace("-", ".")));
   rangeSearchList = entries.map(([_, [_1, ranges]]) => ranges.map(item =>
@@ -33,8 +35,51 @@ function updateUtilityLists(entries) {
 }
 
 // Initialize the groups data into three parallel lists for efficient ISBN range lookups
-const entries = Object.entries((groups))
-updateUtilityLists(entries);
+updateUtilityLists(groups);
+
+const UPDATE_URL =
+  // "https://raw.githubusercontent.com/jacobtender/marian-extension/refs/heads/main/src/shared/groups.json";
+  "https://raw.githubusercontent.com/zivoy/marian-extension/refs/heads/isbn-matching/src/shared/groups.json";
+
+const UPDATE_RATE_DAYS = 2;
+
+updateLists();
+
+/**
+ * Update the data once every 2 weeks
+ *
+ */
+export async function updateLists() {
+  const api = typeof browser !== 'undefined' ? browser : chrome;
+  const storage = api.storage.local;
+  const updateRateMs = UPDATE_RATE_DAYS * 24 * 60 * 60 * 1000;
+
+  const lastUpdate = new Date(await storage.get("groups-lastupdate") ?? 0);
+
+  const now = new Date();
+  if ((now.getTime() - lastUpdate.getTime()) > updateRateMs) {
+    const data = await storage.get("groups-data");
+    console.log("Updating lists from stored list", data);
+    updateUtilityLists(data);
+    return;
+  };
+
+  console.log("Fetching from new data");
+
+  const response = await fetch(UPDATE_URL);
+  const data = await response.json();
+
+
+  console.log("Got data, updating lists", data);
+  updateUtilityLists(data);
+
+  await storage.set({ "groups-data": data });
+  await storage.set({ "groups-lastupdate": now.getTime() });
+}
+
+updateLists();
+
+// TODO: get latest version from url
 
 /** 
   * Searches a structured ISBN group registry to determine the publishing group/country for a given ISBN.
