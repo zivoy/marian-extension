@@ -61,6 +61,7 @@ Book pages on these sites are currently supported by Marian. To request support 
 
 #### Self Publishing
 
+- Archive of Our Own (AO3)
 - FanFiction.net
 - Royal Road
 - Scribble Hub
