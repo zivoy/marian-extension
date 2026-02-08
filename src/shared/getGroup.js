@@ -6,8 +6,15 @@ const entries = Object.entries(/**@type{{[prefix: string]: [string, [string, str
 // Create compareList with dashes removed from ISBN prefix keys for character-by-character verification
 /**@type{[string, string][]}*/
 const compareList = entries.map(([key, [name]]) => [key.replace("-", ""), name]); // tuple compare representation
-// Create searchList with float representations (e.g., "978-0123" → 978.0123) for binary search comparison
+
+// Create searchList with float representations (e.g., "978-1" → 978.1) for binary search comparison
 const searchList = entries.map(([key]) => parseFloat(key.replace("-", ".")));     // search representation
+
+// Create rangeSearchList with float representations (e.g., "0001" → 0.0001) for binary search comparison
+/**@type{[number, [number, number]][][]}*/
+const rangeSearchList = entries.map(([_, [_1, ranges]]) => ranges.map(item =>
+  [item[0].length, [parseFloat("0." + item[0]), parseFloat("0." + item[1])]]
+));
 
 /** 
   * Searches a structured ISBN group registry to determine the publishing group/country for a given ISBN.
@@ -29,8 +36,57 @@ export function searchIsbn(isbn) {
   return item.name;
 }
 
+/** 
+  * adds hyphens to an isbn in the correct locations
+  * returns original string if no match found
+  *
+  * @param {string} isbn ISBN-13 or ISBN-10
+  * @returns {string} hyphenated or original isbn
+  */
+export function hyphenate(isbn) {
+  const item = getPrefix(isbn);
+  if (item == undefined) return isbn;
+  isbn = isbn.replaceAll("-", ""); // remove dashes
+
+  let parts = [];
+  // prefix
+  if (!item.is10) {
+    parts.push(item.prefix.slice(0, 3));
+  }
+  // group
+  parts.push(item.prefix.slice(3))
+
+  // get the rest of the isbn without the prefix, if it was a isbn10 then ignore the 3 long prefix
+  const rest = isbn.slice(item.prefix.length - (item.is10 ? 3 : 0));
+  const searchRepr = parseFloat("0." + rest);
+
+  const searchRanges = rangeSearchList[item.idx];
+  let idx = 0;
+  for (; idx < searchRanges.length; idx++) {
+    const range = searchRanges[idx][1];
+    if (searchRepr >= range[0] && searchRepr <= range[1]) {
+      break;
+    }
+  }
+
+  if (idx === searchRanges.length) {
+    // reached end without match, publisher boundary unknown, treat as mixed
+    parts.push(rest.slice(0, rest.length - 1));
+  } else {
+    const length = searchRanges[idx][0];
+    // publisher
+    parts.push(rest.slice(0, length));
+    // title
+    parts.push(rest.slice(length, rest.length - 1));
+  }
+
+  // check digit
+  parts.push(rest.slice(rest.length - 1));
+  return parts.join("-");
+}
+
 /**
-  * @param {string} isbn 
+  * @param {string} isbn
   * @returns {{prefix:string, name: string, is10: bool, idx: number}|undefined}
   */
 function getPrefix(isbn) {

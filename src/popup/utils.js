@@ -1,5 +1,5 @@
 import SettingsManager from "./settings";
-import { searchIsbn } from "../shared/getGroup.js";
+import { hyphenate, searchIsbn } from "../shared/getGroup.js";
 import { normalizeUrl } from "../extractors";
 
 let __lastFetchedNorm = '';
@@ -153,6 +153,14 @@ export function normalizeDetails(details, settings, inplace = true) {
       }
     } catch { }
   }
+
+  // Correct hyphenation on ISBNs
+  try {
+    details["ISBN-10"] = hyphenate(details["ISBN-10"])
+  } catch { }
+  try {
+    details["ISBN-13"] = hyphenate(details["ISBN-13"])
+  } catch { }
 
   // Add listening length in seconds
   if (details["Listening Length"] && details["Listening Length"].length >= 1) {
