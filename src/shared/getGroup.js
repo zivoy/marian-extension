@@ -38,8 +38,7 @@ function updateUtilityLists(groups) {
 updateUtilityLists(groups);
 
 const UPDATE_URL =
-  // "https://raw.githubusercontent.com/jacobtender/marian-extension/refs/heads/main/src/shared/groups.json";
-  "https://raw.githubusercontent.com/zivoy/marian-extension/refs/heads/isbn-matching/src/shared/groups.json";
+  "https://raw.githubusercontent.com/jacobtender/marian-extension/refs/heads/main/src/shared/groups.json";
 
 const UPDATE_RATE_DAYS = 2;
 
@@ -59,7 +58,9 @@ export async function updateLists() {
   const now = new Date();
   if ((now.getTime() - lastUpdate.getTime()) > updateRateMs) {
     const data = await storage.get("groups-data");
-    console.log("Updating lists from stored list", data);
+    if (!isValidStructure(data)) return;
+
+    console.log("Updating lists from stored list");
     updateUtilityLists(data);
     return;
   };
@@ -69,17 +70,46 @@ export async function updateLists() {
   const response = await fetch(UPDATE_URL);
   const data = await response.json();
 
+  await storage.set({ "groups-lastupdate": now.getTime() });
 
-  console.log("Got data, updating lists", data);
-  updateUtilityLists(data);
+  if (!isValidStructure(data)) {
+    console.log("Invalid object recived", data);
+    return;
+  }
 
   await storage.set({ "groups-data": data });
-  await storage.set({ "groups-lastupdate": now.getTime() });
+
+  console.log("Got data, updating lists");
+  updateUtilityLists(data);
 }
 
-updateLists();
+function isValidStructure(obj) {
+  // 1. Check if it's a non-null object
+  if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+    return false;
+  }
 
-// TODO: get latest version from url
+  // 2. Iterate through every key (the "prefix")
+  return Object.values(obj).every(entry => {
+    // Check if the entry is an array with exactly 2 elements: [string, [string, string][]]
+    if (!Array.isArray(entry) || entry.length !== 2) return false;
+
+    const [label, pairs] = entry;
+
+    // 3. Validate the first element is a string
+    if (typeof label !== 'string') return false;
+
+    // 4. Validate the second element is an array of pairs
+    if (!Array.isArray(pairs)) return false;
+
+    return pairs.every(pair =>
+      Array.isArray(pair) &&
+      pair.length === 2 &&
+      typeof pair[0] === 'string' &&
+      typeof pair[1] === 'string'
+    );
+  });
+}
 
 /** 
   * Searches a structured ISBN group registry to determine the publishing group/country for a given ISBN.
