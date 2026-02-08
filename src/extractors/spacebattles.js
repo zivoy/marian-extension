@@ -1,4 +1,4 @@
-import { addContributor, cleanText, collectObject, fetchHTML, getCoverData, getFormattedText, normalizeReadingFormat, remapKeys } from "../shared/utils.js";
+import { addContributor, cleanText, collectObject, getFormattedText, remapKeys } from "../shared/utils.js";
 import { Extractor } from "./AbstractExtractor.js"
 
 
