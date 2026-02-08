@@ -1,11 +1,13 @@
-import groups from "./groups.json"
+import groups from "./groups.json";
 
 // Initialize the groups data into two parallel lists for efficient ISBN range lookups
-let compareList = Object.entries(groups)
-// Create searchList with float representations (e.g., "978-0-123" → 978.0123) for binary search comparison
-const searchList = compareList.map(([key]) => parseFloat(key.replace("-", ".")));  // search representation
-// Transform compareList to remove dashes from ISBN prefix keys for character-by-character verification
-compareList = compareList.map(([key, value]) => [key.replace("-", ""), value[0]]); // tuple compare representation
+const entries = Object.entries(/**@type{{[prefix: string]: [string, [string, string][]]}}*/(groups))
+
+// Create compareList with dashes removed from ISBN prefix keys for character-by-character verification
+/**@type{[string, string][]}*/
+const compareList = entries.map(([key, [name]]) => [key.replace("-", ""), name]); // tuple compare representation
+// Create searchList with float representations (e.g., "978-0123" → 978.0123) for binary search comparison
+const searchList = entries.map(([key]) => parseFloat(key.replace("-", ".")));     // search representation
 
 /** 
   * Searches a structured ISBN group registry to determine the publishing group/country for a given ISBN.
@@ -22,13 +24,26 @@ compareList = compareList.map(([key, value]) => [key.replace("-", ""), value[0]]
   * @throws {Error} If ISBN is not exactly 10 or 13 digits
   */
 export function searchIsbn(isbn) {
+  const item = getPrefix(isbn);
+  if (item == undefined) return undefined;
+  return item.name;
+}
+
+/**
+  * @param {string} isbn 
+  * @returns {{prefix:string, name: string, is10: bool, idx: number}|undefined}
+  */
+function getPrefix(isbn) {
   // Normalize input: remove all dashes to get clean digit string
   isbn = isbn.replaceAll("-", ""); // remove dashes
   if (isbn.length !== 13 && isbn.length !== 10) {
     throw new Error("Unsupported isbn");
   }
+
   // Convert ISBN-10 to ISBN-13 by prepending the standard prefix
+  let is10 = false;
   if (isbn.length === 10) {
+    is10 = true;
     isbn = "978" + isbn;
   }
   // All subsequent logic operates on ISBN-13 format
@@ -57,6 +72,6 @@ export function searchIsbn(isbn) {
       return undefined;
     }
   }
-  // Return the group name associated with the matched prefix
-  return item[1];
+  // Return the group info associated with the matched prefix
+  return { name: item[1], prefix: item[0], is10, idx };
 }
