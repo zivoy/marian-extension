@@ -11,6 +11,9 @@ Marian the Librarian helps [Hardcover.app](https://hardcover.app/join?referrer_i
 ### Supported Sites
 Book pages on these sites are currently supported by Marian. To request support for another site, [create an issue](https://github.com/jacobtender/marian-extension/issues/new?template=site-support-request.md) or submit a pull request.
 
+<details open>
+<summary>List of supported sites</summary>
+
 #### Retailers
 
 - AbeBooks (ZVAB, IberLibro)
@@ -66,6 +69,8 @@ Book pages on these sites are currently supported by Marian. To request support 
 - Royal Road
 - Scribble Hub
 - Spacebattles
+
+</details>
 
 ## Creating an extractor
 
