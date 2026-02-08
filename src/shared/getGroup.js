@@ -3,9 +3,9 @@ import groups from "./groups.json"
 // Initialize the groups data into two parallel lists for efficient ISBN range lookups
 let compareList = Object.entries(groups)
 // Create searchList with float representations (e.g., "978-0-123" → 978.0123) for binary search comparison
-const searchList = compareList.map(item => parseFloat(item[0].replace("-", "."))); // search representation
+const searchList = compareList.map(([key]) => parseFloat(key.replace("-", ".")));  // search representation
 // Transform compareList to remove dashes from ISBN prefix keys for character-by-character verification
-compareList = compareList.map(item => [item[0].replace("-", ""), item[1]]); // tuple compare representation
+compareList = compareList.map(([key, value]) => [key.replace("-", ""), value[0]]); // tuple compare representation
 
 /** 
   * Searches a structured ISBN group registry to determine the publishing group/country for a given ISBN.

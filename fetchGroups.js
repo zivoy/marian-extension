@@ -25,7 +25,31 @@ async function getFileUrl() {
   return `${domain}/download_range/${value}/${filename}`;
 }
 
-const filepath = ""; // "./RangeMessage.xml";
+function stringify(/**@type{{[prefix:string]: {name:string, ranges: [string,string][]}}}*/object) {
+  let output = "{\n";
+  const entries = Object.entries(object);
+  entries.forEach(([key, value], i) => {
+    output += `  "${key}": ["${value.name}", [`;
+    value.ranges.forEach((range, j) => {
+      output += `["${range[0]}", "${range[1]}"]`
+      if (j !== value.ranges.length - 1) {
+        output += ", ";
+      }
+    });
+    output += "]]";
+    if (i !== entries.length - 1) {
+      output += ",";
+    }
+    output += "\n";
+
+  });
+  output += "}";
+  return output;
+}
+
+// ----
+
+const filepath = "./RangeMessage.xml";
 
 let start;
 if (filepath) {
@@ -40,9 +64,17 @@ if (filepath) {
 start
   .then(parseString)
   .then(json => json["ISBNRangeMessage"]["RegistrationGroups"][0]["Group"]) // get groups
-  .then(groups => groups.map(group => ({ [group["Prefix"][0]]: group["Agency"][0] }))) // get a list of maps of prefix to group name
+  .then(groups => groups.map(group => ({
+    [group["Prefix"][0]]: {
+      name: group["Agency"][0], ranges: group["Rules"][0]["Rule"].map(rule => {
+        const length = parseInt(rule["Length"][0]);
+        if (length === 0) return [];
+        return rule["Range"][0].split("-").map(i => i.substring(0, length))
+      }).filter(rule => rule.length != 0)
+    }
+  }))) // get a list of maps of prefix to group name
   .then(groups => groups.reduce((acc, obj) => ({ ...acc, ...obj }), {})) // flatten it
-  .then(list => JSON.stringify(list, undefined, 2))
+  .then(stringify)
   .then(str => fs.writeFile("./src/shared/groups.json", str))
   .catch(console.error);
 
