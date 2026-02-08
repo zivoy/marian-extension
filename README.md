@@ -149,3 +149,11 @@ To test the absolute latest changes before they are released:
  - Use directly
    - **On Chrome:** Enable Developer mode and drag the zip file onto the window (if you just enabled it refresh first)
    - **On Firefox:** Go to Debugging Add-ons ([about:debugging#/runtime/this-firefox](about:debugging#/runtime/this-firefox)) and click Load Temporary Add-on and select the zip file
+
+### Updating the groups json file
+
+In the event where a new group is registered, the [groups.json](./src/shared/groups.json) file can be updating by running
+
+```bash
+npm run update-groups
+```

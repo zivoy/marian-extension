@@ -1,4 +1,5 @@
 import SettingsManager from "./settings";
+import { searchIsbn } from "../shared/getGroup.js";
 import { normalizeUrl } from "../extractors";
 
 let __lastFetchedNorm = '';
@@ -138,7 +139,20 @@ export function normalizeDetails(details, settings, inplace = true) {
   }
 
   // Insert country (or language) from ISBN if not present
-  // See pr #70
+  const isbn = details["ISBN-13"] || details["ISBN-10"];
+  if (isbn != undefined) {
+    try {
+      const groupName = searchIsbn(isbn);
+      if (groupName != undefined) {
+        if (groupName.toLowerCase().endsWith("language")) {
+          const language = groupName.split("language")[0].trim();
+          details["Language"] = details["Language"] || language
+        } else {
+          details["Country"] = details["Country"] || groupName
+        }
+      }
+    } catch { }
+  }
 
   // Add listening length in seconds
   if (details["Listening Length"] && details["Listening Length"].length >= 1) {
@@ -193,6 +207,7 @@ export function normalizeDetails(details, settings, inplace = true) {
     if (details["ISBN-10"]) details["ISBN-10"] = details["ISBN-10"].replaceAll("-", "");
     if (details["ISBN-13"]) details["ISBN-13"] = details["ISBN-13"].replaceAll("-", "");
   } else if (settings.hyphenateIsbn === "yes") {
+    // see #104
     throw "Not implemented";
   }
 
