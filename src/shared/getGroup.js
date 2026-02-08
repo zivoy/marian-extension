@@ -1,20 +1,40 @@
 import groups from "./groups.json";
 
+/**
+ * Compare list with dashes removed from ISBN prefix keys for character-by-character verification
+ *
+ * @type{undefined|[string, string][]}
+ */
+let compareList;      // tuple compare representation
+
+/**
+ * Search list float representations (e.g., "978-1" → 978.1) for comparison
+ *
+ * @type{undefined|[number, [number, number]][][]}
+ */
+let searchList;       // search representation
+
+/**
+ * rangeSearchList is float representations (e.g., "0001" → 0.0001) for range comparison
+ *
+ * @type{undefined|[number, [number, number]][][]}
+ */
+let rangeSearchList;
+
+/**
+ *@param {{[prefix: string]: [string, [string, string][]]}} entries
+ */
+function updateUtilityLists(entries) {
+  compareList = entries.map(([key, [name]]) => [key.replace("-", ""), name]);
+  searchList = entries.map(([key]) => parseFloat(key.replace("-", ".")));
+  rangeSearchList = entries.map(([_, [_1, ranges]]) => ranges.map(item =>
+    [item[0].length, [parseFloat(`0.${item[0]}`), parseFloat(`0.${item[1]}`)]]
+  ));
+}
+
 // Initialize the groups data into three parallel lists for efficient ISBN range lookups
-const entries = Object.entries(/**@type{{[prefix: string]: [string, [string, string][]]}}*/(groups))
-
-// Create compareList with dashes removed from ISBN prefix keys for character-by-character verification
-/**@type{[string, string][]}*/
-const compareList = entries.map(([key, [name]]) => [key.replace("-", ""), name]); // tuple compare representation
-
-// Create searchList with float representations (e.g., "978-1" → 978.1) for comparison
-const searchList = entries.map(([key]) => parseFloat(key.replace("-", ".")));     // search representation
-
-// Create rangeSearchList with float representations (e.g., "0001" → 0.0001) for range comparison
-/**@type{[number, [number, number]][][]}*/
-const rangeSearchList = entries.map(([_, [_1, ranges]]) => ranges.map(item =>
-  [item[0].length, [parseFloat("0." + item[0]), parseFloat("0." + item[1])]]
-));
+const entries = Object.entries((groups))
+updateUtilityLists(entries);
 
 /** 
   * Searches a structured ISBN group registry to determine the publishing group/country for a given ISBN.
@@ -92,6 +112,8 @@ export function hyphenate(isbn) {
   * @returns {{prefix:string, name: string, is10: boolean, idx: number}|undefined}
   */
 function getPrefix(isbn) {
+  if (compareList === undefined || searchList === undefined || rangeSearchList === undefined) throw Error("Lists not initialized");
+
   // Normalize input: remove all dashes to get clean digit string
   isbn = isbn.replaceAll("-", ""); // remove dashes
   if (isbn.length !== 13 && isbn.length !== 10) {
