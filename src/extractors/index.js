@@ -32,6 +32,7 @@ import { scribbleHubScraper } from "./scribblehub";
 import { spacebattlesScraper } from "./spacebattles";
 import { storygraphScraper } from "./storygraph";
 import { torPublishingScraper } from "./torpub";
+import { wattpadScraper } from "./wattpad";
 import { worldCatScraper } from "./worldcat";
 
 /** @type{Extractor[]} */
@@ -69,6 +70,7 @@ const extractors = [
   new storygraphScraper(),
   new teachingbooksScraper(),
   new torPublishingScraper(),
+  new wattpadScraper(),
   new worldCatScraper(),
 ];
 

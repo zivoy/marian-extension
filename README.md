@@ -69,6 +69,7 @@ Book pages on these sites are currently supported by Marian. To request support 
 - Royal Road
 - Scribble Hub
 - Spacebattles
+- Wattpad
 
 </details>
 
