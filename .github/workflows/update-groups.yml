@@ -2,7 +2,7 @@ name: Monthly Groups Update
 
 on:
   schedule:
-    - cron: "0 0 1 * *" # Runs at midnight on the first day of every month
+    - cron: "0 0 * * 0" # Runs at midnight on Sunday of every week
   workflow_dispatch: # Allows manual triggering of the workflow
 
 jobs:
