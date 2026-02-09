@@ -1,4 +1,4 @@
-import { addContributor, cleanText, collectObject, getCoverData, getFormattedText, normalizeReadingFormat, remapKeys } from "../shared/utils.js";
+import { addContributor, addMapping, cleanText, collectObject, getCoverData, getFormattedText, normalizeReadingFormat, remapKeys } from "../shared/utils.js";
 import { Extractor } from "./AbstractExtractor.js"
 
 class myAnimeListScraper extends Extractor {
@@ -15,6 +15,7 @@ class myAnimeListScraper extends Extractor {
       getTitle(),
       getDescription(),
       getMetadata(),
+      getMappings(),
     ]);
 
     if (details["Alt Titles"] && details["Title"]) {
@@ -31,6 +32,12 @@ async function getCover() {
   const el = document.querySelector(`.borderClass img`);
   if (!el) return {};
   return getCoverData(el.src);
+}
+
+function getMappings() {
+  const match = document.location.href.match(/\/manga\/(\d+)/);
+  if (!match) return {};
+  return { "Mappings": { "MyAnimeList": [match[1]] } };
 }
 
 function getTitle() {
@@ -63,7 +70,7 @@ function getMetadata() {
     const itemTitleEl = itemClone.querySelector(`span.dark_text`);
     itemTitleEl.remove()
 
-    let title = cleanText(itemTitleEl.textContent.replaceAll(":", ""));
+    const title = cleanText(itemTitleEl.textContent.replaceAll(":", ""));
     let value = cleanText(itemClone.textContent);
 
     if (heading === "Alternative Titles") {
@@ -88,7 +95,7 @@ function getMetadata() {
 
       if (title === "Authors") {
         let currContributor;
-        let contributors = details["Contributors"] ?? [];
+        const contributors = details["Contributors"] ?? [];
         for (const node of itemClone.childNodes) {
           const nodeType = node.nodeName;
           const nodeContent = cleanText(node.textContent);

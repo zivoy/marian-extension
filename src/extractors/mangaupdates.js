@@ -1,4 +1,4 @@
-import { addContributor, cleanText, collectObject, getCoverData, getFormattedText, normalizeReadingFormat } from "../shared/utils.js";
+import { addContributor, addMapping, cleanText, collectObject, getCoverData, getFormattedText, normalizeReadingFormat } from "../shared/utils.js";
 import { Extractor } from "./AbstractExtractor.js"
 
 class mangaUpdatesScraper extends Extractor {
@@ -16,8 +16,15 @@ class mangaUpdatesScraper extends Extractor {
       getDescription(),
       getMetadata(),
       getAltTitles(),
+      getMappings(),
     ]);
   }
+}
+
+function getMappings() {
+  const match = document.location.href.match(/\/series\/([a-z0-9]+)/);
+  if (!match) return {};
+  return { "Mappings": { "MangaUpdates": [match[1]] } };
 }
 
 async function getCover() {

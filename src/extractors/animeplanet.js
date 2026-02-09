@@ -1,4 +1,4 @@
-import { cleanText, collectObject, getCoverData, getFormattedText, normalizeReadingFormat } from "../shared/utils.js";
+import { addMapping, cleanText, collectObject, getCoverData, getFormattedText, normalizeReadingFormat } from "../shared/utils.js";
 import { Extractor } from "./AbstractExtractor.js"
 
 class animePlanetScraper extends Extractor {
@@ -16,8 +16,15 @@ class animePlanetScraper extends Extractor {
       getDescription(),
       getAltTitles(),
       getMetadata(),
+      getMappings(),
     ]);
   }
+}
+
+function getMappings() {
+  const match = document.location.href.match(/\/manga\/([^/]+)/);
+  if (!match) return {};
+  return { "Mappings": { "AnimePlanet": [match[1]] } };
 }
 
 async function getCover() {

@@ -13,7 +13,8 @@ class kitsuScraper extends Extractor {
     return collectObject([
       getCover(),
       getDescription(),
-      getDetails(),
+      getMetadata(),
+      getMappings(),
       // getTags(),
     ]);
   }
@@ -23,6 +24,14 @@ async function getCover() {
   const el = document.querySelector(`.media-sidebar--sticky img`);
   if (!el) return {};
   return getCoverData(el.src);
+}
+
+function getMappings() {
+  const el = document.querySelector(`.media-sidebar--sticky img`);
+  if (!el) return {};
+  const match = el.src.match(/\/(\d+)\//);
+  if (!match) return {};
+  return { "Mappings": { "Kitsu": [match[1]] } };
 }
 
 function getTitle() {
@@ -52,7 +61,7 @@ function getTags() {
   return { "Tags": tags };
 }
 
-async function getDetails() {
+async function getMetadata() {
   const info = document.querySelector(`.media-summary .media--information`);
   if (!info) return;
 
@@ -74,6 +83,8 @@ async function getDetails() {
     const valueEl = el.querySelector(`span`);
     if (!labelEl || !valueEl) continue;
     const label = cleanText(labelEl.textContent);
+    if (label === "Type" || label === "Status") gatherTitles = false;
+
     let value = cleanText(valueEl.textContent);
 
     // title part ends with synonyms
