@@ -24,6 +24,7 @@ import { koboScraper } from "./kobo";
 import { libbyScraper, overdriveScraper, teachingbooksScraper } from "./overdrive";
 import { libraryThingScraper } from "./librarything";
 import { librofmScraper } from "./librofm";
+import { mangaDexScraper } from "./mangadex";
 import { mangaUpdatesScraper } from "./mangaupdates";
 import { myAnimeListScraper } from "./myanimelist";
 import { novelUpdatesScraper } from "./novelupdates";
@@ -63,6 +64,7 @@ const extractors = [
   new libbyScraper(),
   new libraryThingScraper(),
   new librofmScraper(),
+  new mangaDexScraper(),
   new mangaUpdatesScraper(),
   new myAnimeListScraper(),
   new novelUpdatesScraper(),
