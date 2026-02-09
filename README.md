@@ -30,6 +30,7 @@ Book pages on these sites are currently supported by Marian. To request support 
 
 - Anime-Planet
 - Goodreads
+- Kitsu
 - LibraryThing
 - MangaUpdates
 - MyAnimeList
