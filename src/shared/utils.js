@@ -308,7 +308,7 @@ export function addMapping(mappings, name, ids) {
  * @returns {string} Sanitized text with normalized spacing.
  */
 export function cleanText(text) {
-  if (!text) return '';
+  if (!text || text == null) return '';
   return text
     .normalize('NFKC')                                        // Normalize Unicode to one style
     .replace(/\p{Cf}/gu, '')                                  // Remove Unicode control chars
