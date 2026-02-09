@@ -3,6 +3,7 @@ import { Extractor } from "./AbstractExtractor";
 
 import { abeBooksScraper } from "./abebooks";
 import { amazonScraper } from "./amazon";
+import { anilistScraper } from "./anilist";
 import { animePlanetScraper } from "./animeplanet";
 import { archiveOfOurOwnScraper } from "./ao3";
 import { audibleScraper } from "./audible";
@@ -43,6 +44,7 @@ import { worldCatScraper } from "./worldcat";
 const extractors = [
   new abeBooksScraper(),
   new amazonScraper(),
+  new anilistScraper(),
   new animePlanetScraper(),
   new archiveOfOurOwnScraper(),
   new audibleScraper(),

@@ -28,6 +28,7 @@ Book pages on these sites are currently supported by Marian. To request support 
 
 #### Online Trackers & Social
 
+- Anilist
 - Anime-Planet
 - Goodreads
 - Kitsu
