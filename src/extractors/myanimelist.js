@@ -10,12 +10,20 @@ class myAnimeListScraper extends Extractor {
   ];
 
   async getDetails() {
-    return collectObject([
+    const details = await collectObject([
       getCover(),
       getTitle(),
       getDescription(),
       getMetadata(),
     ]);
+
+    if (details["Alt Titles"] && details["Title"]) {
+      const altTitles = new Set(details["Alt Titles"]);
+      altTitles.delete(details["Title"]);
+      details["Alt Titles"] = [...altTitles];
+    }
+
+    return details;
   }
 }
 
@@ -26,7 +34,8 @@ async function getCover() {
 }
 
 function getTitle() {
-  const title = document.querySelector(`.h1-title`)?.textContent;
+  const titleEl = document.querySelector(`.h1-title .title-english`) ?? document.querySelector(".h1-title");
+  const title = titleEl?.textContent;
   if (!title) return {};
   return { "Title": cleanText(title) }
 }
@@ -110,6 +119,16 @@ function getMetadata() {
       }
 
       details[title] = value;
+    }
+  }
+
+  if (document.querySelector(`.h1-title .title-english`)) {
+    const titleElClone = document.querySelector(`.h1-title`)?.cloneNode(true);
+    titleElClone?.querySelector(`.title-english`)?.remove();
+    if (titleElClone) {
+      const altTitles = details["Alt Titles"] ?? [];
+      altTitles.push(cleanText(titleElClone.textContent));
+      details["Alt Titles"] = altTitles;
     }
   }
 
