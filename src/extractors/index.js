@@ -23,6 +23,7 @@ import { libbyScraper, overdriveScraper, teachingbooksScraper } from "./overdriv
 import { libraryThingScraper } from "./librarything";
 import { librofmScraper } from "./librofm";
 import { mangaUpdatesScraper } from "./mangaupdates";
+import { myAnimeListScraper } from "./myanimelist";
 import { novelUpdatesScraper } from "./novelupdates";
 import { openlibraryScraper } from "./openlibrary";
 import { penguinRandomHouseScraper } from "./penguinrandomhouse";
@@ -59,6 +60,7 @@ const extractors = [
   new libraryThingScraper(),
   new librofmScraper(),
   new mangaUpdatesScraper(),
+  new myAnimeListScraper(),
   new novelUpdatesScraper(),
   new openlibraryScraper(),
   new overdriveScraper(),
