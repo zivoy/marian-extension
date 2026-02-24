@@ -11,7 +11,12 @@ chrome.runtime.onInstalled.addListener(async () => {
   }
 });
 
+let isStartup = false;
+const explicitOpenRequests = new Set();
+
 chrome.runtime.onStartup.addListener(async () => {
+  isStartup = true;
+  setTimeout(() => { isStartup = false; }, 5000);
   await activeSidebarWindows.clear();
 });
 
@@ -129,6 +134,7 @@ chrome.action.onClicked.addListener((tab) => {
     return;
   }
 
+  explicitOpenRequests.add(tab.windowId);
   openSidebar(tab);
 
   // wait for pane before requesting a refresh
@@ -162,9 +168,9 @@ chrome.tabs.onActivated.addListener(() => {
 
 // Listen for messages from the content script.
 runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request == undefined) return false;
+  if (request == null) return false;
 
-  if (request.type === "REFRESH_ICON" && request.tab != undefined) {
+  if (request.type === "REFRESH_ICON" && request.tab != null) {
     const tabId = request.tab.id;
     const url = request.tab.url;
     if (typeof tabId === "number") {
@@ -181,6 +187,12 @@ runtime.onMessage.addListener((request, sender, sendResponse) => {
       delete windowReady[request.windowId];
     }
 
+    if (isStartup && typeof request.windowId === "number" && !explicitOpenRequests.has(request.windowId)) {
+      setTimeout(() => {
+        safeRuntimeSend({ type: "CLOSE_SIDEBAR", windowId: request.windowId });
+      }, 100);
+    }
+
     (async () => {
       if (typeof request.windowId === "number") {
         await activeSidebarWindows.add(request.windowId);
@@ -194,6 +206,7 @@ runtime.onMessage.addListener((request, sender, sendResponse) => {
     (async () => {
       if (typeof request.windowId === "number") {
         await activeSidebarWindows.delete(request.windowId);
+        explicitOpenRequests.delete(request.windowId);
       }
       if (typeof sendResponse === "function") sendResponse(true);
     })();
@@ -209,6 +222,7 @@ runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 chrome.windows.onRemoved.addListener(async (windowId) => {
   await activeSidebarWindows.delete(windowId);
+  explicitOpenRequests.delete(windowId);
 });
 
 async function handleFetchRequest(url) {

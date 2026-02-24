@@ -1,10 +1,10 @@
 import { isAllowedUrl } from "../extractors";
 import { tryGetDetails } from "./messaging.js";
 import {
-  showStatus, showDetails, renderDetails, initSidebarLogger,
-  addRefreshButton, updateRefreshButtonForUrl
+  addRefreshButton, initSidebarLogger,renderDetails, showDetails, 
+  showStatus, updateRefreshButtonForUrl
 } from "./ui.js";
-import { setLastFetchedUrl, getCurrentTab, notifyBackground, rememberWindowId, isForThisSidebar } from "./utils.js";
+import { getCurrentTab, isForThisSidebar, notifyBackground, rememberWindowId, setLastFetchedUrl } from "./utils.js";
 
 const DEBUG = false;
 
@@ -32,6 +32,13 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg?.type === "CLOSE_SIDEBAR") {
+    if (isForThisSidebar(msg.windowId)) {
+      window.close();
+    }
+    return;
+  }
+
   if (msg?.type === "SIDEBAR_PING") {
     if (isForThisSidebar(msg.windowId)) {
       sendResponse("pong");
@@ -42,7 +49,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "REFRESH_SIDEBAR" && isForThisSidebar(msg.windowId) && msg.url && isAllowedUrl(msg.url)) {
     (async () => {
       showStatus("Loading details...");
-      let tab = await getCurrentTab();
+      const tab = await getCurrentTab();
       try {
         const details = await tryGetDetails(tab);
         showDetails();
