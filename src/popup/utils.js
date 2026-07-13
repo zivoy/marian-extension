@@ -30,7 +30,8 @@ export const orderedKeys = [
   'Edition Information',
   'Publication date',
   'Language',
-  'Country'
+  'Country',
+  'Original Publication date',
 ];
 /**
  * Keys for all the elements that are used by hardcover
@@ -200,6 +201,10 @@ export function normalizeDetails(details, settings, inplace = true) {
   // format date
   if (details["Publication date"]) {
     details["Publication date"] = formatDate(details["Publication date"], settings.dateFormat);
+  }
+
+  if (details["Original Publication date"]) {
+    details["Original Publication date"] = formatDate(details["Original Publication date"], settings.dateFormat);
   }
 
   // Correct hyphenation on ISBNs according to settings
