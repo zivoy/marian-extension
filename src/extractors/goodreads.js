@@ -85,6 +85,8 @@ function getBookDetails(apolloData, bookDetails) {
     if ("numPages" in details && details.numPages > 0) bookDetails["Pages"] = details.numPages;
   }
 
+  bookDetails['Original Publication date'] = getOriginalPublicationDate(apolloData, bookData);
+
   // series
   const bookSeries = bookData["bookSeries"];
   if (bookSeries && bookSeries.length > 0) {
@@ -122,6 +124,15 @@ function getContributor(apolloData, contributorObject) {
   const name = contributor.name;
 
   return { name, role }
+}
+
+function getOriginalPublicationDate(apolloData, bookData) {
+  const workRef = bookData?.work?.__ref;
+  if (!workRef) return null;
+
+  const workData = apolloData[workRef];
+  const publicationTime = workData?.details?.publicationTime;
+  return publicationTime ? new Date(publicationTime) : null;
 }
 
 export { goodreadsScraper };
