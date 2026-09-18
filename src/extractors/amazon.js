@@ -35,7 +35,7 @@ class amazonScraper extends Extractor {
     const audibleDetails = getAudibleDetails();
     const contributors = extractAmazonContributors();
 
-    bookDetails["Edition Format"] = getSelectedFormat() || '';
+    bookDetails["Edition Format"] ||= getSelectedFormat() || '';
     bookDetails["Title"] = cleanText(document.querySelector('#productTitle')?.innerText);
     bookDetails["Description"] = getBookDescription() || '';
     bookDetails["Contributors"] = contributors;
@@ -198,8 +198,8 @@ function getDetailBullets() {
 
     if ((label === 'Edition' || label === 'Version') && value) {
       details[label] = value;
-      if (label === 'Edition' && !details['Edition Format']) {
-        details['Edition Format'] = value;
+      if (label === 'Edition' && !details['Edition Information']) {
+        details['Edition Information'] = value;
       }
       return;
     }
@@ -235,9 +235,15 @@ function getDetailBullets() {
     }
   }
 
+  if ("Program Type" in details && !("Edition Format" in details)) {
+    details["Edition Format"] = details["Program Type"];
+    delete details["Program Type"];
+  }
+
   return details;
 }
 
+// This might be deprecated
 function getAudibleDetails() {
   const table = document.querySelector('#audibleProductDetails table');
   if (!table) return {};
