@@ -91,6 +91,7 @@ class amazonScraper extends Extractor {
       delete bookDetails["ASIN"];
       bookDetails["Amazon ASIN"] = asin;
       audibleDetails["ASIN"] = audibleAsin;
+      audibleDetails["Reading Format"] ||= bookDetails["Reading Format"];
       apiPromise = fetchApiDetails(audibleAsin, audibleDetails);
     }
 
@@ -236,8 +237,16 @@ function getDetailBullets() {
   }
 
   if ("Program Type" in details && !("Edition Format" in details)) {
-    details["Edition Format"] = details["Program Type"];
+    if (details["Program Type"] == "Audiobook"){
+      details["Edition Format"] = "Audible";
+    } else {
+      details["Edition Format"] = details["Program Type"];
+    }
     delete details["Program Type"];
+  }
+
+  if (typeof details["Listening Length"] === "string") {
+    details["Listening Length"] = details["Listening Length"].split("and").map(cleanText)
   }
 
   return details;
