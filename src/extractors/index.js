@@ -8,6 +8,7 @@ import { animePlanetScraper } from "./animeplanet";
 import { archiveOfOurOwnScraper } from "./ao3";
 import { audibleScraper } from "./audible";
 import { barnesAndNobleScraper } from "./barnesnoble";
+import { blackstoneLibaryScraper } from "./blackstoneLibary";
 import { booksAMillionScraper } from "./booksamillion";
 import { bookshopScraper } from "./bookshopOrg";
 import { dnbdeScraper } from "./dnbde";
@@ -20,6 +21,7 @@ import { isbnSearchScraper } from "./isbnsearch";
 import { isbndbScraper } from "./isbndb";
 import { isbndeScraper } from "./isbnde";
 import { isfdbScraper } from "./isfdb";
+import { kakaobooksScraper } from "./kakaobooks";
 import { kitsuScraper } from "./kitsu";
 import { koboScraper } from "./kobo";
 import { libbyScraper, listeningBooksScraper, overdriveScraper, teachingbooksScraper } from "./overdrive";
@@ -50,6 +52,7 @@ const extractors = [
   new archiveOfOurOwnScraper(),
   new audibleScraper(),
   new barnesAndNobleScraper(),
+  new blackstoneLibaryScraper(),
   new booksAMillionScraper(),
   new bookshopScraper(),
   new dnbdeScraper(),
@@ -62,6 +65,7 @@ const extractors = [
   new isbndbScraper(),
   new isbndeScraper(),
   new isfdbScraper(),
+  new kakaobooksScraper(),
   new kitsuScraper(),
   new koboScraper(),
   new libbyScraper(),
