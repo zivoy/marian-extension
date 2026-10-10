@@ -35,7 +35,7 @@ class amazonScraper extends Extractor {
     const audibleDetails = getAudibleDetails();
     const contributors = extractAmazonContributors();
 
-    bookDetails["Edition Format"] = getSelectedFormat() || '';
+    bookDetails["Edition Format"] ||= getSelectedFormat() || '';
     bookDetails["Title"] = cleanText(document.querySelector('#productTitle')?.innerText);
     bookDetails["Description"] = getBookDescription() || '';
     bookDetails["Contributors"] = contributors;
@@ -91,6 +91,7 @@ class amazonScraper extends Extractor {
       delete bookDetails["ASIN"];
       bookDetails["Amazon ASIN"] = asin;
       audibleDetails["ASIN"] = audibleAsin;
+      audibleDetails["Reading Format"] ||= bookDetails["Reading Format"];
       apiPromise = fetchApiDetails(audibleAsin, audibleDetails);
     }
 
@@ -198,8 +199,8 @@ function getDetailBullets() {
 
     if ((label === 'Edition' || label === 'Version') && value) {
       details[label] = value;
-      if (label === 'Edition' && !details['Edition Format']) {
-        details['Edition Format'] = value;
+      if (label === 'Edition' && !details['Edition Information']) {
+        details['Edition Information'] = value;
       }
       return;
     }
@@ -235,9 +236,23 @@ function getDetailBullets() {
     }
   }
 
+  if ("Program Type" in details && !("Edition Format" in details)) {
+    if (details["Program Type"] == "Audiobook"){
+      details["Edition Format"] = "Audible";
+    } else {
+      details["Edition Format"] = details["Program Type"];
+    }
+    delete details["Program Type"];
+  }
+
+  if (typeof details["Listening Length"] === "string") {
+    details["Listening Length"] = details["Listening Length"].split("and").map(cleanText)
+  }
+
   return details;
 }
 
+// This might be deprecated
 function getAudibleDetails() {
   const table = document.querySelector('#audibleProductDetails table');
   if (!table) return {};
